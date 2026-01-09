@@ -1,0 +1,245 @@
+"use client"
+
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Slider } from "@/components/ui/slider"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { FadeIn } from "@/components/motion-wrapper"
+import { Search, SlidersHorizontal, MapPin } from "lucide-react"
+import { useState } from "react"
+
+export function ListingsFilters() {
+  const [priceRange, setPriceRange] = useState([0, 5000000])
+  const [showMobileFilters, setShowMobileFilters] = useState(false)
+
+  const FilterContent = () => (
+    <div className="space-y-6">
+      <div>
+        <label className="text-sm font-medium mb-2 block">Property Type</label>
+        <Select defaultValue="all">
+          <SelectTrigger>
+            <SelectValue placeholder="Select type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="apartment">Apartment</SelectItem>
+            <SelectItem value="house">House</SelectItem>
+            <SelectItem value="condo">Condo</SelectItem>
+            <SelectItem value="villa">Villa</SelectItem>
+            <SelectItem value="commercial">Commercial</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <label className="text-sm font-medium mb-2 block">Listing Type</label>
+        <Select defaultValue="all">
+          <SelectTrigger>
+            <SelectValue placeholder="Select listing type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Listings</SelectItem>
+            <SelectItem value="rent">For Rent</SelectItem>
+            <SelectItem value="sale">For Sale</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <label className="text-sm font-medium mb-2 block">Bedrooms</label>
+        <Select defaultValue="any">
+          <SelectTrigger>
+            <SelectValue placeholder="Select bedrooms" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="any">Any</SelectItem>
+            <SelectItem value="1">1+</SelectItem>
+            <SelectItem value="2">2+</SelectItem>
+            <SelectItem value="3">3+</SelectItem>
+            <SelectItem value="4">4+</SelectItem>
+            <SelectItem value="5">5+</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <label className="text-sm font-medium mb-2 block">Bathrooms</label>
+        <Select defaultValue="any">
+          <SelectTrigger>
+            <SelectValue placeholder="Select bathrooms" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="any">Any</SelectItem>
+            <SelectItem value="1">1+</SelectItem>
+            <SelectItem value="2">2+</SelectItem>
+            <SelectItem value="3">3+</SelectItem>
+            <SelectItem value="4">4+</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <label className="text-sm font-medium mb-4 block">
+          Price Range: ${priceRange[0].toLocaleString()} - ${priceRange[1].toLocaleString()}
+        </label>
+        <Slider
+          defaultValue={[0, 5000000]}
+          max={5000000}
+          step={50000}
+          value={priceRange}
+          onValueChange={setPriceRange}
+          className="mt-2"
+        />
+      </div>
+
+      <div>
+        <label className="text-sm font-medium mb-2 block">Status</label>
+        <Select defaultValue="all">
+          <SelectTrigger>
+            <SelectValue placeholder="Select status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="verified">Verified Only</SelectItem>
+            <SelectItem value="available">Available</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <Button className="w-full">Apply Filters</Button>
+    </div>
+  )
+
+  return (
+    <FadeIn className="mb-8">
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1">
+            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input placeholder="Search by location, city, or address..." className="pl-10 h-12" />
+          </div>
+          <Button size="lg" className="h-12 px-6 hidden sm:flex">
+            <Search className="h-5 w-5 mr-2" />
+            Search
+          </Button>
+          <Button size="lg" className="h-12 sm:hidden">
+            <Search className="h-5 w-5" />
+          </Button>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Showing <span className="font-semibold text-foreground">156</span> properties
+          </p>
+
+          <div className="flex items-center gap-2">
+            <Select defaultValue="newest">
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Newest First</SelectItem>
+                <SelectItem value="oldest">Oldest First</SelectItem>
+                <SelectItem value="price-low">Price: Low to High</SelectItem>
+                <SelectItem value="price-high">Price: High to Low</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Sheet open={showMobileFilters} onOpenChange={setShowMobileFilters}>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon" className="lg:hidden bg-transparent">
+                  <SlidersHorizontal className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-full sm:max-w-md">
+                <SheetHeader>
+                  <SheetTitle>Filters</SheetTitle>
+                </SheetHeader>
+                <div className="mt-6">
+                  <FilterContent />
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+        </div>
+      </div>
+
+      <div className="hidden lg:grid grid-cols-6 gap-4 mt-6 p-4 bg-muted/50 rounded-xl">
+        <Select defaultValue="all">
+          <SelectTrigger>
+            <SelectValue placeholder="Property Type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="apartment">Apartment</SelectItem>
+            <SelectItem value="house">House</SelectItem>
+            <SelectItem value="condo">Condo</SelectItem>
+            <SelectItem value="villa">Villa</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select defaultValue="all">
+          <SelectTrigger>
+            <SelectValue placeholder="Listing Type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Listings</SelectItem>
+            <SelectItem value="rent">For Rent</SelectItem>
+            <SelectItem value="sale">For Sale</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select defaultValue="any">
+          <SelectTrigger>
+            <SelectValue placeholder="Bedrooms" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="any">Any Beds</SelectItem>
+            <SelectItem value="1">1+ Bed</SelectItem>
+            <SelectItem value="2">2+ Beds</SelectItem>
+            <SelectItem value="3">3+ Beds</SelectItem>
+            <SelectItem value="4">4+ Beds</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select defaultValue="any">
+          <SelectTrigger>
+            <SelectValue placeholder="Bathrooms" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="any">Any Baths</SelectItem>
+            <SelectItem value="1">1+ Bath</SelectItem>
+            <SelectItem value="2">2+ Baths</SelectItem>
+            <SelectItem value="3">3+ Baths</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select defaultValue="any">
+          <SelectTrigger>
+            <SelectValue placeholder="Price Range" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="any">Any Price</SelectItem>
+            <SelectItem value="0-100000">$0 - $100K</SelectItem>
+            <SelectItem value="100000-500000">$100K - $500K</SelectItem>
+            <SelectItem value="500000-1000000">$500K - $1M</SelectItem>
+            <SelectItem value="1000000+">$1M+</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select defaultValue="all">
+          <SelectTrigger>
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="verified">Verified</SelectItem>
+            <SelectItem value="available">Available</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </FadeIn>
+  )
+}
