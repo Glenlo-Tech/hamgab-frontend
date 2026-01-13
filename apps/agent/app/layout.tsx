@@ -15,13 +15,31 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Agent Portal | HAMGAB",
-  description: "Manage your property listings and submissions.",
+  description: "Manage your property listings and grow your business",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "HAMGAB Agent",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  openGraph: {
+    type: "website",
+    siteName: "HAMGAB Agent Portal",
+    title: "Agent Portal | HAMGAB",
+    description: "Manage your property listings and grow your business",
+  },
 }
 
 export const viewport: Viewport = {
   themeColor: "#000000",
   width: "device-width",
   initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: "cover",
 }
 
 export default function RootLayout({

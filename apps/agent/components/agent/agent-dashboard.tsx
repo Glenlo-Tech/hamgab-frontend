@@ -151,66 +151,66 @@ export function AgentDashboard() {
   const unreadNotifications = notifications.filter((n) => !n.read).length
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-6 lg:space-y-8">
       <FadeIn>
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="flex flex-col gap-3 sm:gap-4">
           <div>
             <motion.h1
-              className="text-2xl lg:text-3xl font-bold tracking-tight"
+              className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight"
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
               Welcome back, Sarah
             </motion.h1>
-            <p className="text-muted-foreground mt-1">Here's your property management overview.</p>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">Here's your property management overview.</p>
           </div>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" className="relative bg-transparent">
-              <Bell className="h-5 w-5" />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Button variant="outline" size="icon" className="relative bg-transparent h-9 w-9 sm:h-10 sm:w-10">
+              <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
               {unreadNotifications > 0 && (
                 <motion.span
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center"
+                  className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-red-500 text-white text-[10px] sm:text-xs flex items-center justify-center"
                 >
                   {unreadNotifications}
                 </motion.span>
               )}
             </Button>
-            <Button asChild>
+            <Button asChild size="sm" className="h-9 sm:h-10">
               <Link href="/submit">
-                <Plus className="h-4 w-4 mr-2" />
-                Submit Property
+                <Plus className="h-4 w-4 mr-1.5 sm:mr-2" />
+                <span className="text-xs sm:text-sm">Submit Property</span>
               </Link>
             </Button>
           </div>
         </div>
       </FadeIn>
 
-      <StaggerContainer className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <StaggerContainer className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
         {stats.map((stat, index) => (
           <StaggerItem key={stat.label}>
             <PulseOnHover>
               <Card className="relative overflow-hidden group cursor-pointer">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className={cn("h-12 w-12 rounded-xl flex items-center justify-center text-white", stat.color)}>
-                      <stat.icon className="h-6 w-6" />
+                <CardContent className="p-3 sm:p-4 lg:p-6">
+                  <div className="flex items-center justify-between mb-2 sm:mb-3">
+                    <div className={cn("h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 rounded-lg sm:rounded-xl flex items-center justify-center text-white", stat.color)}>
+                      <stat.icon className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
                     </div>
                     <div
                       className={cn(
-                        "flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full",
+                        "flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs font-medium px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full",
                         stat.trendUp ? "text-emerald-700 bg-emerald-100" : "text-muted-foreground bg-muted",
                       )}
                     >
-                      {stat.trendUp ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-                      {stat.trend}
+                      {stat.trendUp ? <ArrowUpRight className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> : <ArrowDownRight className="h-2.5 w-2.5 sm:h-3 sm:w-3" />}
+                      <span className="hidden sm:inline">{stat.trend}</span>
                     </div>
                   </div>
-                  <div className="mt-4">
+                  <div className="mt-2 sm:mt-3 lg:mt-4">
                     <motion.span
-                      className="text-3xl font-bold"
+                      className="text-xl sm:text-2xl lg:text-3xl font-bold block"
                       initial={{ opacity: 0, scale: 0.5 }}
                       whileInView={{ opacity: 1, scale: 1 }}
                       viewport={{ once: true }}
@@ -218,7 +218,7 @@ export function AgentDashboard() {
                     >
                       {stat.value}
                     </motion.span>
-                    <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 line-clamp-2">{stat.label}</p>
                   </div>
                 </CardContent>
                 <div
