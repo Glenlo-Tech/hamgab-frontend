@@ -45,7 +45,7 @@ import { getAgentData } from "@/lib/auth"
 const stats = [
   { label: "Total Listings", value: 24, icon: Building2, trend: "+3", trendUp: true, color: "bg-blue-500" },
   { label: "Pending Approval", value: 5, icon: Clock, trend: "2 under review", trendUp: false, color: "bg-amber-500" },
-  { label: "This Month", value: "$12,450", icon: DollarSign, trend: "+18%", trendUp: true, color: "bg-emerald-500" },
+  { label: "This Month", value: "XAF 12,450", icon: DollarSign, trend: "+18%", trendUp: true, color: "bg-emerald-500" },
   { label: "Approval Rate", value: "79%", icon: CheckCircle2, trend: "+5%", trendUp: true, color: "bg-purple-500" },
 ]
 
@@ -88,7 +88,7 @@ const recentListings = [
     inquiries: 0,
     image: "/luxury-waterfront-villa-with-pool-miami-style.jpg",
     submittedAt: "Jan 7, 2026",
-    price: "$2,850,000",
+    price: "XAF 2,850,000",
   },
   {
     id: 3,
@@ -99,7 +99,7 @@ const recentListings = [
     inquiries: 8,
     image: "/cozy-modern-studio-apartment-minimalist-design.jpg",
     submittedAt: "Jan 3, 2026",
-    price: "$2,100/mo",
+    price: "XAF 2,100/mo",
   },
 ]
 
@@ -135,7 +135,7 @@ const notifications = [
 ]
 
 const goals = [
-  { label: "Monthly Target", current: 12450, target: 15000, unit: "$" },
+  { label: "Monthly Target", current: 12450, target: 15000, unit: "XAF" },
   { label: "New Listings", current: 7, target: 10, unit: "" },
   { label: "Client Meetings", current: 12, target: 15, unit: "" },
 ]
@@ -430,11 +430,11 @@ export function AgentDashboard() {
                       <YAxis 
                         className="text-[10px] sm:text-xs" 
                         tick={{ fontSize: 10 }}
-                        tickFormatter={(value) => `$${value / 1000}k`} 
+                        tickFormatter={(value) => `XAF ${value / 1000}k`} 
                         width={40}
                       />
                       <Tooltip
-                        formatter={(value: number) => [`$${value.toLocaleString()}`, "Earnings"]}
+                        formatter={(value: number) => [`XAF ${value.toLocaleString()}`, "Earnings"]}
                         contentStyle={{ 
                           background: "hsl(var(--background))", 
                           border: "1px solid hsl(var(--border))",
@@ -476,9 +476,9 @@ export function AgentDashboard() {
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                         <XAxis dataKey="month" className="text-xs" />
-                        <YAxis className="text-xs" tickFormatter={(value) => `$${value / 1000}k`} />
+                        <YAxis className="text-xs" tickFormatter={(value) => `XAF ${value / 1000}k`} />
                         <Tooltip
-                          formatter={(value: number) => [`$${value.toLocaleString()}`, "Earnings"]}
+                          formatter={(value: number) => [`XAF ${value.toLocaleString()}`, "Earnings"]}
                           contentStyle={{
                             background: "hsl(var(--background))",
                             border: "1px solid hsl(var(--border))",

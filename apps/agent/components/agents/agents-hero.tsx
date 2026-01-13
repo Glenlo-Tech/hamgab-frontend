@@ -88,7 +88,7 @@ export function AgentsHero() {
             <div className="absolute -bottom-6 -left-6 bg-card p-4 rounded-xl shadow-lg border border-border">
               <div className="flex items-center gap-3">
                 <div className="h-12 w-12 rounded-full bg-foreground flex items-center justify-center">
-                  <span className="text-background font-bold text-lg">$45K</span>
+                  <span className="text-background font-bold text-lg">XAF 45K</span>
                 </div>
                 <div>
                   <p className="font-semibold">Avg. Monthly Earnings</p>

@@ -13,7 +13,7 @@ const testimonials = [
     quote:
       "HAMGAB transformed my business. The quality of leads and the commission structure are unmatched. I've doubled my income in just 8 months.",
     rating: 5,
-    earnings: "$62K/month",
+    earnings: "XAF 62K/month",
   },
   {
     name: "Michael Chen",
@@ -23,7 +23,7 @@ const testimonials = [
     quote:
       "The verified listings feature alone saves me hours every week. No more wasted time on fake properties. The platform is a game-changer.",
     rating: 5,
-    earnings: "$78K/month",
+    earnings: "XAF 78K/month",
   },
   {
     name: "Emily Rodriguez",
@@ -33,7 +33,7 @@ const testimonials = [
     quote:
       "As a new agent, HAMGAB gave me the tools and support I needed to compete with established agents. The training resources are invaluable.",
     rating: 5,
-    earnings: "$35K/month",
+    earnings: "XAF 35K/month",
   },
 ]
 
