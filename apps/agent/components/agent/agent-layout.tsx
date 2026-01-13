@@ -24,7 +24,6 @@ interface AgentLayoutProps {
 }
 
 const navigationLinks = [
-  { href: "/", label: "Home", icon: Home, mobileLabel: "Home" },
   { href: "/dashboard", label: "Dashboard", icon: BarChart3, mobileLabel: "Dashboard" },
   { href: "/submit", label: "Submit", icon: Plus, mobileLabel: "Submit" },
   { href: "/listings", label: "Listings", icon: List, mobileLabel: "Listings" },
