@@ -5,13 +5,10 @@ const RUNTIME_CACHE = 'hamgab-agent-runtime-v1'
 const OFFLINE_PAGE = '/offline'
 
 // Assets to cache on install (static assets)
+// Note: Only cache essential static assets. Pages will be cached at runtime.
 const STATIC_ASSETS = [
-  '/',
-  '/dashboard',
-  '/listings',
-  '/profile',
-  '/submit',
   '/manifest.json',
+  '/offline', // Offline fallback page
   '/favicon_io/favicon.ico',
   '/favicon_io/favicon-16x16.png',
   '/favicon_io/favicon-32x32.png',
@@ -52,10 +49,18 @@ self.addEventListener('activate', (event) => {
             return caches.delete(cacheName)
           })
       )
+    }).then(() => {
+      // Take control of all pages immediately
+      return self.clients.claim()
     })
   )
-  // Take control of all pages immediately
-  return self.clients.claim()
+})
+
+// Listen for skip waiting message (for updates)
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting()
+  }
 })
 
 // Fetch event - implement caching strategies
