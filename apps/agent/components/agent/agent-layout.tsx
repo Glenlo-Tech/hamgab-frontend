@@ -18,18 +18,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Building2, LayoutDashboard, Plus, List, Settings, LogOut, Menu, Bell, ChevronDown, BarChart3, Home, User } from "lucide-react"
+import { Building2, LayoutDashboard, Plus, List, Settings, LogOut, Menu, Bell, ChevronDown, BarChart3, Home, User, Grid3x3, PlusCircle, UserCircle, Settings2 } from "lucide-react"
 
 interface AgentLayoutProps {
   children: React.ReactNode
 }
 
 const navigationLinks = [
-  { href: "/dashboard", label: "Dashboard", icon: BarChart3, mobileLabel: "Dashboard" },
-  { href: "/listings", label: "Listings", icon: List, mobileLabel: "Listings" },
-  { href: "/submit", label: "Submit", icon: Plus, mobileLabel: "Submit" },
-  { href: "/profile", label: "Profile", icon: User, mobileLabel: "Profile" },
-  { href: "/settings", label: "Settings", icon: Settings, mobileLabel: "Settings" },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, mobileLabel: "Dashboard" },
+  { href: "/listings", label: "Listings", icon: Grid3x3, mobileLabel: "Listings" },
+  { href: "/submit", label: "Submit", icon: PlusCircle, mobileLabel: "Submit" },
+  { href: "/profile", label: "Profile", icon: UserCircle, mobileLabel: "Profile" },
+  { href: "/settings", label: "Settings", icon: Settings2, mobileLabel: "Settings" },
 ]
 
 // Desktop Sidebar Component
@@ -162,7 +162,8 @@ function MobileBottomNav() {
                       "h-6 w-6 text-white relative z-10",
                       "drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]",
                       "transition-transform duration-300",
-                      "group-hover:scale-110 group-active:scale-95"
+                      "group-hover:scale-110 group-active:scale-95",
+                      "fill-white/20 stroke-[2.5]"
                     )} />
                     
                     {/* Pulsing ring effect when active */}
@@ -202,12 +203,12 @@ function MobileBottomNav() {
                     : "bg-muted/50 hover:bg-muted shadow-black/5 dark:shadow-black/20",
                   "before:absolute before:inset-0 before:rounded-xl before:bg-gradient-to-br before:from-white/30 before:to-transparent before:opacity-0 group-hover:before:opacity-100 before:transition-opacity before:duration-300"
                 )}>
-                  {/* Icon with shadow */}
+                  {/* Icon with shadow and stroke width for active state */}
                   <link.icon className={cn(
                     "h-5 w-5 relative z-10 transition-all duration-300",
                     isActive
-                      ? "text-primary drop-shadow-[0_2px_4px_rgba(var(--primary),0.3)] scale-110"
-                      : "text-muted-foreground group-hover:text-foreground group-hover:scale-110",
+                      ? "text-primary drop-shadow-[0_2px_4px_rgba(var(--primary),0.3)] scale-110 fill-primary/20 stroke-[2.5]"
+                      : "text-muted-foreground group-hover:text-foreground group-hover:scale-110 stroke-[1.5]",
                     "drop-shadow-[0_1px_2px_rgba(0,0,0,0.1)]"
                   )} />
                   
