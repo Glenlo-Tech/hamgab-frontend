@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  # Public Website (domain.com) - Development
+  public:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: public
+    container_name: propflow-public-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/public/.next
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_PUBLIC_URL=${NEXT_PUBLIC_PUBLIC_URL:-http://localhost:3000}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    command: pnpm --filter @propflow/public dev
+    restart: unless-stopped
+    networks:
+      - propflow-network
+
+  # Agent Portal (agent.domain.com) - Development
+  agent:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: agent
+    container_name: propflow-agent-dev
+    ports:
+      - "3001:3001"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/agent/.next
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_AGENT_URL=${NEXT_PUBLIC_AGENT_URL:-http://localhost:3001}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    command: pnpm --filter @propflow/agent dev
+    restart: unless-stopped
+    networks:
+      - propflow-network
+
+  # Admin Portal (admin.domain.com) - Development
+  admin:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: admin
+    container_name: propflow-admin-dev
+    ports:
+      - "3002:3002"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/admin/.next
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_ADMIN_URL=${NEXT_PUBLIC_ADMIN_URL:-http://localhost:3002}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    command: pnpm --filter @propflow/admin dev
+    restart: unless-stopped
+    networks:
+      - propflow-network
+
+networks:
+  propflow-network:
+    driver: bridge
+

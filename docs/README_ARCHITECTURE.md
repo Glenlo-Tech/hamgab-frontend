@@ -57,6 +57,19 @@ This guide provides industry-standard concepts and SOLID principles for building
    - Code review checklist
    - Quick wins
 
+4. **MULTI_DOMAIN_ARCHITECTURE.md** - Multi-domain architecture guide:
+   - Subdomain strategy (domain.com, agent.domain.com, admin.domain.com)
+   - Monorepo setup with Turborepo
+   - Cross-domain authentication
+   - Deployment strategies
+   - DNS and SSL configuration
+
+5. **MIGRATION_GUIDE.md** - Step-by-step migration plan:
+   - Monorepo setup
+   - Code migration steps
+   - Shared package creation
+   - Testing and deployment
+
 ---
 
 ## 🚀 Getting Started
@@ -308,11 +321,19 @@ Your frontend is production-ready when:
 
 ## 📚 Next Steps
 
+### For Frontend Optimization:
 1. Read **FRONTEND_ARCHITECTURE.md** for deep dive
 2. Review **IMPLEMENTATION_EXAMPLES.md** for code examples
 3. Follow **FRONTEND_CHECKLIST.md** for implementation
 4. Start with one component
 5. Measure and iterate
+
+### For Multi-Domain Setup:
+1. Read **MULTI_DOMAIN_ARCHITECTURE.md** for architecture overview
+2. Follow **MIGRATION_GUIDE.md** for step-by-step migration
+3. Set up monorepo structure
+4. Create shared packages
+5. Deploy each portal independently
 
 ---
 

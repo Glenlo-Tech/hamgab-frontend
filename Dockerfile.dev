@@ -1,0 +1,43 @@
+# Development Dockerfile (Multi-stage for all apps)
+FROM node:18-alpine AS base
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Install wget for healthchecks
+RUN apk add --no-cache wget
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY turbo.json ./
+COPY apps/public/package.json ./apps/public/
+COPY apps/agent/package.json ./apps/agent/
+COPY apps/admin/package.json ./apps/admin/
+COPY packages/types/package.json ./packages/types/
+COPY packages/utils/package.json ./packages/utils/
+COPY packages/hooks/package.json ./packages/hooks/
+
+# Install dependencies
+RUN pnpm install
+
+# Public app target
+FROM base AS public
+COPY . .
+EXPOSE 3000
+WORKDIR /app
+
+# Agent app target
+FROM base AS agent
+COPY . .
+EXPOSE 3001
+WORKDIR /app
+
+# Admin app target
+FROM base AS admin
+COPY . .
+EXPOSE 3002
+WORKDIR /app
+
