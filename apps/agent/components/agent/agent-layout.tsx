@@ -3,8 +3,10 @@
 import type React from "react"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
+import { isAuthenticated, getAgentData, logoutAgent } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -17,7 +19,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Building2, LayoutDashboard, Plus, List, Settings, LogOut, Menu, Bell, ChevronDown, BarChart3, Home } from "lucide-react"
-import { useState } from "react"
 
 interface AgentLayoutProps {
   children: React.ReactNode
@@ -154,10 +155,16 @@ function MobileSidebarSheet({ open, onOpenChange }: { open: boolean; onOpenChang
           <div className="p-4 border-t border-border">
             <div className="flex items-center gap-3 px-3 py-2">
               <Avatar className="h-9 w-9">
-                <AvatarFallback>SJ</AvatarFallback>
+                <AvatarFallback>
+                  {getAgentData()?.fullName
+                    ?.split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase() || "A"}
+                </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">Sarah Johnson</p>
+                <p className="text-sm font-medium truncate">{getAgentData()?.fullName || "Agent"}</p>
                 <p className="text-xs text-muted-foreground truncate">Licensed Agent</p>
               </div>
             </div>
@@ -169,7 +176,30 @@ function MobileSidebarSheet({ open, onOpenChange }: { open: boolean; onOpenChang
 }
 
 export function AgentLayout({ children }: AgentLayoutProps) {
+  const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const agent = getAgentData()
+
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push("/")
+    } else {
+      setIsLoading(false)
+    }
+  }, [router])
+
+  const handleLogout = () => {
+    logoutAgent()
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -208,9 +238,17 @@ export function AgentLayout({ children }: AgentLayoutProps) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="gap-2 h-9 px-2 lg:px-3">
                 <Avatar className="h-7 w-7 lg:h-8 lg:w-8">
-                  <AvatarFallback className="text-xs">SJ</AvatarFallback>
+                  <AvatarFallback className="text-xs">
+                    {agent?.fullName
+                      ?.split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase() || "A"}
+                  </AvatarFallback>
                 </Avatar>
-                <span className="hidden sm:inline text-sm">Sarah</span>
+                <span className="hidden sm:inline text-sm">
+                  {agent?.fullName?.split(" ")[0] || "Agent"}
+                </span>
                 <ChevronDown className="h-4 w-4 hidden sm:inline" />
               </Button>
             </DropdownMenuTrigger>
@@ -220,7 +258,7 @@ export function AgentLayout({ children }: AgentLayoutProps) {
                 Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive">
+              <DropdownMenuItem className="text-destructive" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign Out
               </DropdownMenuItem>
