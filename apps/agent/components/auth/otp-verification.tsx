@@ -164,31 +164,35 @@ export function OTPVerification() {
   }
 
   return (
-    <div className="flex flex-col h-screen w-full bg-background">
+    <div className="flex flex-col h-screen w-full bg-gradient-to-b from-background to-muted/20">
       {/* Header */}
-      <div className="flex flex-col items-center justify-center pt-16 pb-8 px-6">
-        <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
-          <Building2 className="w-10 h-10 text-primary" />
+      <div className="flex flex-col items-center justify-center pt-20 pb-10 px-6">
+        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500/10 to-blue-600/5 flex items-center justify-center mb-6 shadow-lg shadow-blue-500/5">
+          <Building2 className="w-10 h-10 text-blue-600" />
         </div>
-        <h1 className="text-3xl font-bold mb-2">Verify Your Email</h1>
-        <p className="text-muted-foreground text-center">
+        <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
+          Verify Your Email
+        </h1>
+        <p className="text-muted-foreground text-center text-base">
           We've sent a 6-digit code to
         </p>
-        <p className="text-muted-foreground font-medium mt-1">{email}</p>
+        <p className="text-blue-600 font-semibold mt-1">{email}</p>
       </div>
 
       {/* Form */}
-      <div className="flex-1 px-6 pb-safe-bottom">
+      <div className="flex-1 px-6 pb-safe-bottom overflow-y-auto">
         <form onSubmit={handleSubmit} className="max-w-md mx-auto w-full space-y-6">
           {error && (
-            <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
-              <p className="text-sm text-destructive">{error}</p>
+            <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 backdrop-blur-sm">
+              <p className="text-sm text-destructive font-medium">{error}</p>
             </div>
           )}
 
           {/* OTP Input */}
-          <div className="space-y-3">
-            <Label>Enter Verification Code</Label>
+          <div className="space-y-4">
+            <Label className="text-sm font-medium text-foreground text-center block">
+              Enter Verification Code
+            </Label>
             <div className="flex items-center justify-center gap-2 sm:gap-3">
               {otp.map((digit, index) => (
                 <Input
@@ -203,7 +207,7 @@ export function OTPVerification() {
                   onChange={(e) => handleOtpChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
                   onPaste={handlePaste}
-                  className="w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-semibold"
+                  className="w-14 h-16 sm:w-16 sm:h-18 text-center text-2xl font-bold tracking-wider"
                   disabled={isLoading}
                   autoFocus={index === 0}
                 />
@@ -215,10 +219,10 @@ export function OTPVerification() {
           </div>
 
           {/* Resend OTP */}
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex items-center justify-center gap-2 flex-wrap">
             <p className="text-sm text-muted-foreground">Didn't receive the code?</p>
             {countdown > 0 ? (
-              <span className="text-sm text-muted-foreground">
+              <span className="text-sm font-medium text-blue-600">
                 Resend in {countdown}s
               </span>
             ) : (
@@ -228,7 +232,7 @@ export function OTPVerification() {
                 size="sm"
                 onClick={handleResendOTP}
                 disabled={isResending || isLoading}
-                className="h-auto p-0 text-primary"
+                className="h-auto p-0 text-blue-600 font-semibold hover:text-blue-700 transition-colors"
               >
                 {isResending ? (
                   <>
@@ -248,7 +252,7 @@ export function OTPVerification() {
           {/* Submit button */}
           <Button
             type="submit"
-            className="w-full"
+            className="w-full h-11 text-base font-semibold bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-200"
             size="lg"
             disabled={isLoading || otp.join("").length !== OTP_LENGTH}
           >

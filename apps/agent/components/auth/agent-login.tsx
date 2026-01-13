@@ -42,39 +42,43 @@ export function AgentLogin() {
   }
 
   return (
-    <div className="flex flex-col h-screen w-full bg-background">
+    <div className="flex flex-col h-screen w-full bg-gradient-to-b from-background to-muted/20">
       {/* Header */}
-      <div className="flex flex-col items-center justify-center pt-16 pb-8 px-6">
-        <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
-          <Building2 className="w-10 h-10 text-primary" />
+      <div className="flex flex-col items-center justify-center pt-20 pb-10 px-6">
+        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500/10 to-blue-600/5 flex items-center justify-center mb-6 shadow-lg shadow-blue-500/5">
+          <Building2 className="w-10 h-10 text-blue-600" />
         </div>
-        <h1 className="text-3xl font-bold mb-2">Welcome Back</h1>
-        <p className="text-muted-foreground text-center">
+        <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
+          Welcome Back
+        </h1>
+        <p className="text-muted-foreground text-center text-base">
           Sign in to your agent account
         </p>
       </div>
 
       {/* Form */}
-      <div className="flex-1 px-6 pb-safe-bottom">
-        <form onSubmit={handleSubmit} className="max-w-md mx-auto w-full space-y-6">
+      <div className="flex-1 px-6 pb-safe-bottom overflow-y-auto">
+        <form onSubmit={handleSubmit} className="max-w-md mx-auto w-full space-y-5">
           {error && (
-            <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
-              <p className="text-sm text-destructive">{error}</p>
+            <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 backdrop-blur-sm">
+              <p className="text-sm text-destructive font-medium">{error}</p>
             </div>
           )}
 
           {/* Email */}
-          <div className="space-y-2">
-            <Label htmlFor="email">Email Address</Label>
+          <div className="space-y-2.5">
+            <Label htmlFor="email" className="text-sm font-medium text-foreground">
+              Email Address
+            </Label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Mail className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
               <Input
                 id="email"
                 type="email"
                 placeholder="agent@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="pl-10"
+                className="pl-11 h-11"
                 required
                 disabled={isLoading}
                 autoComplete="email"
@@ -83,17 +87,19 @@ export function AgentLogin() {
           </div>
 
           {/* Password */}
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+          <div className="space-y-2.5">
+            <Label htmlFor="password" className="text-sm font-medium text-foreground">
+              Password
+            </Label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Lock className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pl-10 pr-10"
+                className="pl-11 pr-11 h-11"
                 required
                 disabled={isLoading}
                 autoComplete="current-password"
@@ -101,7 +107,7 @@ export function AgentLogin() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="absolute right-3.5 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-muted/50"
                 tabIndex={-1}
               >
                 {showPassword ? (
@@ -114,10 +120,10 @@ export function AgentLogin() {
           </div>
 
           {/* Forgot password */}
-          <div className="flex justify-end">
+          <div className="flex justify-end pt-1">
             <Link
               href="/auth/forgot-password"
-              className="text-sm text-primary hover:underline"
+              className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
             >
               Forgot password?
             </Link>
@@ -126,7 +132,7 @@ export function AgentLogin() {
           {/* Submit button */}
           <Button
             type="submit"
-            className="w-full"
+            className="w-full h-11 text-base font-semibold bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-200"
             size="lg"
             disabled={isLoading || !email || !password}
           >
@@ -141,10 +147,10 @@ export function AgentLogin() {
           </Button>
 
           {/* Sign up link */}
-          <div className="text-center pt-4">
+          <div className="text-center pt-6">
             <p className="text-sm text-muted-foreground">
               Don't have an account?{" "}
-              <Link href="/auth/signup" className="text-primary font-medium hover:underline">
+              <Link href="/auth/signup" className="text-blue-600 font-semibold hover:text-blue-700 transition-colors">
                 Sign up
               </Link>
             </p>
