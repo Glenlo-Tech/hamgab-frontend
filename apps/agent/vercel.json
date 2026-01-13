@@ -1,0 +1,7 @@
+{
+  "installCommand": "cd ../.. && pnpm install",
+  "buildCommand": "cd ../.. && pnpm --filter @propflow/agent build",
+  "devCommand": "cd ../.. && pnpm --filter @propflow/agent dev",
+  "framework": "nextjs"
+}
+
