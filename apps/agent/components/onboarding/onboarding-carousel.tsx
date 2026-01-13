@@ -5,6 +5,7 @@ import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-mo
 import { Button } from "@/components/ui/button"
 import { Building2, TrendingUp, Shield, ChevronRight, ChevronLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
+import Image from "next/image"
 
 interface OnboardingCarouselProps {
   onComplete: () => void
@@ -124,7 +125,13 @@ export function OnboardingCarousel({ onComplete }: OnboardingCarouselProps) {
                   currentData.bgGradient
                 )}
               >
-                <Icon className={cn("w-16 h-16", currentData.color)} />
+                {/* <Icon className={cn("w-16 h-16", currentData.color)} /> */}
+                <Image
+                  src="/favicon_io/android-chrome-512x512.png" 
+                  alt="hamgab logo"
+                  width="512"
+                  height="512"
+                />
               </div>
 
               {/* Title */}
@@ -142,16 +149,17 @@ export function OnboardingCarousel({ onComplete }: OnboardingCarouselProps) {
       {/* Bottom section with dots and buttons */}
       <div className="pb-safe-bottom px-6 pb-8 space-y-6">
         {/* Dots indicator */}
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center justify-center gap-1.5 sm:gap-2">
           {onboardingSteps.map((_, index) => (
             <button
               key={index}
               onClick={() => goToStep(index)}
               className={cn(
-                "h-2 rounded-full transition-all duration-300",
+                "rounded-full transition-[width,background-color] duration-300 ease-in-out",
+                "h-1 sm:h-2",
                 index === currentStep
-                  ? "w-8 bg-primary"
-                  : "w-2 bg-muted-foreground/30"
+                  ? "w-5 sm:w-8 bg-primary"
+                  : "w-1 sm:w-2 bg-muted-foreground/30"
               )}
               aria-label={`Go to step ${index + 1}`}
             />

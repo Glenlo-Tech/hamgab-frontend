@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Building2, Mail, Loader2, ArrowLeft, RefreshCw } from "lucide-react"
 import { verifyOTP, resendOTP, getPendingVerificationEmail } from "@/lib/auth"
 import { ApiClientError } from "@/lib/api-client"
+import Image from "next/image"
 
 const OTP_LENGTH = 6
 const RESEND_COOLDOWN = 60 // 60 seconds
@@ -174,7 +175,13 @@ export function OTPVerification() {
       {/* Header */}
       <div className="flex flex-col items-center justify-center pt-20 pb-10 px-6">
         <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500/10 to-blue-600/5 flex items-center justify-center mb-6 shadow-lg shadow-blue-500/5">
-          <Building2 className="w-10 h-10 text-blue-600" />
+          {/* <Building2 className="w-10 h-10 text-blue-600" /> */}
+          <Image
+            src="/favicon_io/android-chrome-512x512.png" 
+            alt="hamgab logo"
+            width="512"
+            height="512"
+          />
         </div>
         <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
           Verify Your Email
