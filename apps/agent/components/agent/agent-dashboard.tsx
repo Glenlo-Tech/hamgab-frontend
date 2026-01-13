@@ -166,18 +166,6 @@ export function AgentDashboard() {
             <p className="text-sm sm:text-base text-muted-foreground mt-1">Here's your property management overview.</p>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
-            <Button variant="outline" size="icon" className="relative bg-transparent h-9 w-9 sm:h-10 sm:w-10">
-              <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
-              {unreadNotifications > 0 && (
-                <motion.span
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-red-500 text-white text-[10px] sm:text-xs flex items-center justify-center"
-                >
-                  {unreadNotifications}
-                </motion.span>
-              )}
-            </Button>
             <Button asChild size="sm" className="h-9 sm:h-10">
               <Link href="/submit">
                 <Plus className="h-4 w-4 mr-1.5 sm:mr-2" />
@@ -231,41 +219,49 @@ export function AgentDashboard() {
       </StaggerContainer>
 
       <FadeIn delay={0.1}>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="goals">Goals</TabsTrigger>
-            <TabsTrigger value="notifications">
-              Alerts
-              {unreadNotifications > 0 && (
-                <Badge
-                  variant="secondary"
-                  className="ml-2 bg-red-100 text-red-800 h-5 min-w-5 flex items-center justify-center"
-                >
-                  {unreadNotifications}
-                </Badge>
-              )}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
+          <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid h-auto p-1">
+            <TabsTrigger value="overview" className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2">
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2">
+              Analytics
+            </TabsTrigger>
+            <TabsTrigger value="goals" className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2">
+              Goals
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2">
+              <span className="flex items-center gap-1 sm:gap-2">
+                Alerts
+                {unreadNotifications > 0 && (
+                  <Badge
+                    variant="secondary"
+                    className="bg-red-100 text-red-800 h-4 w-4 sm:h-5 sm:w-5 sm:min-w-5 p-0 flex items-center justify-center text-[10px] sm:text-xs"
+                  >
+                    {unreadNotifications}
+                  </Badge>
+                )}
+              </span>
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-6 mt-6">
-            <div className="grid lg:grid-cols-3 gap-6">
-              <Card className="lg:col-span-2">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <div>
-                    <CardTitle>Recent Listings</CardTitle>
-                    <CardDescription>Your recently submitted properties</CardDescription>
+          <TabsContent value="overview" className="space-y-4 sm:space-y-6 mt-4 sm:mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+              <Card className="lg:col-span-2 overflow-hidden">
+                <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 pb-3 sm:pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
+                  <div className="min-w-0 flex-1">
+                    <CardTitle className="text-lg sm:text-xl">Recent Listings</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">Your recently submitted properties</CardDescription>
                   </div>
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link href="/listings">
+                  <Button variant="ghost" size="sm" asChild className="self-start sm:self-auto">
+                    <Link href="/listings" className="text-xs sm:text-sm">
                       View All
-                      <ArrowRight className="h-4 w-4 ml-1" />
+                      <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1" />
                     </Link>
                   </Button>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
+                <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+                  <div className="space-y-2 sm:space-y-3">
                     {recentListings.map((listing, index) => (
                       <motion.div
                         key={listing.id}
@@ -273,9 +269,9 @@ export function AgentDashboard() {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.1 }}
                         onClick={() => setSelectedListing(listing)}
-                        className="flex items-center gap-4 p-3 rounded-xl hover:bg-muted transition-all cursor-pointer group"
+                        className="flex items-center gap-2 sm:gap-3 lg:gap-4 p-2.5 sm:p-3 rounded-lg sm:rounded-xl hover:bg-muted transition-all cursor-pointer group"
                       >
-                        <div className="relative h-16 w-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                        <div className="relative h-14 w-16 sm:h-16 sm:w-20 rounded-md sm:rounded-lg overflow-hidden bg-muted flex-shrink-0">
                           <Image
                             src={listing.image || "/placeholder.svg"}
                             alt={listing.title}
@@ -283,20 +279,20 @@ export function AgentDashboard() {
                             className="object-cover group-hover:scale-110 transition-transform duration-300"
                           />
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">{listing.title}</p>
-                          <p className="text-sm text-muted-foreground">{listing.address}</p>
-                          <div className="flex items-center gap-3 mt-1">
-                            <span className="text-xs font-medium">{listing.price}</span>
+                        <div className="flex-1 min-w-0 overflow-hidden">
+                          <p className="font-medium text-sm sm:text-base truncate">{listing.title}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground truncate">{listing.address}</p>
+                          <div className="flex items-center gap-2 sm:gap-3 mt-0.5 sm:mt-1 flex-wrap">
+                            <span className="text-[10px] sm:text-xs font-medium">{listing.price}</span>
                             {listing.views > 0 && (
-                              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                <Eye className="h-3 w-3" />
+                              <span className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-0.5 sm:gap-1">
+                                <Eye className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                                 {listing.views}
                               </span>
                             )}
                             {listing.inquiries > 0 && (
-                              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                <MessageSquare className="h-3 w-3" />
+                              <span className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-0.5 sm:gap-1">
+                                <MessageSquare className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                                 {listing.inquiries}
                               </span>
                             )}
@@ -305,6 +301,7 @@ export function AgentDashboard() {
                         <Badge
                           variant="secondary"
                           className={cn(
+                            "flex-shrink-0 text-[10px] sm:text-xs px-2 py-0.5 sm:px-2.5 sm:py-1",
                             listing.status === "Approved" && "bg-emerald-100 text-emerald-800",
                             listing.status === "Pending" && "bg-amber-100 text-amber-800",
                           )}
@@ -317,28 +314,28 @@ export function AgentDashboard() {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Award className="h-5 w-5" />
+              <Card className="overflow-hidden">
+                <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4">
+                  <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                    <Award className="h-4 w-4 sm:h-5 sm:w-5" />
                     Top Performers
                   </CardTitle>
-                  <CardDescription>Your best performing listings</CardDescription>
+                  <CardDescription className="text-xs sm:text-sm">Your best performing listings</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
+                <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+                  <div className="space-y-3 sm:space-y-4">
                     {topPerformers.map((listing, index) => (
                       <motion.div
                         key={listing.id}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className="p-3 rounded-xl bg-muted/50"
+                        className="p-2.5 sm:p-3 rounded-lg sm:rounded-xl bg-muted/50"
                       >
                         <div className="flex items-center gap-2 mb-2">
                           <span
                             className={cn(
-                              "h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold text-white",
+                              "h-5 w-5 sm:h-6 sm:w-6 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-bold text-white flex-shrink-0",
                               index === 0 && "bg-amber-500",
                               index === 1 && "bg-zinc-400",
                               index === 2 && "bg-amber-700",
@@ -346,20 +343,20 @@ export function AgentDashboard() {
                           >
                             {index + 1}
                           </span>
-                          <p className="font-medium text-sm truncate">{listing.title}</p>
+                          <p className="font-medium text-xs sm:text-sm truncate min-w-0">{listing.title}</p>
                         </div>
-                        <div className="grid grid-cols-3 gap-2 text-center">
+                        <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-center">
                           <div>
-                            <p className="text-lg font-bold">{listing.views}</p>
-                            <p className="text-xs text-muted-foreground">Views</p>
+                            <p className="text-base sm:text-lg font-bold">{listing.views}</p>
+                            <p className="text-[10px] sm:text-xs text-muted-foreground">Views</p>
                           </div>
                           <div>
-                            <p className="text-lg font-bold">{listing.inquiries}</p>
-                            <p className="text-xs text-muted-foreground">Inquiries</p>
+                            <p className="text-base sm:text-lg font-bold">{listing.inquiries}</p>
+                            <p className="text-[10px] sm:text-xs text-muted-foreground">Inquiries</p>
                           </div>
                           <div>
-                            <p className="text-lg font-bold text-emerald-600">{listing.conversion}</p>
-                            <p className="text-xs text-muted-foreground">Conv.</p>
+                            <p className="text-base sm:text-lg font-bold text-emerald-600">{listing.conversion}</p>
+                            <p className="text-[10px] sm:text-xs text-muted-foreground">Conv.</p>
                           </div>
                         </div>
                       </motion.div>
@@ -369,18 +366,18 @@ export function AgentDashboard() {
               </Card>
             </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" />
+            <Card className="overflow-hidden">
+              <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4">
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                  <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5" />
                   Earnings Overview
                 </CardTitle>
-                <CardDescription>Your commission earnings over time</CardDescription>
+                <CardDescription className="text-xs sm:text-sm">Your commission earnings over time</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="h-[200px]">
+              <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+                <div className="h-[180px] sm:h-[200px] lg:h-[250px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={earningsData}>
+                    <AreaChart data={earningsData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
                       <defs>
                         <linearGradient id="colorEarnings" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
@@ -388,11 +385,27 @@ export function AgentDashboard() {
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                      <XAxis dataKey="month" className="text-xs" />
-                      <YAxis className="text-xs" tickFormatter={(value) => `$${value / 1000}k`} />
+                      <XAxis 
+                        dataKey="month" 
+                        className="text-[10px] sm:text-xs" 
+                        tick={{ fontSize: 10 }}
+                        interval="preserveStartEnd"
+                      />
+                      <YAxis 
+                        className="text-[10px] sm:text-xs" 
+                        tick={{ fontSize: 10 }}
+                        tickFormatter={(value) => `$${value / 1000}k`} 
+                        width={40}
+                      />
                       <Tooltip
                         formatter={(value: number) => [`$${value.toLocaleString()}`, "Earnings"]}
-                        contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))" }}
+                        contentStyle={{ 
+                          background: "hsl(var(--background))", 
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: "0.5rem",
+                          fontSize: "12px",
+                          padding: "8px"
+                        }}
                       />
                       <Area
                         type="monotone"
