@@ -172,7 +172,7 @@ export async function registerAgent(data: {
  * Verify OTP
  * Note: Response structure may vary - adjust based on actual API response
  */
-export async function verifyOTP(email: string, otpCode: string): Promise<LoginResponse> {
+export async function verifyOTP(email: string, otpCode: string): Promise<{ verified: boolean }> {
   try {
     const response = await apiClient.post<any>(
       "/api/v1/auth/verify-otp",
@@ -186,35 +186,46 @@ export async function verifyOTP(email: string, otpCode: string): Promise<LoginRe
       throw new ApiClientError(response.message || "OTP verification failed")
     }
 
-    // Handle different possible response structures
     const data = response.data
-    let token: string
-    let agent: Agent
 
-    // If token and agent are directly in data
-    if (data.token && data.agent) {
-      token = data.token
-      agent = data.agent
-    }
-    // If token is separate and agent data is in data
-    else if (data.token) {
-      token = data.token
-      agent = mapAgentData(data)
-    }
-    // If response structure is different
-    else {
-      throw new ApiClientError("Invalid OTP verification response format")
+    // Handle response with verified flag (user needs to login after OTP verification)
+    if (data.verified === true) {
+      // Clear pending verification email
+      if (typeof window !== "undefined") {
+        localStorage.removeItem(PENDING_VERIFICATION_EMAIL_KEY)
+      }
+      return { verified: true }
     }
 
-    // Store auth data
-    setAuthData(token, agent)
+    // Handle response with token (auto-login after OTP verification)
+    if (data.token) {
+      let token: string
+      let agent: Agent
 
-    // Clear pending verification email
-    if (typeof window !== "undefined") {
-      localStorage.removeItem(PENDING_VERIFICATION_EMAIL_KEY)
+      // If token and agent are directly in data
+      if (data.agent) {
+        token = data.token
+        agent = data.agent
+      }
+      // If token is separate and agent data is in data
+      else {
+        token = data.token
+        agent = mapAgentData(data)
+      }
+
+      // Store auth data
+      setAuthData(token, agent)
+
+      // Clear pending verification email
+      if (typeof window !== "undefined") {
+        localStorage.removeItem(PENDING_VERIFICATION_EMAIL_KEY)
+      }
+
+      return { verified: true }
     }
 
-    return { token, agent }
+    // If response structure doesn't match expected formats
+    throw new ApiClientError("Invalid OTP verification response format")
   } catch (error) {
     if (error instanceof ApiClientError) {
       throw error
@@ -271,19 +282,52 @@ export async function loginAgent(
     let token: string
     let agent: Agent
 
-    // If token and agent are directly in data
-    if (data.token && data.agent) {
-      token = data.token
-      agent = data.agent
+    const authToken = data.access_token || data.token
+
+    if (!authToken) {
+      throw new ApiClientError("No authentication token received")
     }
-    // If token is separate and agent data is in data
-    else if (data.token) {
-      token = data.token
+
+    token = authToken
+
+    // If agent data is provided in response
+    if (data.agent) {
+      agent = mapAgentData(data.agent)
+    } else if (data.id || data.email) {
+      // If agent data is at root level
       agent = mapAgentData(data)
-    }
-    // If response structure is different
-    else {
-      throw new ApiClientError("Invalid login response format")
+    } else {
+      // No agent data in response, try to fetch it
+      // Store token first so we can make authenticated requests
+      if (typeof window !== "undefined") {
+        localStorage.setItem(AUTH_TOKEN_KEY, token)
+      }
+
+      try {
+        //Fetch agent profile
+        const profileResponse = await apiClient.get<any>("/api/v1/auth/me")
+        if (profileResponse.success && profileResponse.data) {
+          agent = mapAgentData(profileResponse.data)
+        } else {
+          // Fallback: create minimal agent object with email
+          agent = {
+            id: "",
+            fullName: "",
+            email: email,
+            phone: "",
+            role: "AGENT",
+          }
+        }
+      } catch {
+        // If fetching profile fails, create minimal agent object
+        agent = {
+          id: "",
+          fullName: "",
+          email: email,
+          phone: "",
+          role: "AGENT",
+        }
+      }
     }
 
     // Store auth data

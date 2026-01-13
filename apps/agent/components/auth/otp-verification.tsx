@@ -40,7 +40,13 @@ export function OTPVerification() {
       )
       if (timeSinceLastResend < RESEND_COOLDOWN) {
         setCountdown(RESEND_COOLDOWN - timeSinceLastResend)
+      } else {
+        // Cooldown has passed, set to 0
+        setCountdown(0)
       }
+    } else {
+      // First time on this page, start countdown
+      setCountdown(RESEND_COOLDOWN)
     }
   }, [router])
 
@@ -117,8 +123,8 @@ export function OTPVerification() {
 
     try {
       await verifyOTP(email, otpCode)
-      // Redirect to dashboard on success
-      router.push("/dashboard")
+      // Redirect to login page after successful OTP verification
+      router.push("/auth/login")
     } catch (err) {
       if (err instanceof ApiClientError) {
         setError(err.message)
@@ -219,7 +225,7 @@ export function OTPVerification() {
           </div>
 
           {/* Resend OTP */}
-          <div className="flex items-center justify-center gap-2 flex-wrap">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 flex-wrap">
             <p className="text-sm text-muted-foreground">Didn't receive the code?</p>
             {countdown > 0 ? (
               <span className="text-sm font-medium text-blue-600">
@@ -231,12 +237,12 @@ export function OTPVerification() {
                 variant="link"
                 size="sm"
                 onClick={handleResendOTP}
-                disabled={isResending || isLoading}
-                className="h-auto p-0 text-blue-600 font-semibold hover:text-blue-700 transition-colors"
+                disabled={isResending || isLoading || countdown > 0}
+                className="h-auto p-0 text-blue-600 font-semibold hover:text-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isResending ? (
                   <>
-                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    <Loader2 className="w-3 h-3 animate-spin" />
                     Sending...
                   </>
                 ) : (
