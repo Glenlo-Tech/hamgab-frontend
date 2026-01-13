@@ -392,10 +392,10 @@ export function PropertySubmissionForm() {
                     </label>
                     <Textarea
                       placeholder="Describe the property in detail... Include key features, nearby amenities, and what makes this property special."
-                      rows={5}
+                      rows={8}
                       value={formData.description}
                       onChange={(e) => handleFieldChange("description", e.target.value)}
-                      className="resize-none"
+                      className="resize-none placeholder:text-xs placeholder:sm:text-sm min-h-[150px]"
                     />
                     <div className="flex items-center justify-between">
                       <p className="text-xs text-muted-foreground">Be detailed to attract more inquiries</p>
@@ -430,7 +430,7 @@ export function PropertySubmissionForm() {
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="text-sm font-medium flex items-center gap-1.5">
-                        Street Address
+                        Address
                         <span className="text-destructive">*</span>
                       </label>
                       <Input
@@ -440,7 +440,7 @@ export function PropertySubmissionForm() {
                         className="h-10 sm:h-11"
                       />
                     </div>
-                    <div className="space-y-2">
+                    {/* <div className="space-y-2">
                       <label className="text-sm font-medium">Apt/Suite/Unit</label>
                       <Input
                         placeholder="Apt 4B (optional)"
@@ -448,8 +448,33 @@ export function PropertySubmissionForm() {
                         onChange={(e) => handleFieldChange("unit", e.target.value)}
                         className="h-10 sm:h-11"
                       />
-                    </div>
+                    </div> */}
                   </div>
+
+                  <div className="space-y-2">
+                      <label className="text-sm font-medium flex items-center gap-1.5">
+                        Region
+                        <span className="text-destructive">*</span>
+                      </label>
+                      <Select value={formData.state} onValueChange={(value) => handleFieldChange("state", value)}>
+                        <SelectTrigger className="h-10 sm:h-11">
+                          <SelectValue placeholder="Select Region" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="SW">South West</SelectItem>
+                          <SelectItem value="NW">North West</SelectItem>
+                          <SelectItem value="L">Littoral</SelectItem>
+                          <SelectItem value="FN">Far North</SelectItem>
+                          <SelectItem value="N">North</SelectItem>
+                          <SelectItem value="A">Adamawa</SelectItem>
+                          <SelectItem value="C">Center</SelectItem>
+                          <SelectItem value="E">East</SelectItem>
+                          <SelectItem value="S">South</SelectItem>
+                          <SelectItem value="W">West</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
                   <div className="grid sm:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <label className="text-sm font-medium flex items-center gap-1.5">
@@ -457,30 +482,14 @@ export function PropertySubmissionForm() {
                         <span className="text-destructive">*</span>
                       </label>
                       <Input
-                        placeholder="New York"
+                        placeholder="Buea"
                         value={formData.city}
                         onChange={(e) => handleFieldChange("city", e.target.value)}
                         className="h-10 sm:h-11"
                       />
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium flex items-center gap-1.5">
-                        State
-                        <span className="text-destructive">*</span>
-                      </label>
-                      <Select value={formData.state} onValueChange={(value) => handleFieldChange("state", value)}>
-                        <SelectTrigger className="h-10 sm:h-11">
-                          <SelectValue placeholder="Select state" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="ny">New York</SelectItem>
-                          <SelectItem value="ca">California</SelectItem>
-                          <SelectItem value="tx">Texas</SelectItem>
-                          <SelectItem value="fl">Florida</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
+                    
+                    {/* <div className="space-y-2">
                       <label className="text-sm font-medium flex items-center gap-1.5">
                         ZIP Code
                         <span className="text-destructive">*</span>
@@ -491,7 +500,7 @@ export function PropertySubmissionForm() {
                         onChange={(e) => handleFieldChange("zipCode", e.target.value)}
                         className="h-10 sm:h-11"
                       />
-                    </div>
+                    </div> */}
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Neighborhood/Area</label>
