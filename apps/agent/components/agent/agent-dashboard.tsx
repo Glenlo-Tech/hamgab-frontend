@@ -77,7 +77,7 @@ const recentListings = [
     inquiries: 12,
     image: "/modern-downtown-loft-apartment-with-city-view.jpg",
     submittedAt: "Jan 5, 2026",
-    price: "$4,500/mo",
+    price: "XAF4,500/mo",
   },
   {
     id: 2,
@@ -756,18 +756,20 @@ export function AgentDashboard() {
                   {selectedListing.status}
                 </Badge>
               </div>
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div className="p-4 bg-muted rounded-xl">
-                  <p className="text-2xl font-bold">{selectedListing.views}</p>
+              <div className="grid grid-cols-2 gap-4 text-center">
+                <div className="p-4 bg-muted rounded-xl min-w-0">
+                  <p className="text-xl sm:text-2xl font-bold truncate">{selectedListing.views}</p>
                   <p className="text-sm text-muted-foreground">Views</p>
                 </div>
-                <div className="p-4 bg-muted rounded-xl">
-                  <p className="text-2xl font-bold">{selectedListing.inquiries}</p>
+                <div className="p-4 bg-muted rounded-xl min-w-0">
+                  <p className="text-xl sm:text-2xl font-bold truncate">{selectedListing.inquiries}</p>
                   <p className="text-sm text-muted-foreground">Inquiries</p>
                 </div>
-                <div className="p-4 bg-muted rounded-xl">
-                  <p className="text-2xl font-bold">{selectedListing.price}</p>
-                  <p className="text-sm text-muted-foreground">Price</p>
+                <div className="p-4 bg-muted rounded-xl min-w-0 overflow-hidden">
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold break-words hyphens-auto leading-tight line-clamp-2">
+                    {selectedListing.price}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">Price</p>
                 </div>
               </div>
               <div className="p-4 bg-muted rounded-xl">
