@@ -18,7 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Building2, LayoutDashboard, Plus, List, Settings, LogOut, Menu, Bell, ChevronDown, BarChart3, Home } from "lucide-react"
+import { Building2, LayoutDashboard, Plus, List, Settings, LogOut, Menu, Bell, ChevronDown, BarChart3, Home, User } from "lucide-react"
 
 interface AgentLayoutProps {
   children: React.ReactNode
@@ -26,14 +26,51 @@ interface AgentLayoutProps {
 
 const navigationLinks = [
   { href: "/dashboard", label: "Dashboard", icon: BarChart3, mobileLabel: "Dashboard" },
-  { href: "/submit", label: "Submit", icon: Plus, mobileLabel: "Submit" },
   { href: "/listings", label: "Listings", icon: List, mobileLabel: "Listings" },
+  { href: "/submit", label: "Submit", icon: Plus, mobileLabel: "Submit" },
+  { href: "/profile", label: "Profile", icon: User, mobileLabel: "Profile" },
   { href: "/settings", label: "Settings", icon: Settings, mobileLabel: "Settings" },
 ]
 
 // Desktop Sidebar Component
 function DesktopSidebar() {
   const pathname = usePathname()
+  const agent = getAgentData()
+
+  const getInitials = () => {
+    if (agent?.fullName) {
+      return agent.fullName
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    }
+    if (agent?.email) {
+      return agent.email[0].toUpperCase()
+    }
+    return "A"
+  }
+
+  const getDisplayName = () => {
+    if (agent?.fullName) {
+      return agent.fullName
+    }
+    if (agent?.email) {
+      return agent.email.split("@")[0]
+    }
+    return "Agent"
+  }
+
+  const getRoleDisplay = () => {
+    if (agent?.status) {
+      return agent.status.charAt(0) + agent.status.slice(1).toLowerCase()
+    }
+    if (agent?.role) {
+      return agent.role.charAt(0) + agent.role.slice(1).toLowerCase()
+    }
+    return "Agent"
+  }
 
   return (
     <aside className="hidden lg:flex flex-col h-screen w-64 bg-card border-r border-border fixed left-0 top-0 z-40">
@@ -69,11 +106,11 @@ function DesktopSidebar() {
       <div className="p-4 border-t border-border">
         <div className="flex items-center gap-3 px-3 py-2">
           <Avatar className="h-9 w-9">
-            <AvatarFallback>SJ</AvatarFallback>
+            <AvatarFallback className="text-xs">{getInitials()}</AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">Sarah Johnson</p>
-            <p className="text-xs text-muted-foreground truncate">Licensed Agent</p>
+            <p className="text-sm font-medium truncate">{getDisplayName()}</p>
+            <p className="text-xs text-muted-foreground truncate">{getRoleDisplay()}</p>
           </div>
         </div>
       </div>

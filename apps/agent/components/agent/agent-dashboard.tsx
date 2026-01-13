@@ -35,12 +35,13 @@ import {
   Star,
   ArrowUpRight,
   ArrowDownRight,
+  XCircle,
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts"
-
+import { getAgentData } from "@/lib/auth"
 const stats = [
   { label: "Total Listings", value: 24, icon: Building2, trend: "+3", trendUp: true, color: "bg-blue-500" },
   { label: "Pending Approval", value: 5, icon: Clock, trend: "2 under review", trendUp: false, color: "bg-amber-500" },
@@ -149,6 +150,40 @@ export function AgentDashboard() {
   const [activeTab, setActiveTab] = useState("overview")
   const [selectedListing, setSelectedListing] = useState<(typeof recentListings)[0] | null>(null)
   const unreadNotifications = notifications.filter((n) => !n.read).length
+  const agent = getAgentData()
+
+  const getWelcomeName = () => {
+    if (agent?.fullName) {
+      return agent.fullName.split(" ")[0]
+    }
+    if (agent?.email) {
+      return agent.email.split("@")[0]
+    }
+    return "Agent"
+  }
+
+  const getStatusBadge = () => {
+    if (!agent?.status) return null
+    
+    const status = agent.status.toUpperCase()
+    const statusConfig = {
+      PENDING: { label: "Pending", color: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400", icon: Clock },
+      ACTIVE: { label: "Active", color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400", icon: CheckCircle2 },
+      APPROVED: { label: "Approved", color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400", icon: CheckCircle2 },
+      REJECTED: { label: "Rejected", color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400", icon: XCircle },
+      SUSPENDED: { label: "Suspended", color: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400", icon: AlertCircle },
+    }
+    
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.PENDING
+    const Icon = config.icon
+    
+    return (
+      <Badge className={cn("flex items-center gap-1.5 px-2.5 py-1", config.color)}>
+        <Icon className="h-3 w-3" />
+        {config.label}
+      </Badge>
+    )
+  }
 
   return (
     <div className="space-y-4 sm:space-y-6 lg:space-y-8">
@@ -161,17 +196,18 @@ export function AgentDashboard() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              Welcome back, Sarah
+              Welcome back, {getWelcomeName()}
             </motion.h1>
             <p className="text-sm sm:text-base text-muted-foreground mt-1">Here's your property management overview.</p>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             <Button asChild size="sm" className="h-9 sm:h-10">
               <Link href="/submit">
                 <Plus className="h-4 w-4 mr-1.5 sm:mr-2" />
                 <span className="text-xs sm:text-sm">Submit Property</span>
               </Link>
             </Button>
+            {getStatusBadge()}
           </div>
         </div>
       </FadeIn>
@@ -674,7 +710,7 @@ export function AgentDashboard() {
         </Tabs>
       </FadeIn>
 
-      <FadeIn delay={0.3}>
+      {/* <FadeIn delay={0.3}>
         <Card className="bg-foreground text-background overflow-hidden relative">
           <CardContent className="p-6 relative z-10">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -693,7 +729,7 @@ export function AgentDashboard() {
             </div>
           </CardContent>
         </Card>
-      </FadeIn>
+      </FadeIn> */}
 
       <Dialog open={!!selectedListing} onOpenChange={() => setSelectedListing(null)}>
         <DialogContent className="sm:max-w-lg">
