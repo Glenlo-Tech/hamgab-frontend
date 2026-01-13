@@ -431,9 +431,12 @@ export function AgentProfile() {
                     <p className="text-xs font-medium text-blue-900 dark:text-blue-200">KYC Verification Guidelines</p>
                     <ul className="text-xs text-blue-700 dark:text-blue-300 mt-1.5 space-y-1 list-disc list-inside">
                       <li>Ensure all documents are clear and readable</li>
-                      <li>Documents must be valid and not expired</li>
                       <li>Selfie must clearly show your face and the ID document</li>
                       <li>All information must match your ID document</li>
+                      <li>
+                        Your account will be reviewed and approved within 24 hours,
+                        and you'll receive an email notification when your account is approved or rejected.
+                      </li>
                     </ul>
                   </div>
                 </div>
