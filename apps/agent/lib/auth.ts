@@ -299,6 +299,59 @@ export async function loginAgent(
 }
 
 /**
+ * Request password reset
+ * TODO: Replace with actual API endpoint when backend is ready
+ */
+export async function requestPasswordReset(email: string): Promise<void> {
+  try {
+    // TODO: Replace with actual API call
+    // const response = await apiClient.post("/api/v1/auth/forgot-password", { email })
+    // 
+    // if (!response.success) {
+    //   throw new ApiClientError(response.message || "Failed to send reset link")
+    // }
+
+    // Mock implementation - remove when backend is ready
+    throw new Error("Coming Soon!")
+  } catch (error) {
+    if (error instanceof ApiClientError) {
+      throw error
+    }
+    throw new ApiClientError(
+      error instanceof Error ? error.message : "Failed to send reset link"
+    )
+  }
+}
+
+/**
+ * Reset password with token
+ * TODO: Replace with actual API endpoint when backend is ready
+ */
+export async function resetPassword(token: string, newPassword: string): Promise<void> {
+  try {
+    // TODO: Replace with actual API call
+    // const response = await apiClient.post("/api/v1/auth/reset-password", {
+    //   token,
+    //   password: newPassword,
+    // })
+    // 
+    // if (!response.success) {
+    //   throw new ApiClientError(response.message || "Failed to reset password")
+    // }
+
+    // Mock implementation - remove when backend is ready
+    throw new Error("Coming Soon!")
+  } catch (error) {
+    if (error instanceof ApiClientError) {
+      throw error
+    }
+    throw new ApiClientError(
+      error instanceof Error ? error.message : "Failed to reset password"
+    )
+  }
+}
+
+/**
  * Logout agent
  */
 export function logoutAgent(): void {
