@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -42,7 +42,8 @@ import Link from "next/link"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts"
-import { getAgentData, getKYCStatus, isKYCApproved, KYCSubmissionResponse } from "@/lib/auth"
+import { getAgentData } from "@/lib/auth"
+import { useKYCStatus } from "@/hooks/use-kyc-status"
 const stats = [
   { label: "Total Listings", value: 24, icon: Building2, trend: "+3", trendUp: true, color: "bg-blue-500" },
   { label: "Pending Approval", value: 5, icon: Clock, trend: "2 under review", trendUp: false, color: "bg-amber-500" },
@@ -150,30 +151,9 @@ const topPerformers = [
 export function AgentDashboard() {
   const [activeTab, setActiveTab] = useState("overview")
   const [selectedListing, setSelectedListing] = useState<(typeof recentListings)[0] | null>(null)
-  const [kycStatus, setKycStatus] = useState<KYCSubmissionResponse | null>(null)
-  const [isLoadingKYC, setIsLoadingKYC] = useState(true)
+  const { kycStatus, kycApproved, isLoading: isLoadingKYC } = useKYCStatus()
   const unreadNotifications = notifications.filter((n) => !n.read).length
   const agent = getAgentData()
-
-  // Fetch KYC status on mount
-  useEffect(() => {
-    const fetchKYCStatus = async () => {
-      setIsLoadingKYC(true)
-      try {
-        const status = await getKYCStatus()
-        setKycStatus(status)
-      } catch (error) {
-        // Handle error silently - KYC might not be submitted yet
-        setKycStatus(null)
-      } finally {
-        setIsLoadingKYC(false)
-      }
-    }
-
-    fetchKYCStatus()
-  }, [])
-
-  const kycApproved = isKYCApproved(kycStatus)
 
   const getWelcomeName = () => {
     if (agent?.fullName) {

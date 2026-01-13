@@ -32,7 +32,8 @@ import {
   Shield,
   Loader2,
 } from "lucide-react"
-import { getAgentData, submitKYC, getKYCStatus, isKYCApproved, KYCSubmissionResponse } from "@/lib/auth"
+import { getAgentData, submitKYC } from "@/lib/auth"
+import { useKYCStatus } from "@/hooks/use-kyc-status"
 import { ApiClientError } from "@/lib/api-client"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/components/ui/use-toast"
@@ -42,8 +43,7 @@ export function AgentProfile() {
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
-  const [kycStatus, setKycStatus] = useState<KYCSubmissionResponse | null>(null)
-  const [isLoadingKYC, setIsLoadingKYC] = useState(true)
+  const { kycStatus, kycApproved, isLoading: isLoadingKYC, mutate: refreshKYCStatus } = useKYCStatus()
   const [previews, setPreviews] = useState<{
     idFront: string | null
     idBack: string | null
@@ -60,31 +60,15 @@ export function AgentProfile() {
     selfie: null as File | null,
   })
 
-  // Fetch KYC status on mount
+  // Update form when KYC status loads
   useEffect(() => {
-    const fetchKYCStatus = async () => {
-      setIsLoadingKYC(true)
-      try {
-        const status = await getKYCStatus()
-        setKycStatus(status)
-        // Pre-fill form if KYC exists
-        if (status) {
-          setKycData((prev) => ({
-            ...prev,
-            fullName: status.full_name || prev.fullName,
-          }))
-        }
-      } catch (error) {
-        setKycStatus(null)
-      } finally {
-        setIsLoadingKYC(false)
-      }
+    if (kycStatus?.full_name && kycData.fullName === (agent?.fullName || "")) {
+      setKycData((prev) => ({
+        ...prev,
+        fullName: kycStatus.full_name,
+      }))
     }
-
-    fetchKYCStatus()
-  }, [])
-
-  const kycApproved = isKYCApproved(kycStatus)
+  }, [kycStatus?.full_name, agent?.fullName, kycData.fullName])
 
   const getStatusBadge = () => {
     if (!agent?.status) return null
@@ -177,14 +161,13 @@ export function AgentProfile() {
       // Show success modal
       setShowSuccessModal(true)
       
-      // Refresh KYC status
-      const updatedStatus = await getKYCStatus()
-      setKycStatus(updatedStatus)
+      // Refresh KYC status using SWR mutate (triggers revalidation)
+      await refreshKYCStatus()
       
       // Reset form after successful submission
       setPreviews({ idFront: null, idBack: null, selfie: null })
       setKycData({
-        fullName: agent?.fullName || "",
+        fullName: agent?.fullName || kycStatus?.full_name || "",
         idFront: null,
         idBack: null,
         selfie: null,

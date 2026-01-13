@@ -6,7 +6,8 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
-import { isAuthenticated, getAgentData, logoutAgent, getKYCStatus, isKYCApproved, KYCSubmissionResponse } from "@/lib/auth"
+import { isAuthenticated, getAgentData, logoutAgent } from "@/lib/auth"
+import { useKYCStatus } from "@/hooks/use-kyc-status"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -121,26 +122,7 @@ function DesktopSidebar() {
 // Mobile Bottom Navigation Component
 function MobileBottomNav() {
   const pathname = usePathname()
-  const [kycStatus, setKycStatus] = useState<KYCSubmissionResponse | null>(null)
-  const [isLoadingKYC, setIsLoadingKYC] = useState(true)
-
-  useEffect(() => {
-    const fetchKYCStatus = async () => {
-      setIsLoadingKYC(true)
-      try {
-        const status = await getKYCStatus()
-        setKycStatus(status)
-      } catch (error) {
-        setKycStatus(null)
-      } finally {
-        setIsLoadingKYC(false)
-      }
-    }
-
-    fetchKYCStatus()
-  }, [])
-
-  const kycApproved = isKYCApproved(kycStatus)
+  const { kycStatus, kycApproved } = useKYCStatus()
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 safe-area-inset-bottom mobile-nav">
