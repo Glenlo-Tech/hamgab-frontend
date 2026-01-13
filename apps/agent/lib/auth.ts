@@ -1,17 +1,50 @@
 /**
  * Authentication utilities for agent portal
- * TODO: Replace with actual API calls when backend is ready
+ * Integrated with HAMGAB Backend API
  */
+
+import { apiClient, ApiClientError } from "./api-client"
 
 export interface Agent {
   id: string
   fullName: string
   email: string
   phone: string
+  role?: string
+  status?: string
   avatar?: string
+  created_at?: string
+  updated_at?: string
 }
 
-export interface AuthResponse {
+/**
+ * Map backend agent data to frontend Agent interface
+ */
+function mapAgentData(data: any): Agent {
+  return {
+    id: data.id || "",
+    fullName: data.full_name || data.fullName || "",
+    email: data.email || "",
+    phone: data.phone || "",
+    role: data.role,
+    status: data.status,
+    avatar: data.avatar,
+    created_at: data.created_at,
+    updated_at: data.updated_at,
+  }
+}
+
+export interface RegisterResponse {
+  email: string
+  phone: string
+  role: string
+  id: string
+  status: string
+  created_at: string
+  updated_at: string
+}
+
+export interface LoginResponse {
   token: string
   agent: Agent
 }
@@ -19,6 +52,7 @@ export interface AuthResponse {
 const AUTH_TOKEN_KEY = "auth_token"
 const AGENT_DATA_KEY = "agent_data"
 const ONBOARDING_COMPLETE_KEY = "onboarding_complete"
+const PENDING_VERIFICATION_EMAIL_KEY = "pending_verification_email"
 
 /**
  * Check if user has completed onboarding
@@ -82,60 +116,186 @@ export function clearAuthData(): void {
   if (typeof window === "undefined") return
   localStorage.removeItem(AUTH_TOKEN_KEY)
   localStorage.removeItem(AGENT_DATA_KEY)
+  localStorage.removeItem(PENDING_VERIFICATION_EMAIL_KEY)
+}
+
+/**
+ * Store pending verification email
+ */
+export function setPendingVerificationEmail(email: string): void {
+  if (typeof window === "undefined") return
+  localStorage.setItem(PENDING_VERIFICATION_EMAIL_KEY, email)
+}
+
+/**
+ * Get pending verification email
+ */
+export function getPendingVerificationEmail(): string | null {
+  if (typeof window === "undefined") return null
+  return localStorage.getItem(PENDING_VERIFICATION_EMAIL_KEY)
+}
+
+/**
+ * Register agent
+ */
+export async function registerAgent(data: {
+  full_name: string
+  email: string
+  phone: string
+  password: string
+}): Promise<RegisterResponse> {
+  try {
+    const response = await apiClient.post<RegisterResponse>(
+      "/api/v1/auth/agent/register",
+      data
+    )
+
+    if (!response.success || !response.data) {
+      throw new ApiClientError(response.message || "Registration failed")
+    }
+
+    // Store email for OTP verification
+    setPendingVerificationEmail(data.email)
+
+    return response.data
+  } catch (error) {
+    if (error instanceof ApiClientError) {
+      throw error
+    }
+    throw new ApiClientError(
+      error instanceof Error ? error.message : "Registration failed"
+    )
+  }
+}
+
+/**
+ * Verify OTP
+ * Note: Response structure may vary - adjust based on actual API response
+ */
+export async function verifyOTP(email: string, otpCode: string): Promise<LoginResponse> {
+  try {
+    const response = await apiClient.post<any>(
+      "/api/v1/auth/verify-otp",
+      {
+        email,
+        otp_code: otpCode,
+      }
+    )
+
+    if (!response.success || !response.data) {
+      throw new ApiClientError(response.message || "OTP verification failed")
+    }
+
+    // Handle different possible response structures
+    const data = response.data
+    let token: string
+    let agent: Agent
+
+    // If token and agent are directly in data
+    if (data.token && data.agent) {
+      token = data.token
+      agent = data.agent
+    }
+    // If token is separate and agent data is in data
+    else if (data.token) {
+      token = data.token
+      agent = mapAgentData(data)
+    }
+    // If response structure is different
+    else {
+      throw new ApiClientError("Invalid OTP verification response format")
+    }
+
+    // Store auth data
+    setAuthData(token, agent)
+
+    // Clear pending verification email
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(PENDING_VERIFICATION_EMAIL_KEY)
+    }
+
+    return { token, agent }
+  } catch (error) {
+    if (error instanceof ApiClientError) {
+      throw error
+    }
+    throw new ApiClientError(
+      error instanceof Error ? error.message : "OTP verification failed"
+    )
+  }
+}
+
+/**
+ * Resend OTP
+ */
+export async function resendOTP(email: string): Promise<void> {
+  try {
+    const response = await apiClient.post("/api/v1/auth/resend-otp", { email })
+
+    if (!response.success) {
+      throw new ApiClientError(response.message || "Failed to resend OTP")
+    }
+  } catch (error) {
+    if (error instanceof ApiClientError) {
+      throw error
+    }
+    throw new ApiClientError(
+      error instanceof Error ? error.message : "Failed to resend OTP"
+    )
+  }
 }
 
 /**
  * Login agent
- * TODO: Replace with actual API endpoint
+ * Note: Response structure may vary - adjust based on actual API response
  */
 export async function loginAgent(
   email: string,
   password: string
-): Promise<AuthResponse> {
-  // TODO: Replace with actual API call
-  // const response = await fetch('/api/agent/auth/login', {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify({ email, password }),
-  // })
-  // 
-  // if (!response.ok) {
-  //   const data = await response.json()
-  //   throw new Error(data.message || 'Login failed')
-  // }
-  // 
-  // return await response.json()
+): Promise<LoginResponse> {
+  try {
+    const response = await apiClient.post<any>(
+      "/api/v1/auth/agent/login",
+      {
+        email,
+        password,
+      }
+    )
 
-  // Mock implementation - remove when backend is ready
-  throw new Error("Backend API not implemented yet")
-}
+    if (!response.success || !response.data) {
+      throw new ApiClientError(response.message || "Login failed")
+    }
 
-/**
- * Signup agent
- * TODO: Replace with actual API endpoint
- */
-export async function signupAgent(data: {
-  fullName: string
-  email: string
-  phone: string
-  password: string
-}): Promise<AuthResponse> {
-  // TODO: Replace with actual API call
-  // const response = await fetch('/api/agent/auth/signup', {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify(data),
-  // })
-  // 
-  // if (!response.ok) {
-  //   const data = await response.json()
-  //   throw new Error(data.message || 'Signup failed')
-  // }
-  // 
-  // return await response.json()
+    // Handle different possible response structures
+    const data = response.data
+    let token: string
+    let agent: Agent
 
-  // Mock implementation - remove when backend is ready
-  throw new Error("Backend API not implemented yet")
+    // If token and agent are directly in data
+    if (data.token && data.agent) {
+      token = data.token
+      agent = data.agent
+    }
+    // If token is separate and agent data is in data
+    else if (data.token) {
+      token = data.token
+      agent = mapAgentData(data)
+    }
+    // If response structure is different
+    else {
+      throw new ApiClientError("Invalid login response format")
+    }
+
+    // Store auth data
+    setAuthData(token, agent)
+
+    return { token, agent }
+  } catch (error) {
+    if (error instanceof ApiClientError) {
+      throw error
+    }
+    throw new ApiClientError(error instanceof Error ? error.message : "Login failed")
+  }
 }
 
 /**
@@ -147,4 +307,3 @@ export function logoutAgent(): void {
     window.location.href = "/"
   }
 }
-

@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label"
 import { Building2, Mail, Lock, User, Phone, Eye, EyeOff, Loader2, CheckCircle2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
+import { registerAgent } from "@/lib/auth"
+import { ApiClientError } from "@/lib/api-client"
 
 export function AgentSignup() {
   const router = useRouter()
@@ -68,43 +70,22 @@ export function AgentSignup() {
     setIsLoading(true)
 
     try {
-      // TODO: Replace with actual API endpoint when backend is ready
-      // Example:
-      // const response = await fetch(`${process.env.NEXT_PUBLIC_API_DOMAIN}/api/agent/auth/signup`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     fullName: formData.fullName,
-      //     email: formData.email,
-      //     phone: formData.phone,
-      //     password: formData.password,
-      //   }),
-      // })
-      // 
-      // if (!response.ok) {
-      //   const data = await response.json()
-      //   throw new Error(data.message || 'Signup failed')
-      // }
-      // 
-      // const { token, agent } = await response.json()
-      // setAuthData(token, agent)
-
-      // Temporary mock - remove when backend is ready
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-      
-      // Mock auth data for development
-      const { setAuthData } = await import("@/lib/auth")
-      setAuthData("mock_token", {
-        id: "1",
-        fullName: formData.fullName,
+      // Register agent with backend
+      await registerAgent({
+        full_name: formData.fullName,
         email: formData.email,
         phone: formData.phone,
+        password: formData.password,
       })
       
-      // Navigate to dashboard
-      router.push("/dashboard")
+      // Redirect to OTP verification
+      router.push("/auth/verify-otp")
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Signup failed. Please try again.")
+      if (err instanceof ApiClientError) {
+        setError(err.message)
+      } else {
+        setError(err instanceof Error ? err.message : "Signup failed. Please try again.")
+      }
     } finally {
       setIsLoading(false)
     }
@@ -183,7 +164,7 @@ export function AgentSignup() {
               <Input
                 id="phone"
                 type="tel"
-                placeholder="+1 (555) 000-0000"
+                placeholder="+237 673952611"
                 value={formData.phone}
                 onChange={(e) => handleChange("phone", e.target.value)}
                 className="pl-10"

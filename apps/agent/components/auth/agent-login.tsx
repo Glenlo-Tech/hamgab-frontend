@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label"
 import { Building2, Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
+import { loginAgent } from "@/lib/auth"
+import { ApiClientError } from "@/lib/api-client"
 
 export function AgentLogin() {
   const router = useRouter()
@@ -23,38 +25,17 @@ export function AgentLogin() {
     setIsLoading(true)
 
     try {
-      // TODO: Replace with actual API endpoint when backend is ready
-      // Example:
-      // const response = await fetch(`${process.env.NEXT_PUBLIC_API_DOMAIN}/api/agent/auth/login`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email, password }),
-      // })
-      // 
-      // if (!response.ok) {
-      //   const data = await response.json()
-      //   throw new Error(data.message || 'Login failed')
-      // }
-      // 
-      // const { token, agent } = await response.json()
-      // setAuthData(token, agent)
-
-      // Temporary mock - remove when backend is ready
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      // Login agent with backend
+      await loginAgent(email, password)
       
-      // Mock auth data for development
-      const { setAuthData } = await import("@/lib/auth")
-      setAuthData("mock_token", {
-        id: "1",
-        fullName: "John Doe",
-        email: email,
-        phone: "+1234567890",
-      })
-      
-      // Navigate to dashboard
+      // Navigate to dashboard on success
       router.push("/dashboard")
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed. Please try again.")
+      if (err instanceof ApiClientError) {
+        setError(err.message)
+      } else {
+        setError(err instanceof Error ? err.message : "Login failed. Please try again.")
+      }
     } finally {
       setIsLoading(false)
     }
