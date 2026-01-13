@@ -45,8 +45,12 @@ async function apiRequest<T = any>(
   const url = `${API_BASE_URL}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`
 
   const defaultHeaders: HeadersInit = {
-    "Content-Type": "application/json",
     Accept: "application/json",
+  }
+
+  // Only set Content-Type if not FormData (browser will set it automatically for FormData)
+  if (!(options.body instanceof FormData)) {
+    defaultHeaders["Content-Type"] = "application/json"
   }
 
   // Add auth token if available
@@ -118,10 +122,18 @@ export const apiClient = {
   /**
    * POST request
    */
-  post: <T = any>(endpoint: string, body?: any): Promise<ApiResponse<T>> => {
+  post: <T = any>(endpoint: string, body?: any, isFormData?: boolean): Promise<ApiResponse<T>> => {
+    const headers: HeadersInit = {}
+    
+    // Don't set Content-Type for FormData - browser will set it with boundary
+    if (!isFormData && body) {
+      headers["Content-Type"] = "application/json"
+    }
+
     return apiRequest<T>(endpoint, {
       method: "POST",
-      body: body ? JSON.stringify(body) : undefined,
+      body: body,
+      headers,
     })
   },
 

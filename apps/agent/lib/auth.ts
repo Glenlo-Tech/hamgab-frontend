@@ -396,6 +396,89 @@ export async function resetPassword(token: string, newPassword: string): Promise
 }
 
 /**
+ * Submit KYC documents
+ */
+export interface KYCSubmissionResponse {
+  id: string
+  user_id: string
+  full_name: string
+  id_front_path: string
+  id_back_path: string
+  selfie_path: string
+  status: string
+  reviewed_by: string | null
+  review_notes: string | null
+  submitted_at: string
+  reviewed_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export async function submitKYC(data: {
+  full_name: string
+  id_front: File
+  id_back: File
+  selfie: File
+}): Promise<KYCSubmissionResponse> {
+  try {
+    // Create FormData
+    const formData = new FormData()
+    formData.append("full_name", data.full_name)
+    formData.append("id_front", data.id_front)
+    formData.append("id_back", data.id_back)
+    formData.append("selfie", data.selfie)
+
+    const response = await apiClient.post<KYCSubmissionResponse>(
+      "/api/v1/kyc/submit",
+      formData,
+      true // isFormData flag
+    )
+
+    if (!response.success || !response.data) {
+      throw new ApiClientError(response.message || "KYC submission failed")
+    }
+
+    return response.data
+  } catch (error) {
+    if (error instanceof ApiClientError) {
+      throw error
+    }
+    throw new ApiClientError(
+      error instanceof Error ? error.message : "KYC submission failed"
+    )
+  }
+}
+
+/**
+ * Get KYC status
+ */
+export async function getKYCStatus(): Promise<KYCSubmissionResponse | null> {
+  try {
+    const response = await apiClient.get<KYCSubmissionResponse>("/api/v1/kyc/status")
+
+    if (!response.success || !response.data) {
+      return null
+    }
+
+    return response.data
+  } catch (error) {
+    // If KYC not found (404), return null (user hasn't submitted yet)
+    if (error instanceof ApiClientError && error.status === 404) {
+      return null
+    }
+    // For other errors, return null (will be handled gracefully in UI)
+    return null
+  }
+}
+
+/**
+ * Check if KYC is approved
+ */
+export function isKYCApproved(kycStatus: KYCSubmissionResponse | null): boolean {
+  return kycStatus?.status?.toUpperCase() === "APPROVED"
+}
+
+/**
  * Logout agent
  */
 export function logoutAgent(): void {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -36,12 +36,13 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   XCircle,
+  Shield,
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts"
-import { getAgentData } from "@/lib/auth"
+import { getAgentData, getKYCStatus, isKYCApproved, KYCSubmissionResponse } from "@/lib/auth"
 const stats = [
   { label: "Total Listings", value: 24, icon: Building2, trend: "+3", trendUp: true, color: "bg-blue-500" },
   { label: "Pending Approval", value: 5, icon: Clock, trend: "2 under review", trendUp: false, color: "bg-amber-500" },
@@ -149,8 +150,30 @@ const topPerformers = [
 export function AgentDashboard() {
   const [activeTab, setActiveTab] = useState("overview")
   const [selectedListing, setSelectedListing] = useState<(typeof recentListings)[0] | null>(null)
+  const [kycStatus, setKycStatus] = useState<KYCSubmissionResponse | null>(null)
+  const [isLoadingKYC, setIsLoadingKYC] = useState(true)
   const unreadNotifications = notifications.filter((n) => !n.read).length
   const agent = getAgentData()
+
+  // Fetch KYC status on mount
+  useEffect(() => {
+    const fetchKYCStatus = async () => {
+      setIsLoadingKYC(true)
+      try {
+        const status = await getKYCStatus()
+        setKycStatus(status)
+      } catch (error) {
+        // Handle error silently - KYC might not be submitted yet
+        setKycStatus(null)
+      } finally {
+        setIsLoadingKYC(false)
+      }
+    }
+
+    fetchKYCStatus()
+  }, [])
+
+  const kycApproved = isKYCApproved(kycStatus)
 
   const getWelcomeName = () => {
     if (agent?.fullName) {
@@ -201,16 +224,128 @@ export function AgentDashboard() {
             <p className="text-sm sm:text-base text-muted-foreground mt-1">Here's your property management overview.</p>
           </div>
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-            <Button asChild size="sm" className="h-9 sm:h-10">
-              <Link href="/submit">
+            {kycApproved ? (
+              <Button asChild size="sm" className="h-9 sm:h-10">
+                <Link href="/submit">
+                  <Plus className="h-4 w-4 mr-1.5 sm:mr-2" />
+                  <span className="text-xs sm:text-sm">Submit Property</span>
+                </Link>
+              </Button>
+            ) : (
+              <Button 
+                size="sm" 
+                className="h-9 sm:h-10" 
+                disabled
+                variant="outline"
+                title={kycStatus?.status === "PENDING" ? "KYC verification pending approval" : "Please complete KYC verification to submit listings"}
+              >
                 <Plus className="h-4 w-4 mr-1.5 sm:mr-2" />
                 <span className="text-xs sm:text-sm">Submit Property</span>
-              </Link>
-            </Button>
+              </Button>
+            )}
             {getStatusBadge()}
           </div>
         </div>
       </FadeIn>
+
+      {/* KYC Status Card */}
+      {!isLoadingKYC && (
+        <FadeIn delay={0.05}>
+          <Card className={cn(
+            "border-2 transition-all",
+            kycApproved 
+              ? "bg-green-50/50 dark:bg-green-900/10 border-green-200 dark:border-green-800" 
+              : kycStatus?.status === "PENDING"
+              ? "bg-amber-50/50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800"
+              : kycStatus?.status === "REJECTED"
+              ? "bg-red-50/50 dark:bg-red-900/10 border-red-200 dark:border-red-800"
+              : "bg-blue-50/50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800"
+          )}>
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-start gap-4">
+                <div className={cn(
+                  "h-12 w-12 rounded-xl flex items-center justify-center flex-shrink-0",
+                  kycApproved
+                    ? "bg-green-100 dark:bg-green-900/30"
+                    : kycStatus?.status === "PENDING"
+                    ? "bg-amber-100 dark:bg-amber-900/30"
+                    : kycStatus?.status === "REJECTED"
+                    ? "bg-red-100 dark:bg-red-900/30"
+                    : "bg-blue-100 dark:bg-blue-900/30"
+                )}>
+                  {kycApproved ? (
+                    <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
+                  ) : kycStatus?.status === "PENDING" ? (
+                    <Clock className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+                  ) : kycStatus?.status === "REJECTED" ? (
+                    <XCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
+                  ) : (
+                    <Shield className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <h3 className="font-semibold text-base sm:text-lg">
+                      {kycApproved 
+                        ? "KYC Verification Approved" 
+                        : kycStatus?.status === "PENDING"
+                        ? "KYC Verification Pending"
+                        : kycStatus?.status === "REJECTED"
+                        ? "KYC Verification Rejected"
+                        : "KYC Verification Required"}
+                    </h3>
+                    {kycStatus && (
+                      <Badge className={cn(
+                        "flex items-center gap-1.5 px-2.5 py-1 text-xs",
+                        kycApproved
+                          ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                          : kycStatus.status === "PENDING"
+                          ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
+                          : kycStatus.status === "REJECTED"
+                          ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                          : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
+                      )}>
+                        {kycStatus.status === "PENDING" && <Clock className="h-3 w-3" />}
+                        {kycStatus.status === "REJECTED" && <XCircle className="h-3 w-3" />}
+                        {kycApproved && <CheckCircle2 className="h-3 w-3" />}
+                        {kycStatus.status}
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    {kycApproved 
+                      ? "Your KYC verification has been approved. You can now submit property listings."
+                      : kycStatus?.status === "PENDING"
+                      ? "Your KYC documents are under review. We'll notify you via email once the review is complete."
+                      : kycStatus?.status === "REJECTED"
+                      ? kycStatus.review_notes 
+                        ? `Rejection reason: ${kycStatus.review_notes}`
+                        : "Your KYC verification was rejected. Please update your documents and resubmit."
+                      : "Complete your KYC verification to start submitting property listings."}
+                  </p>
+                  {!kycApproved && (
+                    <Button asChild variant={kycStatus?.status === "REJECTED" ? "default" : "outline"} size="sm">
+                      <Link href="/profile">
+                        {kycStatus?.status === "REJECTED" ? "Update KYC Documents" : "Complete KYC Verification"}
+                        <ArrowRight className="h-4 w-4 ml-2" />
+                      </Link>
+                    </Button>
+                  )}
+                  {kycStatus?.submitted_at && (
+                    <p className="text-xs text-muted-foreground mt-3">
+                      Submitted: {new Date(kycStatus.submitted_at).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </FadeIn>
+      )}
 
       <StaggerContainer className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
         {stats.map((stat, index) => (

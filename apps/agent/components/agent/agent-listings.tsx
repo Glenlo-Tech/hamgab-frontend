@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -11,6 +12,7 @@ import { Search, MapPin, Eye, Edit, MoreVertical, Plus, Bed, Bath, Square } from
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
 import Image from "next/image"
+import { getKYCStatus, isKYCApproved, KYCSubmissionResponse } from "@/lib/auth"
 
 const listings = [
   {
@@ -82,6 +84,27 @@ const listings = [
 ]
 
 export function AgentListings() {
+  const [kycStatus, setKycStatus] = useState<KYCSubmissionResponse | null>(null)
+  const [isLoadingKYC, setIsLoadingKYC] = useState(true)
+
+  useEffect(() => {
+    const fetchKYCStatus = async () => {
+      setIsLoadingKYC(true)
+      try {
+        const status = await getKYCStatus()
+        setKycStatus(status)
+      } catch (error) {
+        setKycStatus(null)
+      } finally {
+        setIsLoadingKYC(false)
+      }
+    }
+
+    fetchKYCStatus()
+  }, [])
+
+  const kycApproved = isKYCApproved(kycStatus)
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Approved":
@@ -108,12 +131,23 @@ export function AgentListings() {
             <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">My Listings</h1>
             <p className="text-muted-foreground mt-1">Manage and track all your property submissions</p>
           </div>
-          <Button asChild>
-            <Link href="/submit">
+          {kycApproved ? (
+            <Button asChild>
+              <Link href="/submit">
+                <Plus className="h-4 w-4 mr-2" />
+                New Listing
+              </Link>
+            </Button>
+          ) : (
+            <Button 
+              disabled
+              variant="outline"
+              title={kycStatus?.status === "PENDING" ? "KYC verification pending approval" : "Please complete KYC verification to submit listings"}
+            >
               <Plus className="h-4 w-4 mr-2" />
               New Listing
-            </Link>
-          </Button>
+            </Button>
+          )}
         </div>
       </FadeIn>
 

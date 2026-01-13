@@ -6,7 +6,7 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
-import { isAuthenticated, getAgentData, logoutAgent } from "@/lib/auth"
+import { isAuthenticated, getAgentData, logoutAgent, getKYCStatus, isKYCApproved, KYCSubmissionResponse } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -121,6 +121,26 @@ function DesktopSidebar() {
 // Mobile Bottom Navigation Component
 function MobileBottomNav() {
   const pathname = usePathname()
+  const [kycStatus, setKycStatus] = useState<KYCSubmissionResponse | null>(null)
+  const [isLoadingKYC, setIsLoadingKYC] = useState(true)
+
+  useEffect(() => {
+    const fetchKYCStatus = async () => {
+      setIsLoadingKYC(true)
+      try {
+        const status = await getKYCStatus()
+        setKycStatus(status)
+      } catch (error) {
+        setKycStatus(null)
+      } finally {
+        setIsLoadingKYC(false)
+      }
+    }
+
+    fetchKYCStatus()
+  }, [])
+
+  const kycApproved = isKYCApproved(kycStatus)
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 safe-area-inset-bottom mobile-nav">
@@ -136,6 +156,43 @@ function MobileBottomNav() {
             
             // Special styling for the Submit button (middle button)
             if (isSubmit) {
+              if (!kycApproved) {
+                return (
+                  <div
+                    key={link.href}
+                    className={cn(
+                      "relative flex flex-col items-center justify-center gap-1.5 min-w-[64px] mb-1 transition-all duration-300",
+                      "opacity-50 cursor-not-allowed"
+                    )}
+                    title={kycStatus?.status === "PENDING" ? "KYC verification pending approval" : "Please complete KYC verification to submit listings"}
+                  >
+                    {/* Disabled button container */}
+                    <div className={cn(
+                      "relative w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300",
+                      "shadow-lg",
+                      "bg-gradient-to-br from-muted to-muted/80",
+                      "before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-br before:from-white/10 before:to-transparent before:opacity-30"
+                    )}>
+                      {/* Icon with disabled effect */}
+                      <link.icon className={cn(
+                        "h-6 w-6 text-muted-foreground relative z-10",
+                        "drop-shadow-[0_1px_2px_rgba(0,0,0,0.1)]",
+                        "stroke-[2]"
+                      )} />
+                    </div>
+                    
+                    {/* Label */}
+                    <span className={cn(
+                      "text-[10px] sm:text-xs font-semibold text-center leading-tight",
+                      "text-muted-foreground",
+                      "transition-colors duration-300"
+                    )}>
+                      {link.mobileLabel}
+                    </span>
+                  </div>
+                )
+              }
+
               return (
                 <Link
                   key={link.href}

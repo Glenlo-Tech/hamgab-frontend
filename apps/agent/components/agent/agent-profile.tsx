@@ -1,11 +1,19 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { FadeIn } from "@/components/motion-wrapper"
 import { motion } from "framer-motion"
 import {
@@ -21,31 +29,62 @@ import {
   FileText,
   Upload,
   Camera,
-  MapPin,
-  CreditCard,
   Shield,
   Loader2,
 } from "lucide-react"
-import { getAgentData } from "@/lib/auth"
+import { getAgentData, submitKYC, getKYCStatus, isKYCApproved, KYCSubmissionResponse } from "@/lib/auth"
+import { ApiClientError } from "@/lib/api-client"
 import { cn } from "@/lib/utils"
+import { useToast } from "@/components/ui/use-toast"
 
 export function AgentProfile() {
   const agent = getAgentData()
+  const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [kycStatus, setKycStatus] = useState<KYCSubmissionResponse | null>(null)
+  const [isLoadingKYC, setIsLoadingKYC] = useState(true)
+  const [previews, setPreviews] = useState<{
+    idFront: string | null
+    idBack: string | null
+    selfie: string | null
+  }>({
+    idFront: null,
+    idBack: null,
+    selfie: null,
+  })
   const [kycData, setKycData] = useState({
     fullName: agent?.fullName || "",
-    dateOfBirth: "",
-    address: "",
-    city: "",
-    state: "",
-    zipCode: "",
-    country: "",
-    idType: "",
-    idNumber: "",
     idFront: null as File | null,
     idBack: null as File | null,
     selfie: null as File | null,
   })
+
+  // Fetch KYC status on mount
+  useEffect(() => {
+    const fetchKYCStatus = async () => {
+      setIsLoadingKYC(true)
+      try {
+        const status = await getKYCStatus()
+        setKycStatus(status)
+        // Pre-fill form if KYC exists
+        if (status) {
+          setKycData((prev) => ({
+            ...prev,
+            fullName: status.full_name || prev.fullName,
+          }))
+        }
+      } catch (error) {
+        setKycStatus(null)
+      } finally {
+        setIsLoadingKYC(false)
+      }
+    }
+
+    fetchKYCStatus()
+  }, [])
+
+  const kycApproved = isKYCApproved(kycStatus)
 
   const getStatusBadge = () => {
     if (!agent?.status) return null
@@ -72,19 +111,97 @@ export function AgentProfile() {
 
   const handleFileChange = (field: "idFront" | "idBack" | "selfie", file: File | null) => {
     setKycData((prev) => ({ ...prev, [field]: file }))
+    
+    // Create preview URL
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setPreviews((prev) => ({ ...prev, [field]: reader.result as string }))
+      }
+      reader.readAsDataURL(file)
+    } else {
+      setPreviews((prev) => ({ ...prev, [field]: null }))
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Validation
+    if (!kycData.fullName.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter your full name",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!kycData.idFront) {
+      toast({
+        title: "Validation Error",
+        description: "Please upload your ID front image",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!kycData.idBack) {
+      toast({
+        title: "Validation Error",
+        description: "Please upload your ID back image",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!kycData.selfie) {
+      toast({
+        title: "Validation Error",
+        description: "Please upload your selfie",
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsSubmitting(true)
 
-    // TODO: Implement KYC submission to backend
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      // Handle success
-    } catch (error) {
-      // Handle error
+      await submitKYC({
+        full_name: kycData.fullName.trim(),
+        id_front: kycData.idFront,
+        id_back: kycData.idBack,
+        selfie: kycData.selfie,
+      })
+
+      // Show success modal
+      setShowSuccessModal(true)
+      
+      // Refresh KYC status
+      const updatedStatus = await getKYCStatus()
+      setKycStatus(updatedStatus)
+      
+      // Reset form after successful submission
+      setPreviews({ idFront: null, idBack: null, selfie: null })
+      setKycData({
+        fullName: agent?.fullName || "",
+        idFront: null,
+        idBack: null,
+        selfie: null,
+      })
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof ApiClientError
+          ? error.message
+          : error instanceof Error
+          ? error.message
+          : "Failed to submit KYC documents. Please try again."
+      
+      toast({
+        title: "Submission Failed",
+        description: errorMessage,
+        variant: "destructive",
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -190,15 +307,118 @@ export function AgentProfile() {
         </FadeIn>
       )}
 
+      {/* KYC Status Card */}
+      {!isLoadingKYC && kycStatus && (
+        <FadeIn delay={0.1}>
+          <Card className={cn(
+            "border-2",
+            kycApproved
+              ? "bg-green-50/50 dark:bg-green-900/10 border-green-200 dark:border-green-800"
+              : kycStatus.status === "PENDING"
+              ? "bg-amber-50/50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800"
+              : kycStatus.status === "REJECTED"
+              ? "bg-red-50/50 dark:bg-red-900/10 border-red-200 dark:border-red-800"
+              : "border-border"
+          )}>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Shield className={cn(
+                    "h-5 w-5",
+                    kycApproved
+                      ? "text-green-600 dark:text-green-400"
+                      : kycStatus.status === "PENDING"
+                      ? "text-amber-600 dark:text-amber-400"
+                      : kycStatus.status === "REJECTED"
+                      ? "text-red-600 dark:text-red-400"
+                      : "text-primary"
+                  )} />
+                  <CardTitle className="text-base sm:text-lg">KYC Status</CardTitle>
+                </div>
+                <Badge className={cn(
+                  "flex items-center gap-1.5 px-2.5 py-1",
+                  kycApproved
+                    ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                    : kycStatus.status === "PENDING"
+                    ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
+                    : kycStatus.status === "REJECTED"
+                    ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                    : ""
+                )}>
+                  {kycStatus.status === "PENDING" && <Clock className="h-3 w-3" />}
+                  {kycStatus.status === "REJECTED" && <XCircle className="h-3 w-3" />}
+                  {kycApproved && <CheckCircle2 className="h-3 w-3" />}
+                  {kycStatus.status}
+                </Badge>
+              </div>
+              <CardDescription>
+                {kycApproved
+                  ? "Your KYC verification has been approved."
+                  : kycStatus.status === "PENDING"
+                  ? "Your KYC documents are under review."
+                  : kycStatus.status === "REJECTED"
+                  ? "Your KYC verification was rejected. Please update and resubmit."
+                  : "KYC verification status"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {kycStatus.review_notes && kycStatus.status === "REJECTED" && (
+                <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-xs font-medium text-red-900 dark:text-red-200">Rejection Reason</p>
+                      <p className="text-xs text-red-700 dark:text-red-300 mt-0.5">{kycStatus.review_notes}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {kycStatus.submitted_at && (
+                <div className="text-xs text-muted-foreground">
+                  Submitted: {new Date(kycStatus.submitted_at).toLocaleDateString("en-US", {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </div>
+              )}
+              {kycStatus.reviewed_at && (
+                <div className="text-xs text-muted-foreground">
+                  Reviewed: {new Date(kycStatus.reviewed_at).toLocaleDateString("en-US", {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </FadeIn>
+      )}
+
       {/* KYC Verification Card */}
-      <FadeIn delay={0.1}>
+      <FadeIn delay={kycStatus ? 0.15 : 0.1}>
         <Card className="border-2">
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
               <Shield className="h-5 w-5 text-primary" />
-              <CardTitle className="text-base sm:text-lg">KYC Verification</CardTitle>
+              <CardTitle className="text-base sm:text-lg">
+                {kycStatus?.status === "REJECTED" ? "Update KYC Verification" : "KYC Verification"}
+              </CardTitle>
             </div>
-            <CardDescription>Complete your KYC to activate your account</CardDescription>
+            <CardDescription>
+              {kycApproved
+                ? "Your KYC is approved. You can update your documents if needed."
+                : kycStatus?.status === "PENDING"
+                ? "Your KYC is under review. You can update your submission if needed."
+                : kycStatus?.status === "REJECTED"
+                ? "Please update your documents and resubmit."
+                : "Complete your KYC to activate your account"}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -208,110 +428,16 @@ export function AgentProfile() {
                   <User className="h-4 w-4" />
                   Personal Information
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="fullName">Full Name *</Label>
-                    <Input
-                      id="fullName"
-                      value={kycData.fullName}
-                      onChange={(e) => setKycData((prev) => ({ ...prev, fullName: e.target.value }))}
-                      placeholder="Enter your full name as it appears on your ID"
-                      required
-                      className="placeholder:text-muted-foreground placeholder:text-sm"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="dateOfBirth">Date of Birth *</Label>
-                    <Input
-                      id="dateOfBirth"
-                      type="date"
-                      value={kycData.dateOfBirth}
-                      onChange={(e) => setKycData((prev) => ({ ...prev, dateOfBirth: e.target.value }))}
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Address Information */}
-              <div className="space-y-4">
-                <h3 className="text-sm font-semibold flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
-                  Address Information
-                </h3>
                 <div className="space-y-2">
-                  <Label htmlFor="address">Address *</Label>
+                  <Label htmlFor="fullName">Full Name *</Label>
                   <Input
-                    id="address"
-                    value={kycData.address}
-                    onChange={(e) => setKycData((prev) => ({ ...prev, address: e.target.value }))}
-                    placeholder="Enter your address"
+                    id="fullName"
+                    value={kycData.fullName}
+                    onChange={(e) => setKycData((prev) => ({ ...prev, fullName: e.target.value }))}
+                    placeholder="Enter your full name as it appears on your ID"
                     required
                     className="placeholder:text-muted-foreground placeholder:text-sm"
                   />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="city">City *</Label>
-                    <Input
-                      id="city"
-                      value={kycData.city}
-                      onChange={(e) => setKycData((prev) => ({ ...prev, city: e.target.value }))}
-                      placeholder="City"
-                      required
-                      className="placeholder:text-muted-foreground placeholder:text-sm"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="state">Region *</Label>
-                    <Input
-                      id="state"
-                      value={kycData.state}
-                      onChange={(e) => setKycData((prev) => ({ ...prev, state: e.target.value }))}
-                      placeholder="Region"
-                      required
-                      className="placeholder:text-muted-foreground placeholder:text-sm"
-                    />
-                  </div>
-                  
-                </div>
-               
-              </div>
-
-              {/* Identity Verification */}
-              <div className="space-y-4">
-                <h3 className="text-sm font-semibold flex items-center gap-2">
-                  <CreditCard className="h-4 w-4" />
-                  Identity Verification
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="idType">ID Type *</Label>
-                    <select
-                      id="idType"
-                      value={kycData.idType}
-                      onChange={(e) => setKycData((prev) => ({ ...prev, idType: e.target.value }))}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      required
-                    >
-                      <option value="">Select ID Type</option>
-                      <option value="passport">Passport</option>
-                      <option value="national_id">National ID</option>
-                      <option value="drivers_license">Driver's License</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="idNumber">ID Number *</Label>
-                    <Input
-                      id="idNumber"
-                      value={kycData.idNumber}
-                      onChange={(e) => setKycData((prev) => ({ ...prev, idNumber: e.target.value }))}
-                      placeholder="Enter your ID number"
-                      required
-                      className="placeholder:text-muted-foreground placeholder:text-sm"
-                    />
-                  </div>
                 </div>
               </div>
 
@@ -336,13 +462,18 @@ export function AgentProfile() {
                       />
                       <label
                         htmlFor="idFront"
-                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-primary transition-colors"
+                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-primary transition-colors overflow-hidden relative"
                       >
-                        {kycData.idFront ? (
-                          <div className="flex flex-col items-center gap-2 p-4">
-                            <FileText className="h-8 w-8 text-primary" />
-                            <p className="text-xs text-center font-medium">{kycData.idFront.name}</p>
-                            <p className="text-xs text-muted-foreground">Click to change</p>
+                        {previews.idFront ? (
+                          <div className="w-full h-full relative">
+                            <img
+                              src={previews.idFront}
+                              alt="ID Front Preview"
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                              <p className="text-xs text-white font-medium">Click to change</p>
+                            </div>
                           </div>
                         ) : (
                           <div className="flex flex-col items-center gap-2 p-4">
@@ -369,13 +500,18 @@ export function AgentProfile() {
                       />
                       <label
                         htmlFor="idBack"
-                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-primary transition-colors"
+                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-primary transition-colors overflow-hidden relative"
                       >
-                        {kycData.idBack ? (
-                          <div className="flex flex-col items-center gap-2 p-4">
-                            <FileText className="h-8 w-8 text-primary" />
-                            <p className="text-xs text-center font-medium">{kycData.idBack.name}</p>
-                            <p className="text-xs text-muted-foreground">Click to change</p>
+                        {previews.idBack ? (
+                          <div className="w-full h-full relative">
+                            <img
+                              src={previews.idBack}
+                              alt="ID Back Preview"
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                              <p className="text-xs text-white font-medium">Click to change</p>
+                            </div>
                           </div>
                         ) : (
                           <div className="flex flex-col items-center gap-2 p-4">
@@ -402,13 +538,18 @@ export function AgentProfile() {
                       />
                       <label
                         htmlFor="selfie"
-                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-primary transition-colors"
+                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-primary transition-colors overflow-hidden relative"
                       >
-                        {kycData.selfie ? (
-                          <div className="flex flex-col items-center gap-2 p-4">
-                            <Camera className="h-8 w-8 text-primary" />
-                            <p className="text-xs text-center font-medium">{kycData.selfie.name}</p>
-                            <p className="text-xs text-muted-foreground">Click to change</p>
+                        {previews.selfie ? (
+                          <div className="w-full h-full relative">
+                            <img
+                              src={previews.selfie}
+                              alt="Selfie Preview"
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                              <p className="text-xs text-white font-medium">Click to change</p>
+                            </div>
                           </div>
                         ) : (
                           <div className="flex flex-col items-center gap-2 p-4">
@@ -434,8 +575,7 @@ export function AgentProfile() {
                       <li>Selfie must clearly show your face and the ID document</li>
                       <li>All information must match your ID document</li>
                       <li>
-                        Your account will be reviewed and approved within 24 hours,
-                        and you'll receive an email notification when your account is approved or rejected.
+                        Your submission will be reviewed, and you'll receive an email notification once the review is complete.
                       </li>
                     </ul>
                   </div>
@@ -464,6 +604,29 @@ export function AgentProfile() {
           </CardContent>
         </Card>
       </FadeIn>
+
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 mx-auto mb-4">
+              <CheckCircle2 className="h-8 w-8 text-green-600 dark:text-green-400" />
+            </div>
+            <DialogTitle className="text-center text-xl">KYC Submitted Successfully!</DialogTitle>
+            <DialogDescription className="text-center pt-2">
+              Your KYC documents have been submitted successfully. Our team will review your submission and you'll receive an email notification once the review is complete.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-center">
+            <Button
+              onClick={() => setShowSuccessModal(false)}
+              className="w-full sm:w-auto"
+            >
+              Got it
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
