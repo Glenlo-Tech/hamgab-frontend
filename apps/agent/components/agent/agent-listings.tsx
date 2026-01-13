@@ -118,7 +118,7 @@ export function AgentListings() {
       </FadeIn>
 
       <FadeIn delay={0.1}>
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-5">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Search listings..." className="pl-9" />
@@ -139,13 +139,35 @@ export function AgentListings() {
       </FadeIn>
 
       <FadeIn delay={0.2}>
-        <Tabs defaultValue="all">
-          <TabsList>
-            <TabsTrigger value="all">All ({listings.length})</TabsTrigger>
-            <TabsTrigger value="approved">Approved ({filteredByStatus("approved").length})</TabsTrigger>
-            <TabsTrigger value="pending">Pending ({filteredByStatus("pending").length})</TabsTrigger>
-            <TabsTrigger value="rejected">Rejected ({filteredByStatus("rejected").length})</TabsTrigger>
-          </TabsList>
+        <Tabs defaultValue="all" className="w-full">
+          <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
+            <TabsList className="inline-flex h-auto w-full sm:w-auto bg-muted/50 p-1 rounded-lg border border-border/50">
+              <TabsTrigger 
+                value="all" 
+                className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground transition-all whitespace-nowrap"
+              >
+                All ({listings.length})
+              </TabsTrigger>
+              <TabsTrigger 
+                value="approved" 
+                className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground transition-all whitespace-nowrap"
+              >
+                Approved ({filteredByStatus("approved").length})
+              </TabsTrigger>
+              <TabsTrigger 
+                value="pending" 
+                className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground transition-all whitespace-nowrap"
+              >
+                Pending ({filteredByStatus("pending").length})
+              </TabsTrigger>
+              <TabsTrigger 
+                value="rejected" 
+                className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground transition-all whitespace-nowrap"
+              >
+                Rejected ({filteredByStatus("rejected").length})
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {["all", "approved", "pending", "rejected"].map((tab) => (
             <TabsContent key={tab} value={tab} className="mt-6">
