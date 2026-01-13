@@ -123,29 +123,113 @@ function MobileBottomNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t border-border safe-area-inset-bottom mobile-nav">
-      <div className="flex items-center justify-around h-16 px-2 pb-safe">
-        {navigationLinks.map((link) => {
-          const isActive = pathname === link.href || (link.href === "/" && pathname === "/")
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={cn(
-                "relative flex flex-col items-center justify-center gap-1 flex-1 h-full min-w-0 px-2 transition-all duration-200 active:scale-95",
-                isActive ? "text-primary" : "text-muted-foreground",
-              )}
-            >
-              <link.icon className={cn("h-5 w-5 transition-transform", isActive && "scale-110")} />
-              <span className="text-[10px] sm:text-xs font-medium truncate w-full text-center leading-tight">
-                {link.mobileLabel}
-              </span>
-              {isActive && (
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/2 h-0.5 bg-primary rounded-t-full" />
-              )}
-            </Link>
-          )
-        })}
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 safe-area-inset-bottom mobile-nav">
+      {/* Shadow overlay for depth */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/5 via-transparent to-transparent pointer-events-none" />
+      
+      {/* Main navigation bar */}
+      <div className="relative bg-background/98 backdrop-blur-xl border-t border-border/50 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_-4px_20px_rgba(0,0,0,0.3)]">
+        <div className="flex items-end justify-around h-20 px-1 pb-safe pt-2">
+          {navigationLinks.map((link, index) => {
+            const isActive = pathname === link.href || (link.href === "/" && pathname === "/")
+            const isSubmit = link.href === "/submit"
+            
+            // Special styling for the Submit button (middle button)
+            if (isSubmit) {
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    "relative flex flex-col items-center justify-center gap-1.5 min-w-[64px] mb-1 transition-all duration-300 active:scale-95",
+                    "group"
+                  )}
+                >
+                  {/* Elevated button container */}
+                  <div className={cn(
+                    "relative w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300",
+                    "shadow-lg shadow-blue-500/20 dark:shadow-blue-500/30",
+                    "bg-gradient-to-br from-blue-600 to-blue-700",
+                    "hover:from-blue-700 hover:to-blue-800",
+                    "active:scale-95",
+                    "before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-br before:from-white/20 before:to-transparent before:opacity-50"
+                  )}>
+                    {/* Inner glow effect */}
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    
+                    {/* Icon with 3D effect */}
+                    <link.icon className={cn(
+                      "h-6 w-6 text-white relative z-10",
+                      "drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]",
+                      "transition-transform duration-300",
+                      "group-hover:scale-110 group-active:scale-95"
+                    )} />
+                    
+                    {/* Pulsing ring effect when active */}
+                    {isActive && (
+                      <div className="absolute inset-0 rounded-2xl bg-blue-400/30 animate-ping" />
+                    )}
+                  </div>
+                  
+                  {/* Label */}
+                  <span className={cn(
+                    "text-[10px] sm:text-xs font-semibold text-center leading-tight",
+                    "text-blue-600 dark:text-blue-400",
+                    "transition-colors duration-300"
+                  )}>
+                    {link.mobileLabel}
+                  </span>
+                </Link>
+              )
+            }
+            
+            // Regular navigation items
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "relative flex flex-col items-center justify-center gap-1.5 flex-1 h-full min-w-0 px-1.5 transition-all duration-300 active:scale-95",
+                  "group"
+                )}
+              >
+                {/* Icon container with 3D effect */}
+                <div className={cn(
+                  "relative w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300",
+                  "shadow-md",
+                  isActive
+                    ? "bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 shadow-primary/20"
+                    : "bg-muted/50 hover:bg-muted shadow-black/5 dark:shadow-black/20",
+                  "before:absolute before:inset-0 before:rounded-xl before:bg-gradient-to-br before:from-white/30 before:to-transparent before:opacity-0 group-hover:before:opacity-100 before:transition-opacity before:duration-300"
+                )}>
+                  {/* Icon with shadow */}
+                  <link.icon className={cn(
+                    "h-5 w-5 relative z-10 transition-all duration-300",
+                    isActive
+                      ? "text-primary drop-shadow-[0_2px_4px_rgba(var(--primary),0.3)] scale-110"
+                      : "text-muted-foreground group-hover:text-foreground group-hover:scale-110",
+                    "drop-shadow-[0_1px_2px_rgba(0,0,0,0.1)]"
+                  )} />
+                  
+                  {/* Active indicator dot */}
+                  {isActive && (
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary shadow-[0_0_4px_rgba(var(--primary),0.6)] animate-pulse" />
+                  )}
+                </div>
+                
+                {/* Label */}
+                <span className={cn(
+                  "text-[10px] sm:text-xs font-medium truncate w-full text-center leading-tight transition-colors duration-300",
+                  isActive
+                    ? "text-primary font-semibold"
+                    : "text-muted-foreground group-hover:text-foreground"
+                )}>
+                  {link.mobileLabel}
+                </span>
+              </Link>
+            )
+          })}
+        </div>
       </div>
     </nav>
   )
