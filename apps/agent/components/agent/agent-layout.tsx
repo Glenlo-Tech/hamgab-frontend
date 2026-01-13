@@ -375,9 +375,11 @@ export function AgentLayout({ children }: AgentLayoutProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem>
-                <Settings className="h-4 w-4 mr-2" />
-                Settings
+              <DropdownMenuItem asChild>
+                <Link href="/settings" className="flex items-center">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Settings
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-destructive" onClick={handleLogout}>

@@ -263,9 +263,9 @@ export function AgentDashboard() {
             <TabsTrigger value="analytics" className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2">
               Analytics
             </TabsTrigger>
-            <TabsTrigger value="goals" className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2">
+            {/* <TabsTrigger value="goals" className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2">
               Goals
-            </TabsTrigger>
+            </TabsTrigger> */}
             <TabsTrigger value="notifications" className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2">
               <span className="flex items-center gap-1 sm:gap-2">
                 Alerts
@@ -574,7 +574,7 @@ export function AgentDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="goals" className="space-y-6 mt-6">
+          {/* <TabsContent value="goals" className="space-y-6 mt-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -654,7 +654,7 @@ export function AgentDashboard() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+          </TabsContent> */}
 
           <TabsContent value="notifications" className="mt-6">
             <Card>
