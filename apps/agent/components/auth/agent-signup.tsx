@@ -11,6 +11,14 @@ import Link from "next/link"
 import { registerAgent } from "@/lib/auth"
 import { ApiClientError } from "@/lib/api-client"
 
+interface FieldErrors {
+  fullName?: string
+  email?: string
+  phone?: string
+  password?: string
+  confirmPassword?: string
+}
+
 export function AgentSignup() {
   const router = useRouter()
   const [formData, setFormData] = useState({
@@ -20,42 +28,143 @@ export function AgentSignup() {
     password: "",
     confirmPassword: "",
   })
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
+  const [touched, setTouched] = useState<Record<string, boolean>>({})
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [acceptTerms, setAcceptTerms] = useState(false)
 
+  // Email validation regex
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  
+  // Phone validation (supports international format)
+  const phoneRegex = /^\+?[1-9]\d{1,14}$/
+
+  const validateField = (field: string, value: string): string | undefined => {
+    switch (field) {
+      case "fullName":
+        if (!value.trim()) {
+          return "Full name is required"
+        }
+        if (value.trim().length < 2) {
+          return "Full name must be at least 2 characters"
+        }
+        break
+      case "email":
+        if (!value.trim()) {
+          return "Email is required"
+        }
+        if (!emailRegex.test(value.trim())) {
+          return "Please enter a valid email address"
+        }
+        break
+      case "phone":
+        if (!value.trim()) {
+          return "Phone number is required"
+        }
+        // Remove spaces and dashes for validation
+        const cleanPhone = value.replace(/[\s-]/g, "")
+        if (!phoneRegex.test(cleanPhone)) {
+          return "Please enter a valid phone number"
+        }
+        break
+      case "password":
+        if (!value) {
+          return "Password is required"
+        }
+        if (value.length < 8) {
+          return "Password must be at least 8 characters"
+        }
+        break
+      case "confirmPassword":
+        if (!value) {
+          return "Please confirm your password"
+        }
+        if (value !== formData.password) {
+          return "Passwords do not match"
+        }
+        break
+    }
+    return undefined
+  }
+
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
     setError(null)
+    
+    // Validate field if it has been touched
+    if (touched[field]) {
+      const error = validateField(field, value)
+      setFieldErrors((prev) => ({ ...prev, [field]: error }))
+    }
+    
+    // Special handling for confirm password - validate against password
+    if (field === "password" && touched.confirmPassword && formData.confirmPassword) {
+      const confirmError = validateField("confirmPassword", formData.confirmPassword)
+      setFieldErrors((prev) => ({ ...prev, confirmPassword: confirmError }))
+    }
+  }
+
+  const handleBlur = (field: string) => {
+    setTouched((prev) => ({ ...prev, [field]: true }))
+    const error = validateField(field, formData[field as keyof typeof formData])
+    setFieldErrors((prev) => ({ ...prev, [field]: error }))
+  }
+
+  const isFormValid = (): boolean => {
+    // Check all required fields
+    if (!formData.fullName.trim()) return false
+    if (!formData.email.trim()) return false
+    if (!formData.phone.trim()) return false
+    if (formData.password.length < 8) return false
+    if (formData.password !== formData.confirmPassword) return false
+    if (!acceptTerms) return false
+    
+    // Check for any field errors
+    if (Object.values(fieldErrors).some((error) => error !== undefined)) return false
+    
+    // Validate all fields one more time
+    const errors: FieldErrors = {}
+    errors.fullName = validateField("fullName", formData.fullName)
+    errors.email = validateField("email", formData.email)
+    errors.phone = validateField("phone", formData.phone)
+    errors.password = validateField("password", formData.password)
+    errors.confirmPassword = validateField("confirmPassword", formData.confirmPassword)
+    
+    return !Object.values(errors).some((error) => error !== undefined)
   }
 
   const validateForm = () => {
-    if (!formData.fullName.trim()) {
-      setError("Full name is required")
+    // Mark all fields as touched
+    const allFields = ["fullName", "email", "phone", "password", "confirmPassword"]
+    allFields.forEach((field) => {
+      setTouched((prev) => ({ ...prev, [field]: true }))
+    })
+
+    // Validate all fields
+    const errors: FieldErrors = {}
+    errors.fullName = validateField("fullName", formData.fullName)
+    errors.email = validateField("email", formData.email)
+    errors.phone = validateField("phone", formData.phone)
+    errors.password = validateField("password", formData.password)
+    errors.confirmPassword = validateField("confirmPassword", formData.confirmPassword)
+
+    setFieldErrors(errors)
+
+    // Check if form is valid
+    if (Object.values(errors).some((error) => error !== undefined)) {
+      const firstError = Object.values(errors).find((error) => error !== undefined)
+      setError(firstError || "Please fix the errors in the form")
       return false
     }
-    if (!formData.email.trim()) {
-      setError("Email is required")
-      return false
-    }
-    if (!formData.phone.trim()) {
-      setError("Phone number is required")
-      return false
-    }
-    if (formData.password.length < 8) {
-      setError("Password must be at least 8 characters")
-      return false
-    }
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match")
-      return false
-    }
+
     if (!acceptTerms) {
       setError("Please accept the terms and conditions")
       return false
     }
+
     return true
   }
 
@@ -133,12 +242,20 @@ export function AgentSignup() {
                 placeholder="John Doe"
                 value={formData.fullName}
                 onChange={(e) => handleChange("fullName", e.target.value)}
-                className="pl-11 h-11"
+                onBlur={() => handleBlur("fullName")}
+                className={cn(
+                  "pl-11 h-11",
+                  touched.fullName && fieldErrors.fullName && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20"
+                )}
                 required
                 disabled={isLoading}
                 autoComplete="name"
+                aria-invalid={touched.fullName && !!fieldErrors.fullName}
               />
             </div>
+            {touched.fullName && fieldErrors.fullName && (
+              <p className="text-xs text-destructive font-medium">{fieldErrors.fullName}</p>
+            )}
           </div>
 
           {/* Email */}
@@ -154,12 +271,20 @@ export function AgentSignup() {
                 placeholder="agent@example.com"
                 value={formData.email}
                 onChange={(e) => handleChange("email", e.target.value)}
-                className="pl-11 h-11"
+                onBlur={() => handleBlur("email")}
+                className={cn(
+                  "pl-11 h-11",
+                  touched.email && fieldErrors.email && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20"
+                )}
                 required
                 disabled={isLoading}
                 autoComplete="email"
+                aria-invalid={touched.email && !!fieldErrors.email}
               />
             </div>
+            {touched.email && fieldErrors.email && (
+              <p className="text-xs text-destructive font-medium">{fieldErrors.email}</p>
+            )}
           </div>
 
           {/* Phone */}
@@ -175,12 +300,20 @@ export function AgentSignup() {
                 placeholder="+237 673952611"
                 value={formData.phone}
                 onChange={(e) => handleChange("phone", e.target.value)}
-                className="pl-11 h-11"
+                onBlur={() => handleBlur("phone")}
+                className={cn(
+                  "pl-11 h-11",
+                  touched.phone && fieldErrors.phone && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20"
+                )}
                 required
                 disabled={isLoading}
                 autoComplete="tel"
+                aria-invalid={touched.phone && !!fieldErrors.phone}
               />
             </div>
+            {touched.phone && fieldErrors.phone && (
+              <p className="text-xs text-destructive font-medium">{fieldErrors.phone}</p>
+            )}
           </div>
 
           {/* Password */}
@@ -196,10 +329,15 @@ export function AgentSignup() {
                 placeholder="At least 8 characters"
                 value={formData.password}
                 onChange={(e) => handleChange("password", e.target.value)}
-                className="pl-11 pr-11 h-11"
+                onBlur={() => handleBlur("password")}
+                className={cn(
+                  "pl-11 pr-11 h-11",
+                  touched.password && fieldErrors.password && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20"
+                )}
                 required
                 disabled={isLoading}
                 autoComplete="new-password"
+                aria-invalid={touched.password && !!fieldErrors.password}
               />
               <button
                 type="button"
@@ -214,7 +352,9 @@ export function AgentSignup() {
                 )}
               </button>
             </div>
-            {formData.password && (
+            {touched.password && fieldErrors.password ? (
+              <p className="text-xs text-destructive font-medium">{fieldErrors.password}</p>
+            ) : formData.password && !fieldErrors.password ? (
               <div className="flex items-center gap-2 text-xs">
                 {passwordStrength ? (
                   <>
@@ -227,7 +367,7 @@ export function AgentSignup() {
                   </span>
                 )}
               </div>
-            )}
+            ) : null}
           </div>
 
           {/* Confirm Password */}
@@ -243,10 +383,15 @@ export function AgentSignup() {
                 placeholder="Confirm your password"
                 value={formData.confirmPassword}
                 onChange={(e) => handleChange("confirmPassword", e.target.value)}
-                className="pl-11 pr-11 h-11"
+                onBlur={() => handleBlur("confirmPassword")}
+                className={cn(
+                  "pl-11 pr-11 h-11",
+                  touched.confirmPassword && fieldErrors.confirmPassword && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20"
+                )}
                 required
                 disabled={isLoading}
                 autoComplete="new-password"
+                aria-invalid={touched.confirmPassword && !!fieldErrors.confirmPassword}
               />
               <button
                 type="button"
@@ -261,8 +406,8 @@ export function AgentSignup() {
                 )}
               </button>
             </div>
-            {formData.confirmPassword && formData.password !== formData.confirmPassword && (
-              <p className="text-xs text-destructive font-medium">Passwords do not match</p>
+            {touched.confirmPassword && fieldErrors.confirmPassword && (
+              <p className="text-xs text-destructive font-medium">{fieldErrors.confirmPassword}</p>
             )}
           </div>
 
@@ -291,9 +436,9 @@ export function AgentSignup() {
           {/* Submit button */}
           <Button
             type="submit"
-            className="w-full h-11 text-base font-semibold bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-200 mt-2"
+            className="w-full h-11 text-base font-semibold bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-200 mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
             size="lg"
-            disabled={isLoading || !acceptTerms}
+            disabled={isLoading || !isFormValid()}
           >
             {isLoading ? (
               <>

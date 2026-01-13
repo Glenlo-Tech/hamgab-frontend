@@ -18,6 +18,61 @@ export function AgentLogin() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({})
+  const [touched, setTouched] = useState<{ email?: boolean; password?: boolean }>({})
+
+  // Email validation regex
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+  const validateField = (field: string, value: string): string | undefined => {
+    switch (field) {
+      case "email":
+        if (!value.trim()) {
+          return "Email is required"
+        }
+        if (!emailRegex.test(value.trim())) {
+          return "Please enter a valid email address"
+        }
+        break
+      case "password":
+        if (!value) {
+          return "Password is required"
+        }
+        break
+    }
+    return undefined
+  }
+
+  const handleEmailChange = (value: string) => {
+    setEmail(value)
+    setError(null)
+    if (touched.email) {
+      const error = validateField("email", value)
+      setFieldErrors((prev) => ({ ...prev, email: error }))
+    }
+  }
+
+  const handlePasswordChange = (value: string) => {
+    setPassword(value)
+    setError(null)
+    if (touched.password) {
+      const error = validateField("password", value)
+      setFieldErrors((prev) => ({ ...prev, password: error }))
+    }
+  }
+
+  const handleBlur = (field: string) => {
+    setTouched((prev) => ({ ...prev, [field]: true }))
+    const value = field === "email" ? email : password
+    const error = validateField(field, value)
+    setFieldErrors((prev) => ({ ...prev, [field]: error }))
+  }
+
+  const isFormValid = (): boolean => {
+    if (!email.trim() || !password) return false
+    if (fieldErrors.email || fieldErrors.password) return false
+    return !validateField("email", email) && !validateField("password", password)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -77,13 +132,21 @@ export function AgentLogin() {
                 type="email"
                 placeholder="agent@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="pl-11 h-11"
+                onChange={(e) => handleEmailChange(e.target.value)}
+                onBlur={() => handleBlur("email")}
+                className={cn(
+                  "pl-11 h-11",
+                  touched.email && fieldErrors.email && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20"
+                )}
                 required
                 disabled={isLoading}
                 autoComplete="email"
+                aria-invalid={touched.email && !!fieldErrors.email}
               />
             </div>
+            {touched.email && fieldErrors.email && (
+              <p className="text-xs text-destructive font-medium">{fieldErrors.email}</p>
+            )}
           </div>
 
           {/* Password */}
@@ -98,11 +161,16 @@ export function AgentLogin() {
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="pl-11 pr-11 h-11"
+                onChange={(e) => handlePasswordChange(e.target.value)}
+                onBlur={() => handleBlur("password")}
+                className={cn(
+                  "pl-11 pr-11 h-11",
+                  touched.password && fieldErrors.password && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20"
+                )}
                 required
                 disabled={isLoading}
                 autoComplete="current-password"
+                aria-invalid={touched.password && !!fieldErrors.password}
               />
               <button
                 type="button"
@@ -117,6 +185,9 @@ export function AgentLogin() {
                 )}
               </button>
             </div>
+            {touched.password && fieldErrors.password && (
+              <p className="text-xs text-destructive font-medium">{fieldErrors.password}</p>
+            )}
           </div>
 
           {/* Forgot password */}
@@ -132,9 +203,9 @@ export function AgentLogin() {
           {/* Submit button */}
           <Button
             type="submit"
-            className="w-full h-11 text-base font-semibold bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-200"
+            className="w-full h-11 text-base font-semibold bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             size="lg"
-            disabled={isLoading || !email || !password}
+            disabled={isLoading || !isFormValid()}
           >
             {isLoading ? (
               <>
