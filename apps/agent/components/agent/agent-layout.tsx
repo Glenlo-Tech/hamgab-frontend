@@ -77,8 +77,13 @@ function DesktopSidebar() {
   return (
     <aside className="hidden lg:flex flex-col h-screen w-64 bg-card border-r border-border fixed left-0 top-0 z-40">
       <div className="p-6 border-b border-border">
-        <Link href="/" className="flex items-center gap-2">
-          <Building2 className="h-8 w-8" />
+        <Link href="/" className="flex items-center gap-2">        
+        <Image
+             src="/favicon_io/favicon-32x32.png" 
+             alt="hamgab logo"
+             width="50"
+             height="50"
+        />
           <div>
             <span className="text-xl font-semibold tracking-tight block">HAMGAB</span>
             <span className="text-xs text-muted-foreground">Agent Portal</span>
@@ -286,7 +291,12 @@ function MobileSidebarSheet({ open, onOpenChange }: { open: boolean; onOpenChang
         <div className="flex flex-col h-full">
           <div className="p-6 border-b border-border">
             <Link href="/" className="flex items-center gap-2" onClick={() => onOpenChange(false)}>
-              <Building2 className="h-8 w-8" />
+            <Image
+             src="/favicon_io/favicon-32x32.png" 
+             alt="hamgab logo"
+             width="50"
+             height="50"
+        />
               <div>
                 <span className="text-xl font-semibold tracking-tight block">HAMGAB</span>
                 <span className="text-xs text-muted-foreground">Agent Portal</span>
@@ -327,7 +337,20 @@ function MobileSidebarSheet({ open, onOpenChange }: { open: boolean; onOpenChang
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{getAgentData()?.fullName || "Agent"}</p>
-                <p className="text-xs text-muted-foreground truncate">Licensed Agent</p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {(() => {
+                    const agent = getAgentData()
+                    if (agent?.status) {
+                      const status = agent.status.charAt(0) + agent.status.slice(1).toLowerCase()
+                      return `${status} Agent`
+                    }
+                    if (agent?.role) {
+                      const role = agent.role.charAt(0) + agent.role.slice(1).toLowerCase()
+                      return `${role} Agent`
+                    }
+                    return "Agent"
+                  })()}
+                </p>
               </div>
             </div>
           </div>

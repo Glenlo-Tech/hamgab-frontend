@@ -1,7 +1,8 @@
 {
-  "installCommand": "cd ../.. && pnpm install",
-  "buildCommand": "cd ../.. && pnpm --filter @propflow/agent build",
-  "devCommand": "cd ../.. && pnpm --filter @propflow/agent dev",
-  "framework": "nextjs"
+  "buildCommand": "pnpm --filter @propflow/agent build",
+  "devCommand": "pnpm --filter @propflow/agent dev",
+  "installCommand": "pnpm install",
+  "framework": "nextjs",
+  "outputDirectory": ".next"
 }
 

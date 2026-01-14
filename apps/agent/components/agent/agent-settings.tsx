@@ -337,7 +337,7 @@ export function AgentSettings() {
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleLogout} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                <AlertDialogAction onClick={handleLogout} className="bg-destructive text-white hover:bg-destructive/90">
                   Sign Out
                 </AlertDialogAction>
               </AlertDialogFooter>
