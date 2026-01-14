@@ -133,3 +133,34 @@
 html {
   scroll-behavior: smooth;
 }
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-33.333% - 0.5rem));
+  }
+}
+
+@keyframes marquee-reverse {
+  from {
+    transform: translateX(calc(-33.333% - 0.5rem));
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-marquee {
+  animation: marquee var(--duration, 80s) linear infinite;
+}
+
+.animate-marquee-reverse {
+  animation: marquee-reverse var(--duration, 80s) linear infinite;
+}
+
+.group:hover .animate-marquee,
+.group:hover .animate-marquee-reverse {
+  animation-play-state: paused;
+}

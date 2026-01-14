@@ -5,7 +5,7 @@ import { useEffect, useState, useRef } from "react"
 
 const stats = [
   { value: 1500, suffix: "+", label: "Active Agents" },
-  { value: 45, prefix: "$", suffix: "K", label: "Avg. Monthly Earnings" },
+  { value: 45, prefix: "XAF", suffix: "K", label: "Avg. Monthly Earnings" },
   { value: 98, suffix: "%", label: "Agent Satisfaction" },
   { value: 10, suffix: "K+", label: "Properties Listed" },
 ]
@@ -82,7 +82,7 @@ export function AgentsStats() {
                 <p className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-2">
                   <AnimatedNumber value={stat.value} prefix={stat.prefix} suffix={stat.suffix} />
                 </p>
-                <p className="text-background/70 text-sm sm:text-base">{stat.label}</p>
+                <p className="text-background/70 text-sm sm:text-base">{''}{stat.label}</p>
               </div>
             </StaggerItem>
           ))}
