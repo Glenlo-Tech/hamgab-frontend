@@ -295,10 +295,11 @@ export function PropertySubmissionForm() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.2 }}
-                  className="space-y-4 sm:space-y-6"
+                  className="space-y-5 sm:space-y-6"
                 >
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
+                  {/* Property Title and Type - Responsive Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+                    <div className="space-y-2 w-full">
                       <label className="text-sm font-medium flex items-center gap-1.5">
                         Property Title
                         <span className="text-destructive">*</span>
@@ -308,17 +309,17 @@ export function PropertySubmissionForm() {
                         placeholder="e.g., Modern Downtown Apartment"
                         value={formData.title}
                         onChange={(e) => handleFieldChange("title", e.target.value)}
-                        className="h-10 sm:h-11"
+                        className="h-11 w-full"
                       />
                       <p className="text-xs text-muted-foreground">A catchy title helps attract more views</p>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 w-full">
                       <label className="text-sm font-medium flex items-center gap-1.5">
                         Property Type
                         <span className="text-destructive">*</span>
                       </label>
                       <Select value={formData.type} onValueChange={(value) => handleFieldChange("type", value)}>
-                        <SelectTrigger className="h-10 sm:h-11">
+                        <SelectTrigger className="h-11 w-full">
                           <SelectValue placeholder="Select type" />
                         </SelectTrigger>
                         <SelectContent>
@@ -331,8 +332,10 @@ export function PropertySubmissionForm() {
                       </Select>
                     </div>
                   </div>
-                  <div className="grid sm:grid-cols-3 gap-4">
-                    <div className="space-y-2">
+
+                  {/* Bedrooms, Bathrooms, Square Feet - Responsive Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                    <div className="space-y-2 w-full">
                       <label className="text-sm font-medium flex items-center gap-1.5">
                         Bedrooms
                         <span className="text-destructive">*</span>
@@ -341,7 +344,7 @@ export function PropertySubmissionForm() {
                         value={formData.bedrooms}
                         onValueChange={(value) => handleFieldChange("bedrooms", value)}
                       >
-                        <SelectTrigger className="h-10 sm:h-11">
+                        <SelectTrigger className="h-11 w-full">
                           <SelectValue placeholder="Select" />
                         </SelectTrigger>
                         <SelectContent>
@@ -353,7 +356,7 @@ export function PropertySubmissionForm() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 w-full">
                       <label className="text-sm font-medium flex items-center gap-1.5">
                         Bathrooms
                         <span className="text-destructive">*</span>
@@ -362,7 +365,7 @@ export function PropertySubmissionForm() {
                         value={formData.bathrooms}
                         onValueChange={(value) => handleFieldChange("bathrooms", value)}
                       >
-                        <SelectTrigger className="h-10 sm:h-11">
+                        <SelectTrigger className="h-11 w-full">
                           <SelectValue placeholder="Select" />
                         </SelectTrigger>
                         <SelectContent>
@@ -374,14 +377,14 @@ export function PropertySubmissionForm() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 w-full sm:col-span-2 lg:col-span-1">
                       <label className="text-sm font-medium">Square Feet</label>
                       <Input
                         type="number"
                         placeholder="e.g., 1200"
                         value={formData.squareFeet}
                         onChange={(e) => handleFieldChange("squareFeet", e.target.value)}
-                        className="h-10 sm:h-11"
+                        className="h-11 w-full"
                       />
                     </div>
                   </div>
