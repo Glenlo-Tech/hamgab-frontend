@@ -2,9 +2,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   basePath: '',
-  assetPrefix: process.env.NODE_ENV === 'production' 
-    ? process.env.NEXT_PUBLIC_PUBLIC_URL || 'https://domain.com' 
-    : '',
+  assetPrefix: process.env.VERCEL 
+    ? undefined 
+    : (process.env.NODE_ENV === 'production' 
+      ? process.env.NEXT_PUBLIC_PUBLIC_URL
+      : ''),
   typescript: {
     ignoreBuildErrors: false,
   },
