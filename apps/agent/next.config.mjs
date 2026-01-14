@@ -2,9 +2,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   basePath: '',
-  assetPrefix: process.env.NODE_ENV === 'production' 
-    ? process.env.NEXT_PUBLIC_AGENT_URL || 'https://agent.domain.com' 
-    : '',
+  // Only set assetPrefix if explicitly provided and not on Vercel
+  // Vercel handles asset paths automatically, so we don't need assetPrefix there
+  assetPrefix: process.env.VERCEL 
+    ? undefined 
+    : (process.env.NEXT_PUBLIC_AGENT_URL || ''),
   typescript: {
     ignoreBuildErrors: false,
   },
