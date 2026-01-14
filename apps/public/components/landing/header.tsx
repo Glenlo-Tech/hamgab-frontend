@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
 import { Building2, Menu, X } from "lucide-react"
 import { useState } from "react"
+import Image from "next/image"
 
 const navLinks = [
   { href: "#properties", label: "Properties" },
@@ -26,7 +27,12 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
           <Link href="/" className="flex items-center gap-2">
-            <Building2 className="h-8 w-8" />
+          <Image
+             src="/favicon_io/android-chrome-192x192.png" 
+             alt="hamgab logo"
+             width="50"
+             height="50"
+          />
             <span className="text-xl font-semibold tracking-tight">HAMGAB</span>
           </Link>
 

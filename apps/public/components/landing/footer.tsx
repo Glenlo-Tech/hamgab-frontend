@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { Building2, Twitter, Facebook, Instagram, Linkedin } from "lucide-react"
 import { FadeIn } from "@/components/motion-wrapper"
+import Image from "next/image"
 
 const footerLinks = {
   product: [
@@ -40,7 +41,12 @@ export function Footer() {
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
             <div className="col-span-2 lg:col-span-2">
               <Link href="/" className="flex items-center gap-2 mb-4">
-                <Building2 className="h-8 w-8" />
+              <Image
+                src="/favicon_io/android-chrome-192x192.png" 
+                alt="hamgab logo"
+                width="50"
+                height="50"
+              />
                 <span className="text-xl font-semibold tracking-tight">HAMGAB</span>
               </Link>
               <p className="text-sm text-muted-foreground mb-6 max-w-xs">
