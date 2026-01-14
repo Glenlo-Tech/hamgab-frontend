@@ -20,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Building2, LayoutDashboard, Plus, List, Settings, LogOut, Menu, Bell, ChevronDown, BarChart3, Home, User, Grid3x3, PlusCircle, UserCircle, Settings2 } from "lucide-react"
+import Image from "next/image"
 
 interface AgentLayoutProps {
   children: React.ReactNode
@@ -395,7 +396,7 @@ export function AgentLayout({ children }: AgentLayoutProps) {
             <Badge className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-[10px]">3</Badge>
           </Button>
 
-          <DropdownMenu>
+          {/* <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="gap-2 h-9 px-2 lg:px-3">
                 <Avatar className="h-7 w-7 lg:h-8 lg:w-8">
@@ -426,7 +427,7 @@ export function AgentLayout({ children }: AgentLayoutProps) {
                 Sign Out
               </DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu>
+          </DropdownMenu> */}
         </header>
 
         {/* Main Content with bottom padding for mobile nav */}

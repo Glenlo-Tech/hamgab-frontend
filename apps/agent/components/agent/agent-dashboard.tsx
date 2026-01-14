@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -25,18 +25,16 @@ import {
   ArrowRight,
   AlertCircle,
   Eye,
-  Target,
   Award,
   MessageSquare,
-  Bell,
   BarChart3,
   Users,
   FileCheck,
-  Star,
   ArrowUpRight,
   ArrowDownRight,
   XCircle,
   Shield,
+  X,
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
@@ -73,7 +71,7 @@ const recentListings = [
   {
     id: 1,
     title: "Modern Downtown Loft",
-    address: "123 5th Avenue, NY",
+    address: "Mewoulou, Yaounde",
     status: "Approved",
     views: 245,
     inquiries: 12,
@@ -84,7 +82,7 @@ const recentListings = [
   {
     id: 2,
     title: "Luxury Beach Villa",
-    address: "456 Ocean Drive, Miami",
+    address: "Mendong, Yaounde",
     status: "Pending",
     views: 0,
     inquiries: 0,
@@ -95,7 +93,7 @@ const recentListings = [
   {
     id: 3,
     title: "Cozy Studio",
-    address: "789 Bedford Ave, Brooklyn",
+    address: "789 Etoug-Ebe, Yaounde",
     status: "Approved",
     views: 128,
     inquiries: 8,
@@ -105,55 +103,52 @@ const recentListings = [
   },
 ]
 
-const notifications = [
-  {
-    id: 1,
-    type: "approval",
-    message: 'Your property "Modern Downtown Loft" has been approved.',
-    time: "2 hours ago",
-    read: false,
-  },
-  {
-    id: 2,
-    type: "review",
-    message: "Admin requested additional photos for Beach Villa listing.",
-    time: "5 hours ago",
-    read: false,
-  },
-  {
-    id: 3,
-    type: "inquiry",
-    message: "New inquiry received for Cozy Studio apartment.",
-    time: "8 hours ago",
-    read: true,
-  },
-  {
-    id: 4,
-    type: "info",
-    message: "New commission structure effective from February 1st.",
-    time: "1 day ago",
-    read: true,
-  },
-]
-
-const goals = [
-  { label: "Monthly Target", current: 12450, target: 15000, unit: "XAF" },
-  { label: "New Listings", current: 7, target: 10, unit: "" },
-  { label: "Client Meetings", current: 12, target: 15, unit: "" },
-]
-
 const topPerformers = [
   { id: 1, title: "Modern Downtown Loft", views: 245, inquiries: 12, conversion: "4.9%" },
   { id: 2, title: "Cozy Studio", views: 128, inquiries: 8, conversion: "6.3%" },
   { id: 3, title: "Penthouse Suite", views: 89, inquiries: 5, conversion: "5.6%" },
 ]
 
+const KYC_CARD_DISMISSED_KEY = "kyc_card_dismissed"
+
 export function AgentDashboard() {
   const [activeTab, setActiveTab] = useState("overview")
   const [selectedListing, setSelectedListing] = useState<(typeof recentListings)[0] | null>(null)
   const { kycStatus, kycApproved, isLoading: isLoadingKYC } = useKYCStatus()
-  const unreadNotifications = notifications.filter((n) => !n.read).length
+  const [isKycCardDismissed, setIsKycCardDismissed] = useState(false)
   const agent = getAgentData()
+
+  // Load dismissal state from localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const dismissed = localStorage.getItem(KYC_CARD_DISMISSED_KEY) === "true"
+      setIsKycCardDismissed(dismissed)
+    }
+  }, [])
+
+  // Auto-show card again if KYC status changes (e.g., PENDING -> APPROVED)
+  useEffect(() => {
+    if (kycStatus && typeof window !== "undefined") {
+      const lastStatus = localStorage.getItem("kyc_last_status")
+      const currentStatus = kycStatus.status
+      
+      // If status changed, show the card again
+      if (lastStatus && lastStatus !== currentStatus) {
+        setIsKycCardDismissed(false)
+        localStorage.removeItem(KYC_CARD_DISMISSED_KEY)
+      }
+      
+      // Update last known status
+      localStorage.setItem("kyc_last_status", currentStatus)
+    }
+  }, [kycStatus?.status])
+
+  const handleDismissKycCard = () => {
+    setIsKycCardDismissed(true)
+    if (typeof window !== "undefined") {
+      localStorage.setItem(KYC_CARD_DISMISSED_KEY, "true")
+    }
+  }
 
   const getWelcomeName = () => {
     if (agent?.fullName) {
@@ -203,36 +198,99 @@ export function AgentDashboard() {
             </motion.h1>
             <p className="text-sm sm:text-base text-muted-foreground mt-1">Here's your property management overview.</p>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-            {kycApproved ? (
-              <Button asChild size="sm" className="h-9 sm:h-10">
-                <Link href="/submit">
-                  <Plus className="h-4 w-4 mr-1.5 sm:mr-2" />
-                  <span className="text-xs sm:text-sm">Submit Property</span>
-                </Link>
-              </Button>
-            ) : (
-              <Button 
-                size="sm" 
-                className="h-9 sm:h-10" 
-                disabled
-                variant="outline"
-                title={kycStatus?.status === "PENDING" ? "KYC verification pending approval" : "Please complete KYC verification to submit listings"}
-              >
-                <Plus className="h-4 w-4 mr-1.5 sm:mr-2" />
-                <span className="text-xs sm:text-sm">Submit Property</span>
-              </Button>
+          <div className="space-y-3">
+            {/* <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+              {kycApproved ? (
+                <Button asChild size="sm" className="h-9 sm:h-10">
+                  <Link href="/submit">
+                    <Plus className="h-4 w-4 mr-1.5 sm:mr-2" />
+                    <span className="text-xs sm:text-sm">Submit Property</span>
+                  </Link>
+                </Button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Button 
+                    size="sm" 
+                    className="h-9 sm:h-10" 
+                    disabled
+                    variant="outline"
+                    title={kycStatus?.status === "PENDING" ? "KYC verification pending approval" : "Please complete KYC verification to submit listings"}
+                  >
+                    <Plus className="h-4 w-4 mr-1.5 sm:mr-2" />
+                    <span className="text-xs sm:text-sm">Submit Property</span>
+                  </Button>
+                  {!isLoadingKYC && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <AlertCircle className="h-3.5 w-3.5" />
+                      <span className="hidden sm:inline">
+                        {kycStatus?.status === "PENDING" 
+                          ? "Awaiting KYC approval"
+                          : kycStatus?.status === "REJECTED"
+                          ? "KYC rejected - resubmit required"
+                          : "KYC verification required"}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+              {getStatusBadge()}
+            </div> */}
+            {!kycApproved && !isLoadingKYC && (
+              <div className={cn(
+                "p-3 rounded-lg border text-xs",
+                kycStatus?.status === "PENDING"
+                  ? "bg-amber-50/80 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800"
+                  : kycStatus?.status === "REJECTED"
+                  ? "bg-red-50/80 dark:bg-red-900/20 border-red-200 dark:border-red-800"
+                  : "bg-blue-50/80 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
+              )}>
+                <div className="flex items-start gap-2">
+                  <AlertCircle className={cn(
+                    "h-4 w-4 mt-0.5 flex-shrink-0",
+                    kycStatus?.status === "PENDING"
+                      ? "text-amber-600 dark:text-amber-400"
+                      : kycStatus?.status === "REJECTED"
+                      ? "text-red-600 dark:text-red-400"
+                      : "text-blue-600 dark:text-blue-400"
+                  )} />
+                  <div className="flex-1">
+                    <p className={cn(
+                      "font-semibold mb-1",
+                      kycStatus?.status === "PENDING"
+                        ? "text-amber-900 dark:text-amber-200"
+                        : kycStatus?.status === "REJECTED"
+                        ? "text-red-900 dark:text-red-200"
+                        : "text-blue-900 dark:text-blue-200"
+                    )}>
+                      Property Submission Restricted
+                    </p>
+                    <p className={cn(
+                      "text-xs leading-relaxed",
+                      kycStatus?.status === "PENDING"
+                        ? "text-amber-800 dark:text-amber-300"
+                        : kycStatus?.status === "REJECTED"
+                        ? "text-red-800 dark:text-red-300"
+                        : "text-blue-800 dark:text-blue-300"
+                    )}>
+                      {kycStatus?.status === "PENDING"
+                        ? "You cannot submit property listings until your KYC verification is approved. We'll notify you via email once the review is complete."
+                        : kycStatus?.status === "REJECTED"
+                        ? "Your KYC verification was rejected. Please update your documents and resubmit to enable property submission."
+                        : "You must complete and get approval for your KYC verification before you can submit property listings. This ensures compliance and security."}
+                    </p>
+                  </div>
+                </div>
+              </div>
             )}
-            {getStatusBadge()}
           </div>
         </div>
       </FadeIn>
 
-      {/* KYC Status Card */}
-      {!isLoadingKYC && (
+      {/* KYC Status Card - Only show if not approved and not dismissed */}
+      {!isLoadingKYC && !kycApproved && !isKycCardDismissed && (
         <FadeIn delay={0.05}>
           <Card className={cn(
-            "border-2 transition-all",
+            "border-2 transition-all relative",
             kycApproved 
               ? "bg-green-50/50 dark:bg-green-900/10 border-green-200 dark:border-green-800" 
               : kycStatus?.status === "PENDING"
@@ -242,7 +300,17 @@ export function AgentDashboard() {
               : "bg-blue-50/50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800"
           )}>
             <CardContent className="p-4 sm:p-6">
-              <div className="flex items-start gap-4">
+              {/* Close button */}
+              <button
+                onClick={handleDismissKycCard}
+                className="absolute top-3 right-3 p-1.5 rounded-md hover:bg-background/50 transition-colors text-muted-foreground hover:text-foreground"
+                aria-label="Dismiss KYC status card"
+                title="Dismiss"
+              >
+                <X className="h-4 w-4" />
+              </button>
+              
+              <div className="flex items-start gap-4 pr-6">
                 <div className={cn(
                   "h-12 w-12 rounded-xl flex items-center justify-center flex-shrink-0",
                   kycApproved
@@ -296,13 +364,48 @@ export function AgentDashboard() {
                     {kycApproved 
                       ? "Your KYC verification has been approved. You can now submit property listings."
                       : kycStatus?.status === "PENDING"
-                      ? "Your KYC documents are under review. We'll notify you via email once the review is complete."
+                      ? "Your KYC documents are under review. You'll be able to submit property listings once approved. We'll notify you via email once the review is complete."
                       : kycStatus?.status === "REJECTED"
                       ? kycStatus.review_notes 
-                        ? `Rejection reason: ${kycStatus.review_notes}`
-                        : "Your KYC verification was rejected. Please update your documents and resubmit."
-                      : "Complete your KYC verification to start submitting property listings."}
+                        ? `Rejection reason: ${kycStatus.review_notes}. Please update your documents and resubmit to enable property submission.`
+                        : "Your KYC verification was rejected. Please update your documents and resubmit to enable property submission."
+                      : "Complete your KYC verification to enable property submission. You cannot submit listings until your KYC is approved."}
                   </p>
+                  {!kycApproved && (
+                    <div className={cn(
+                      "p-3 rounded-lg mb-3 border",
+                      kycStatus?.status === "PENDING"
+                        ? "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800"
+                        : kycStatus?.status === "REJECTED"
+                        ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
+                        : "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
+                    )}>
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className={cn(
+                          "h-4 w-4 mt-0.5 flex-shrink-0",
+                          kycStatus?.status === "PENDING"
+                            ? "text-amber-600 dark:text-amber-400"
+                            : kycStatus?.status === "REJECTED"
+                            ? "text-red-600 dark:text-red-400"
+                            : "text-blue-600 dark:text-blue-400"
+                        )} />
+                        <p className={cn(
+                          "text-xs font-medium",
+                          kycStatus?.status === "PENDING"
+                            ? "text-amber-900 dark:text-amber-200"
+                            : kycStatus?.status === "REJECTED"
+                            ? "text-red-900 dark:text-red-200"
+                            : "text-blue-900 dark:text-blue-200"
+                        )}>
+                          {kycStatus?.status === "PENDING"
+                            ? "Property submission is disabled until your KYC is approved."
+                            : kycStatus?.status === "REJECTED"
+                            ? "Property submission is disabled. Please resubmit your KYC documents."
+                            : "Property submission is disabled. Complete KYC verification to enable it."}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                   {!kycApproved && (
                     <Button asChild variant={kycStatus?.status === "REJECTED" ? "default" : "outline"} size="sm">
                       <Link href="/profile">
@@ -371,28 +474,12 @@ export function AgentDashboard() {
 
       <FadeIn delay={0.1}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid h-auto p-1">
-            <TabsTrigger value="overview" className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2">
+          <TabsList className="inline-flex w-auto h-auto p-1 gap-1">
+            <TabsTrigger value="overview" className="text-xs sm:text-sm px-4 sm:px-6 py-1.5 sm:py-2">
               Overview
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2">
+            <TabsTrigger value="analytics" className="text-xs sm:text-sm px-4 sm:px-6 py-1.5 sm:py-2">
               Analytics
-            </TabsTrigger>
-            {/* <TabsTrigger value="goals" className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2">
-              Goals
-            </TabsTrigger> */}
-            <TabsTrigger value="notifications" className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2">
-              <span className="flex items-center gap-1 sm:gap-2">
-                Alerts
-                {unreadNotifications > 0 && (
-                  <Badge
-                    variant="secondary"
-                    className="bg-red-100 text-red-800 h-4 w-4 sm:h-5 sm:w-5 sm:min-w-5 p-0 flex items-center justify-center text-[10px] sm:text-xs"
-                  >
-                    {unreadNotifications}
-                  </Badge>
-                )}
-              </span>
             </TabsTrigger>
           </TabsList>
 
@@ -420,7 +507,7 @@ export function AgentDashboard() {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.1 }}
                         onClick={() => setSelectedListing(listing)}
-                        className="flex items-center gap-2 sm:gap-3 lg:gap-4 p-2.5 sm:p-3 rounded-lg sm:rounded-xl hover:bg-muted transition-all cursor-pointer group"
+                        className="flex mb-2 lg:mb-3 bg-muted/60 items-center gap-2 sm:gap-3 lg:gap-4 p-2.5 sm:p-3 rounded-lg sm:rounded-xl hover:bg-muted/90 transition-all cursor-pointer group"
                       >
                         <div className="relative h-14 w-16 sm:h-16 sm:w-20 rounded-md sm:rounded-lg overflow-hidden bg-muted flex-shrink-0">
                           <Image
@@ -660,7 +747,7 @@ export function AgentDashboard() {
                 <CardDescription>Key performance indicators</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                   {[
                     { label: "Avg. Time to Approval", value: "2.3 days", icon: Clock, trend: "-0.5 days" },
                     { label: "Total Views", value: "1,247", icon: Eye, trend: "+18%" },
@@ -684,140 +771,6 @@ export function AgentDashboard() {
                       <p className="text-sm text-muted-foreground">{metric.label}</p>
                     </motion.div>
                   ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* <TabsContent value="goals" className="space-y-6 mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="h-5 w-5" />
-                  Monthly Goals
-                </CardTitle>
-                <CardDescription>Track your progress towards your targets</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {goals.map((goal, index) => {
-                    const progress = (goal.current / goal.target) * 100
-                    return (
-                      <motion.div
-                        key={goal.label}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="space-y-3"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium">{goal.label}</span>
-                          <span className="text-sm">
-                            <span className="font-bold text-lg">
-                              {goal.unit}
-                              {goal.current.toLocaleString()}
-                            </span>
-                            <span className="text-muted-foreground">
-                              {" "}
-                              / {goal.unit}
-                              {goal.target.toLocaleString()}
-                            </span>
-                          </span>
-                        </div>
-                        <div className="relative">
-                          <Progress value={progress} className="h-3" />
-                          {progress >= 100 && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              className="absolute -right-1 -top-1"
-                            >
-                              <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                            </motion.div>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {progress >= 100
-                            ? "Goal achieved!"
-                            : `${Math.round(progress)}% complete - ${goal.unit}${(goal.target - goal.current).toLocaleString()} to go`}
-                        </p>
-                      </motion.div>
-                    )
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-foreground text-background">
-              <CardContent className="p-6">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div>
-                    <h3 className="font-semibold text-lg flex items-center gap-2">
-                      <Star className="h-5 w-5" />
-                      Keep up the great work!
-                    </h3>
-                    <p className="text-background/70 text-sm mt-1">
-                      You're on track to hit your monthly targets. Submit more properties to boost your earnings.
-                    </p>
-                  </div>
-                  <Button variant="secondary" asChild>
-                    <Link href="/submit">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Submit Property
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent> */}
-
-          <TabsContent value="notifications" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Bell className="h-5 w-5" />
-                  Notifications
-                </CardTitle>
-                <CardDescription>Recent updates and messages</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <AnimatePresence>
-                    {notifications.map((notification, index) => (
-                      <motion.div
-                        key={notification.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className={cn(
-                          "flex gap-4 p-4 rounded-xl transition-colors cursor-pointer",
-                          notification.read ? "bg-muted/50" : "bg-blue-50 border border-blue-100",
-                        )}
-                      >
-                        <div
-                          className={cn(
-                            "h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0",
-                            notification.type === "approval" && "bg-emerald-100",
-                            notification.type === "review" && "bg-amber-100",
-                            notification.type === "inquiry" && "bg-blue-100",
-                            notification.type === "info" && "bg-muted",
-                          )}
-                        >
-                          {notification.type === "approval" && <CheckCircle2 className="h-5 w-5 text-emerald-600" />}
-                          {notification.type === "review" && <AlertCircle className="h-5 w-5 text-amber-600" />}
-                          {notification.type === "inquiry" && <MessageSquare className="h-5 w-5 text-blue-600" />}
-                          {notification.type === "info" && <Bell className="h-5 w-5" />}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2">
-                            <p className="text-sm font-medium">{notification.message}</p>
-                            {!notification.read && <span className="h-2 w-2 rounded-full bg-blue-500 flex-shrink-0" />}
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-1">{notification.time}</p>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
                 </div>
               </CardContent>
             </Card>

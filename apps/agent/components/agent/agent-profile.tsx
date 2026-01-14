@@ -272,7 +272,7 @@ export function AgentProfile() {
                   </div>
                 )}
               </div>
-              {agent.status === "PENDING" && (
+              {/* {agent.status === "PENDING" && (
                 <div className="mt-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
                   <div className="flex items-start gap-2">
                     <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
@@ -284,7 +284,7 @@ export function AgentProfile() {
                     </div>
                   </div>
                 </div>
-              )}
+              )} */}
             </CardContent>
           </Card>
         </FadeIn>
@@ -383,9 +383,10 @@ export function AgentProfile() {
         </FadeIn>
       )}
 
-      {/* KYC Verification Card */}
-      <FadeIn delay={kycStatus ? 0.15 : 0.1}>
-        <Card className="border-2">
+      {/* KYC Verification Card - Only show if not approved */}
+      {!isLoadingKYC && !kycApproved && kycStatus?.status !== "APPROVED" && (
+        <FadeIn delay={kycStatus ? 0.15 : 0.1}>
+          <Card className="border-2">
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
               <Shield className="h-5 w-5 text-primary" />
@@ -586,7 +587,8 @@ export function AgentProfile() {
             </form>
           </CardContent>
         </Card>
-      </FadeIn>
+        </FadeIn>
+      )}
 
       {/* Success Modal */}
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>

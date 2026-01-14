@@ -132,7 +132,8 @@ export const apiClient = {
 
     return apiRequest<T>(endpoint, {
       method: "POST",
-      body: body,
+      // Stringify body if it's not FormData
+      body: isFormData ? body : (body ? JSON.stringify(body) : undefined),
       headers,
     })
   },
