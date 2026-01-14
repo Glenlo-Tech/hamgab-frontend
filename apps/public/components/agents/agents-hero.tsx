@@ -100,10 +100,15 @@ export function AgentsHero() {
             <div className="absolute -top-4 -right-4 bg-card p-4 rounded-xl shadow-lg border border-border">
               <div className="flex items-center gap-3">
                 <div className="flex -space-x-2">
-                  {[1, 2, 3, 4].map((i) => (
+                  {[
+                    "/professional-headshot-person.png",
+                    "/professional-woman-headshot.png",
+                    "/professional-asian-man-headshot-portrait.jpg",
+                    "/professional-latina-woman-headshot-friendly.jpg",
+                  ].map((src, i) => (
                     <div key={i} className="h-8 w-8 rounded-full bg-muted border-2 border-card overflow-hidden">
                       <Image
-                        src={`/professional-headshot-person.png?height=32&width=32&query=professional headshot person ${i}`}
+                        src={src}
                         alt=""
                         width={32}
                         height={32}
