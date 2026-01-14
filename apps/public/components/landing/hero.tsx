@@ -49,10 +49,10 @@ export function Hero() {
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>
-                <Button size="lg" variant="outline" className="h-12 px-6 text-base bg-transparent">
+                {/* <Button size="lg" variant="outline" className="h-12 px-6 text-base bg-transparent">
                   <Play className="mr-2 h-5 w-5" />
                   Watch Demo
-                </Button>
+                </Button> */}
               </div>
             </FadeIn>
 
