@@ -64,6 +64,91 @@ export interface PropertySubmissionData {
 }
 
 /**
+ * Property location interface
+ */
+export interface PropertyLocation {
+  latitude: number
+  longitude: number
+  gps_timestamp: string | null
+  address: string | null
+  city: string | null
+  state: string | null
+  country: string | null
+  postal_code: string | null
+  id: string
+  property_id: string
+  created_at: string
+  updated_at: string
+}
+
+/**
+ * Property media interface
+ */
+export interface PropertyMedia {
+  file_path: string
+  file_type: string
+  file_size: number
+  mime_type: string
+  id: string
+  property_id: string
+  uploaded_at: string
+}
+
+/**
+ * Property document interface
+ */
+export interface PropertyDocument {
+  file_path: string
+  document_type: string
+  file_name: string
+  file_size: number
+  mime_type: string
+  id: string
+  property_id: string
+  uploaded_at: string
+}
+
+/**
+ * Property interface (from API)
+ */
+export interface Property {
+  title: string
+  description: string | null
+  property_type: string
+  transaction_type: string
+  price: number | null
+  security_deposit: number | null
+  price_period: string | null
+  id: string
+  agent_id: string
+  verification_status: "RED" | "YELLOW" | "GREEN"
+  visibility: string
+  admin_feedback: string | null
+  created_at: string
+  updated_at: string
+  locations: PropertyLocation[]
+  media: PropertyMedia[]
+  documents: PropertyDocument[]
+}
+
+/**
+ * Properties list response
+ */
+export interface PropertiesListResponse {
+  success: boolean
+  message: string
+  data: Property[]
+  meta: {
+    count: number
+    total: number
+    page: number
+    page_size: number
+    total_pages: number
+  }
+  error: string | null
+}
+
+/**
  * Property submission response
  */
 export interface PropertySubmissionResponse {
@@ -239,6 +324,62 @@ export async function submitProperty(
     }
     throw new ApiClientError(
       error instanceof Error ? error.message : "Property submission failed"
+    )
+  }
+}
+
+/**
+ * Get properties list with pagination
+ */
+export async function getProperties(params?: {
+  page?: number
+  page_size?: number
+}): Promise<PropertiesListResponse> {
+  try {
+    const page = params?.page || 1
+    const pageSize = params?.page_size || 20
+
+    const queryParams = new URLSearchParams({
+      page: page.toString(),
+      page_size: pageSize.toString(),
+    })
+
+    // API returns: { success, message, data: Property[], meta: {...}, error }
+    const response = await apiClient.get<Property[]>(
+      `/api/v1/properties?${queryParams.toString()}`
+    )
+
+    if (!response.success) {
+      throw new ApiClientError(response.message || "Failed to fetch properties")
+    }
+
+    // Extract properties array and meta from response
+    const properties = Array.isArray(response.data) ? response.data : []
+    
+    // Meta is at the root level of the API response
+    // Access it from the response object (apiClient returns ApiResponse which has optional meta)
+    const responseWithMeta = response as any
+    const meta = responseWithMeta.meta || {
+      count: properties.length,
+      total: properties.length,
+      page,
+      page_size: pageSize,
+      total_pages: Math.ceil(properties.length / pageSize),
+    }
+
+    return {
+      success: true,
+      message: response.message || "Properties retrieved successfully",
+      data: properties,
+      meta,
+      error: null,
+    }
+  } catch (error) {
+    if (error instanceof ApiClientError) {
+      throw error
+    }
+    throw new ApiClientError(
+      error instanceof Error ? error.message : "Failed to fetch properties"
     )
   }
 }
