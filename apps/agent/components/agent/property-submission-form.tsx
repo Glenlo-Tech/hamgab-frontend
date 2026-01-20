@@ -428,39 +428,33 @@ export function PropertySubmissionForm() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.2 }}
-                  className="space-y-4 sm:space-y-6"
+                  className="space-y-5 sm:space-y-6"
                 >
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium flex items-center gap-1.5">
-                        Address
-                        <span className="text-destructive">*</span>
-                      </label>
-                      <Input
-                        placeholder="123 Main Street"
-                        value={formData.street}
-                        onChange={(e) => handleFieldChange("street", e.target.value)}
-                        className="h-10 sm:h-11"
-                      />
-                    </div>
-                    {/* <div className="space-y-2">
-                      <label className="text-sm font-medium">Apt/Suite/Unit</label>
-                      <Input
-                        placeholder="Apt 4B (optional)"
-                        value={formData.unit}
-                        onChange={(e) => handleFieldChange("unit", e.target.value)}
-                        className="h-10 sm:h-11"
-                      />
-                    </div> */}
+                  {/* Address - Full Width */}
+                  <div className="space-y-2 w-full">
+                    <label className="text-sm font-medium flex items-center gap-1.5">
+                      Address
+                      <span className="text-destructive">*</span>
+                      <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                    </label>
+                    <Input
+                      placeholder="123 Main Street"
+                      value={formData.street}
+                      onChange={(e) => handleFieldChange("street", e.target.value)}
+                      className="h-11 w-full"
+                    />
+                    <p className="text-xs text-muted-foreground">Enter the complete street address</p>
                   </div>
 
-                  <div className="space-y-2">
+                  {/* Region and City - Responsive Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+                    <div className="space-y-2 w-full">
                       <label className="text-sm font-medium flex items-center gap-1.5">
                         Region
                         <span className="text-destructive">*</span>
                       </label>
                       <Select value={formData.state} onValueChange={(value) => handleFieldChange("state", value)}>
-                        <SelectTrigger className="h-10 sm:h-11">
+                        <SelectTrigger className="h-11 w-full">
                           <SelectValue placeholder="Select Region" />
                         </SelectTrigger>
                         <SelectContent>
@@ -477,41 +471,31 @@ export function PropertySubmissionForm() {
                         </SelectContent>
                       </Select>
                     </div>
-
-                  <div className="grid sm:grid-cols-3 gap-4">
-                    <div className="space-y-2">
+                    <div className="space-y-2 w-full">
                       <label className="text-sm font-medium flex items-center gap-1.5">
                         City
                         <span className="text-destructive">*</span>
                       </label>
                       <Input
-                        placeholder="Buea"
+                        placeholder="e.g., Buea"
                         value={formData.city}
                         onChange={(e) => handleFieldChange("city", e.target.value)}
-                        className="h-10 sm:h-11"
+                        className="h-11 w-full"
                       />
                     </div>
-                    
-                    {/* <div className="space-y-2">
-                      <label className="text-sm font-medium flex items-center gap-1.5">
-                        ZIP Code
-                        <span className="text-destructive">*</span>
-                      </label>
-                      <Input
-                        placeholder="10001"
-                        value={formData.zipCode}
-                        onChange={(e) => handleFieldChange("zipCode", e.target.value)}
-                        className="h-10 sm:h-11"
-                      />
-                    </div> */}
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Neighborhood/Area</label>
+
+                  {/* Neighborhood/Area - Full Width */}
+                  <div className="space-y-2 w-full">
+                    <label className="text-sm font-medium flex items-center gap-1.5">
+                      Neighborhood/Area
+                      <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                    </label>
                     <Input
                       placeholder="e.g., Midtown Manhattan"
                       value={formData.neighborhood}
                       onChange={(e) => handleFieldChange("neighborhood", e.target.value)}
-                      className="h-10 sm:h-11"
+                      className="h-11 w-full"
                     />
                     <p className="text-xs text-muted-foreground">Help potential tenants find your property</p>
                   </div>
@@ -525,18 +509,20 @@ export function PropertySubmissionForm() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.2 }}
-                  className="space-y-4 sm:space-y-6"
+                  className="space-y-5 sm:space-y-6"
                 >
-                  <div className="space-y-2">
+                  {/* Listing Type - Full Width */}
+                  <div className="space-y-2 w-full">
                     <label className="text-sm font-medium flex items-center gap-1.5">
                       Listing Type
                       <span className="text-destructive">*</span>
+                      <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
                     </label>
                     <Select
                       value={formData.listingType}
                       onValueChange={(value) => handleFieldChange("listingType", value)}
                     >
-                      <SelectTrigger className="h-10 sm:h-11">
+                      <SelectTrigger className="h-11 w-full">
                         <SelectValue placeholder="Select listing type" />
                       </SelectTrigger>
                       <SelectContent>
@@ -544,9 +530,12 @@ export function PropertySubmissionForm() {
                         <SelectItem value="sale">For Sale</SelectItem>
                       </SelectContent>
                     </Select>
+                    <p className="text-xs text-muted-foreground">Choose whether this property is for rent or sale</p>
                   </div>
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
+
+                  {/* Price and Price Period - Responsive Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+                    <div className="space-y-2 w-full">
                       <label className="text-sm font-medium flex items-center gap-1.5">
                         Price
                         <span className="text-destructive">*</span>
@@ -555,20 +544,23 @@ export function PropertySubmissionForm() {
                         <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           type="number"
-                          placeholder="2500"
+                          placeholder="e.g., 2500"
                           value={formData.price}
                           onChange={(e) => handleFieldChange("price", e.target.value)}
-                          className="pl-9 h-10 sm:h-11"
+                          className="pl-9 h-11 w-full"
                         />
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Price Period (if rent)</label>
+                    <div className="space-y-2 w-full">
+                      <label className="text-sm font-medium flex items-center gap-1.5">
+                        Price Period (if rent)
+                        <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                      </label>
                       <Select
                         value={formData.pricePeriod}
                         onValueChange={(value) => handleFieldChange("pricePeriod", value)}
                       >
-                        <SelectTrigger className="h-10 sm:h-11">
+                        <SelectTrigger className="h-11 w-full">
                           <SelectValue placeholder="Select period" />
                         </SelectTrigger>
                         <SelectContent>
@@ -579,27 +571,35 @@ export function PropertySubmissionForm() {
                       </Select>
                     </div>
                   </div>
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Security Deposit</label>
+
+                  {/* Security Deposit and Available From - Responsive Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+                    <div className="space-y-2 w-full">
+                      <label className="text-sm font-medium flex items-center gap-1.5">
+                        Security Deposit
+                        <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                      </label>
                       <div className="relative">
                         <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           type="number"
-                          placeholder="2500 (optional)"
+                          placeholder="e.g., 2500 (optional)"
                           value={formData.securityDeposit}
                           onChange={(e) => handleFieldChange("securityDeposit", e.target.value)}
-                          className="pl-9 h-10 sm:h-11"
+                          className="pl-9 h-11 w-full"
                         />
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Available From</label>
+                    <div className="space-y-2 w-full">
+                      <label className="text-sm font-medium flex items-center gap-1.5">
+                        Available From
+                        <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                      </label>
                       <Input
                         type="date"
                         value={formData.availableFrom}
                         onChange={(e) => handleFieldChange("availableFrom", e.target.value)}
-                        className="h-10 sm:h-11"
+                        className="h-11 w-full"
                       />
                     </div>
                   </div>
@@ -613,7 +613,7 @@ export function PropertySubmissionForm() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.2 }}
-                  className="space-y-4 sm:space-y-6"
+                  className="space-y-5 sm:space-y-6"
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
@@ -688,7 +688,7 @@ export function PropertySubmissionForm() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.2 }}
-                  className="space-y-4 sm:space-y-6"
+                  className="space-y-5 sm:space-y-6"
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
