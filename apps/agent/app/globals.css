@@ -180,4 +180,9 @@ html {
       padding-top: env(safe-area-inset-top);
     }
   }
+  
+  /* Adjust header position when offline banner is visible */
+  body.has-offline-banner header[class*="sticky"] {
+    top: 44px; /* Banner height */
+  }
 }
