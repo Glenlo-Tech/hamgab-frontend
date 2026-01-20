@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -27,9 +27,16 @@ import {
   CheckCircle2,
   Loader2,
   HelpCircle,
+  Camera,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
+import { useCameraCapture } from "@/hooks/use-camera-capture"
+import { useGPSLocation } from "@/hooks/use-gps-location"
+import { submitProperty, PropertyType, TransactionType, PricePeriod } from "@/lib/properties"
+import { CameraCapture } from "@/components/camera/camera-capture"
+import { useToast } from "@/components/ui/use-toast"
+import { useRouter } from "next/navigation"
 
 const steps = [
   { id: 1, title: "Basic Info", icon: Building2, description: "Property details" },
@@ -54,12 +61,40 @@ const amenities = [
   "Elevator",
 ]
 
+interface ImageWithPreview {
+  file: File
+  preview: string
+}
+
 export function PropertySubmissionForm() {
+  const router = useRouter()
+  const { toast } = useToast()
   const [currentStep, setCurrentStep] = useState(1)
-  const [uploadedImages, setUploadedImages] = useState<string[]>([])
-  const [uploadedDocs, setUploadedDocs] = useState<string[]>([])
+  const [uploadedImages, setUploadedImages] = useState<ImageWithPreview[]>([])
+  const [uploadedDocs, setUploadedDocs] = useState<File[]>([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
+  
+  // Camera capture hook
+  const {
+    isOpen: isCameraOpen,
+    isCapturing,
+    error: cameraError,
+    openCamera,
+    closeCamera,
+    capturePhoto,
+    stream,
+    videoRef,
+  } = useCameraCapture()
+
+  // GPS location hook (auto-captures in background)
+  const { location: gpsLocation, captureLocation } = useGPSLocation()
+
+  // File input refs
+  const imageFileInputRef = useRef<HTMLInputElement>(null)
+  const documentFileInputRef = useRef<HTMLInputElement>(null)
+
   const [formData, setFormData] = useState({
     title: "",
     type: "",
@@ -68,10 +103,10 @@ export function PropertySubmissionForm() {
     squareFeet: "",
     description: "",
     street: "",
-    unit: "",
+    postalCode: "",
     city: "",
     state: "",
-    zipCode: "",
+    country: "Cameroon",
     neighborhood: "",
     listingType: "",
     price: "",
@@ -96,54 +131,74 @@ export function PropertySubmissionForm() {
 
   const progress = calculateProgress()
 
-  // Auto-save simulation
-  const handleAutoSave = async () => {
-    setIsSaving(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    setLastSaved(new Date())
-    setIsSaving(false)
-  }
-
   // Handle form field changes
   const handleFieldChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
-    // Auto-save after 2 seconds of inactivity
-    const timeoutId = setTimeout(() => {
-      handleAutoSave()
-    }, 2000)
-    return () => clearTimeout(timeoutId)
   }
 
-  const handleImageUpload = () => {
-    setUploadedImages([
-      ...uploadedImages,
-      `/placeholder.svg?height=200&width=300&query=property-image-${uploadedImages.length + 1}`,
-    ])
-    handleAutoSave()
+  // Handle camera capture
+  const handleCameraCapture = async () => {
+    await openCamera()
   }
 
-  const handleDocUpload = () => {
-    setUploadedDocs([...uploadedDocs, `document-${uploadedDocs.length + 1}.pdf`])
-    handleAutoSave()
+  const handleCameraPhotoCaptured = (file: File, preview: string) => {
+    setUploadedImages((prev) => [...prev, { file, preview }])
+    closeCamera()
+    toast({
+      title: "Photo captured",
+      description: "Photo added successfully",
+    })
+  }
+
+  // Handle image file upload
+  const handleImageFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files) return
+
+    Array.from(files).forEach((file) => {
+      if (file.type.startsWith("image/")) {
+        const preview = URL.createObjectURL(file)
+        setUploadedImages((prev) => [...prev, { file, preview }])
+      }
+    })
+
+    // Reset input
+    if (imageFileInputRef.current) {
+      imageFileInputRef.current.value = ""
+    }
+  }
+
+  // Handle document file upload (can be images or files)
+  const handleDocumentFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files) return
+
+    Array.from(files).forEach((file) => {
+      setUploadedDocs((prev) => [...prev, file])
+    })
+
+    // Reset input
+    if (documentFileInputRef.current) {
+      documentFileInputRef.current.value = ""
+    }
   }
 
   const removeImage = (index: number) => {
+    const image = uploadedImages[index]
+    URL.revokeObjectURL(image.preview) // Clean up preview URL
     setUploadedImages(uploadedImages.filter((_, i) => i !== index))
-    handleAutoSave()
   }
 
   const removeDoc = (index: number) => {
     setUploadedDocs(uploadedDocs.filter((_, i) => i !== index))
-    handleAutoSave()
   }
 
   const canProceed = () => {
     switch (currentStep) {
       case 1:
-        return formData.title && formData.type && formData.bedrooms && formData.bathrooms
+        return formData.title && formData.type
       case 2:
-        return formData.street && formData.city && formData.state && formData.zipCode
+        return formData.street && formData.city && formData.state && gpsLocation
       case 3:
         return formData.listingType && formData.price
       case 4:
@@ -165,6 +220,114 @@ export function PropertySubmissionForm() {
   const handlePrevious = () => {
     setCurrentStep(Math.max(1, currentStep - 1))
     window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
+  // Map form values to API enums
+  const mapPropertyType = (value: string): PropertyType => {
+    const mapping: Record<string, PropertyType> = {
+      apartment: PropertyType.APARTMENT,
+      house: PropertyType.HOUSE,
+      condo: PropertyType.CONDO,
+      villa: PropertyType.VILLA,
+      commercial: PropertyType.COMMERCIAL,
+      land: PropertyType.LAND,
+      other: PropertyType.OTHER,
+    }
+    return mapping[value.toLowerCase()] || PropertyType.OTHER
+  }
+
+  const mapTransactionType = (value: string): TransactionType => {
+    const mapping: Record<string, TransactionType> = {
+      rent: TransactionType.RENT,
+      sale: TransactionType.SALE,
+      lease: TransactionType.LEASE,
+    }
+    return mapping[value.toLowerCase()] || TransactionType.SALE
+  }
+
+  const mapPricePeriod = (value: string): PricePeriod | undefined => {
+    const mapping: Record<string, PricePeriod> = {
+      day: PricePeriod.DAY,
+      week: PricePeriod.WEEK,
+      month: PricePeriod.MONTH,
+      year: PricePeriod.YEAR,
+    }
+    return mapping[value.toLowerCase()]
+  }
+
+  // Handle form submission
+  const handleSubmit = async () => {
+    if (!canProceed()) {
+      toast({
+        title: "Validation Error",
+        description: "Please complete all required fields",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Ensure GPS location is captured
+    let location = gpsLocation
+    if (!location) {
+      location = await captureLocation()
+      if (!location) {
+        toast({
+          title: "Location Required",
+          description: "Please enable location access to submit property",
+          variant: "destructive",
+        })
+        return
+      }
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      // Prepare submission data
+      const submissionData = {
+        // Required fields
+        title: formData.title.trim(),
+        property_type: mapPropertyType(formData.type),
+        transaction_type: mapTransactionType(formData.listingType),
+        latitude: location.latitude,
+        longitude: location.longitude,
+        images: uploadedImages.map((img) => img.file),
+        documents: uploadedDocs,
+
+        // Optional fields
+        gps_timestamp: location.gpsTimestamp,
+        postal_code: formData.postalCode || undefined,
+        price: formData.price ? parseFloat(formData.price) : undefined,
+        city: formData.city || undefined,
+        state: formData.state || undefined,
+        address: formData.street || undefined,
+        country: formData.country || undefined,
+        price_period: formData.pricePeriod ? mapPricePeriod(formData.pricePeriod) : undefined,
+        description: formData.description.trim() || undefined,
+        security_deposit: formData.securityDeposit
+          ? parseFloat(formData.securityDeposit)
+          : undefined,
+      }
+
+      // Submit property
+      const response = await submitProperty(submissionData)
+
+      toast({
+        title: "Success!",
+        description: "Property submitted successfully",
+      })
+
+      // Redirect to listings page
+      router.push("/listings")
+    } catch (error: any) {
+      toast({
+        title: "Submission Failed",
+        description: error.message || "Failed to submit property. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -193,7 +356,7 @@ export function PropertySubmissionForm() {
                   </span>
                 </div>
               ) : null}
-              <Button variant="outline" size="sm" onClick={handleAutoSave} className="h-8 sm:h-9">
+              <Button variant="outline" size="sm" className="h-8 sm:h-9" disabled>
                 <Save className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                 <span className="text-xs sm:text-sm">Save Draft</span>
               </Button>
@@ -327,14 +490,17 @@ export function PropertySubmissionForm() {
                           <SelectItem value="house">House</SelectItem>
                           <SelectItem value="condo">Condo</SelectItem>
                           <SelectItem value="villa">Villa</SelectItem>
+                          <SelectItem value="land">Land</SelectItem>
                           <SelectItem value="commercial">Commercial</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
 
+                  {/* TO DO: Add bedrooms, bathrooms, square feet */}
                   {/* Bedrooms, Bathrooms, Square Feet - Responsive Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                  {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
                     <div className="space-y-2 w-full">
                       <label className="text-sm font-medium flex items-center gap-1.5">
                         Bedrooms
@@ -387,14 +553,14 @@ export function PropertySubmissionForm() {
                         className="h-11 w-full"
                       />
                     </div>
-                  </div>
+                  </div> */}
                   <div className="space-y-2">
                     <label className="text-sm font-medium flex items-center gap-1.5">
                       Description
                       <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
                     </label>
                     <Textarea
-                      placeholder="Describe the property in detail... Include key features, nearby amenities, and what makes this property special."
+                      placeholder="Describe the property in detail... Include key features, number of rooms, kitchens, toilets, nearby amenities, and what makes this property special."
                       rows={8}
                       value={formData.description}
                       onChange={(e) => handleFieldChange("description", e.target.value)}
@@ -405,7 +571,9 @@ export function PropertySubmissionForm() {
                       <p className="text-xs text-muted-foreground">{formData.description.length}/2000</p>
                     </div>
                   </div>
-                  <div className="space-y-3">
+
+                  {/* TO DO: Add amenities */}
+                  {/* <div className="space-y-3">
                     <label className="text-sm font-medium block">Amenities</label>
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                       {amenities.map((amenity) => (
@@ -417,7 +585,7 @@ export function PropertySubmissionForm() {
                         </div>
                       ))}
                     </div>
-                  </div>
+                  </div> */}
                 </motion.div>
               )}
 
@@ -450,26 +618,17 @@ export function PropertySubmissionForm() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
                     <div className="space-y-2 w-full">
                       <label className="text-sm font-medium flex items-center gap-1.5">
-                        Region
+                        State/Region
                         <span className="text-destructive">*</span>
+                        <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
                       </label>
-                      <Select value={formData.state} onValueChange={(value) => handleFieldChange("state", value)}>
-                        <SelectTrigger className="h-11 w-full">
-                          <SelectValue placeholder="Select Region" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="SW">South West</SelectItem>
-                          <SelectItem value="NW">North West</SelectItem>
-                          <SelectItem value="L">Littoral</SelectItem>
-                          <SelectItem value="FN">Far North</SelectItem>
-                          <SelectItem value="N">North</SelectItem>
-                          <SelectItem value="A">Adamawa</SelectItem>
-                          <SelectItem value="C">Center</SelectItem>
-                          <SelectItem value="E">East</SelectItem>
-                          <SelectItem value="S">South</SelectItem>
-                          <SelectItem value="W">West</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Input
+                        placeholder="e.g., South West"
+                        value={formData.state}
+                        onChange={(e) => handleFieldChange("state", e.target.value)}
+                        className="h-11 w-full"
+                      />
+                      <p className="text-xs text-muted-foreground">Enter the state or region name</p>
                     </div>
                     <div className="space-y-2 w-full">
                       <label className="text-sm font-medium flex items-center gap-1.5">
@@ -485,20 +644,50 @@ export function PropertySubmissionForm() {
                     </div>
                   </div>
 
-                  {/* Neighborhood/Area - Full Width */}
-                  <div className="space-y-2 w-full">
-                    <label className="text-sm font-medium flex items-center gap-1.5">
-                      Neighborhood/Area
-                      <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
-                    </label>
-                    <Input
-                      placeholder="e.g., Midtown Manhattan"
-                      value={formData.neighborhood}
-                      onChange={(e) => handleFieldChange("neighborhood", e.target.value)}
-                      className="h-11 w-full"
-                    />
-                    <p className="text-xs text-muted-foreground">Help potential tenants find your property</p>
+                  {/* Postal Code and Neighborhood - Responsive Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+                    <div className="space-y-2 w-full">
+                      <label className="text-sm font-medium flex items-center gap-1.5">
+                        Postal Code
+                        <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                      </label>
+                      <Input
+                        placeholder="e.g., 230343"
+                        value={formData.postalCode}
+                        onChange={(e) => handleFieldChange("postalCode", e.target.value)}
+                        className="h-11 w-full"
+                      />
+                    </div>
+                    {/* <div className="space-y-2 w-full">
+                      <label className="text-sm font-medium flex items-center gap-1.5">
+                        Neighborhood/Area
+                        <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                      </label>
+                      <Input
+                        placeholder="e.g., Midtown Manhattan"
+                        value={formData.neighborhood}
+                        onChange={(e) => handleFieldChange("neighborhood", e.target.value)}
+                        className="h-11 w-full"
+                      />
+                    </div> */}
                   </div>
+
+                  {/* GPS Location Status */}
+                  {gpsLocation ? (
+                    <div className="p-3 bg-emerald-50 dark:bg-emerald-950/20 rounded-lg border border-emerald-200 dark:border-emerald-900">
+                      <div className="flex items-center gap-2 text-xs sm:text-sm text-emerald-900 dark:text-emerald-100">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                        <span>Location captured! You can now proceed to the next step.</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-900">
+                      <div className="flex items-center gap-2 text-xs sm:text-sm text-amber-900 dark:text-amber-100">
+                        <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+                        <span>Capturing Real-Time Location...</span>
+                      </div>
+                    </div>
+                  )}
                 </motion.div>
               )}
 
@@ -528,6 +717,7 @@ export function PropertySubmissionForm() {
                       <SelectContent>
                         <SelectItem value="rent">For Rent</SelectItem>
                         <SelectItem value="sale">For Sale</SelectItem>
+                        <SelectItem value="lease">For Lease</SelectItem>
                       </SelectContent>
                     </Select>
                     <p className="text-xs text-muted-foreground">Choose whether this property is for rent or sale</p>
@@ -564,8 +754,9 @@ export function PropertySubmissionForm() {
                           <SelectValue placeholder="Select period" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="month">Per Month</SelectItem>
+                          <SelectItem value="day">Per Day</SelectItem>
                           <SelectItem value="week">Per Week</SelectItem>
+                          <SelectItem value="month">Per Month</SelectItem>
                           <SelectItem value="year">Per Year</SelectItem>
                         </SelectContent>
                       </Select>
@@ -590,7 +781,7 @@ export function PropertySubmissionForm() {
                         />
                       </div>
                     </div>
-                    <div className="space-y-2 w-full">
+                    {/* <div className="space-y-2 w-full">
                       <label className="text-sm font-medium flex items-center gap-1.5">
                         Available From
                         <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
@@ -601,7 +792,7 @@ export function PropertySubmissionForm() {
                         onChange={(e) => handleFieldChange("availableFrom", e.target.value)}
                         className="h-11 w-full"
                       />
-                    </div>
+                    </div> */}
                   </div>
                 </motion.div>
               )}
@@ -631,7 +822,7 @@ export function PropertySubmissionForm() {
                         <div className="text-xs sm:text-sm text-blue-900 dark:text-blue-100">
                           <p className="font-medium mb-1">Photo Guidelines:</p>
                           <ul className="list-disc list-inside space-y-0.5 text-blue-800 dark:text-blue-200">
-                            <li>Upload high-quality photos (min 1200px width)</li>
+                            <li>Capture photos using your device camera (required)</li>
                             <li>First image will be used as the cover photo</li>
                             <li>Recommended: 5-10 photos showing different rooms</li>
                           </ul>
@@ -644,7 +835,7 @@ export function PropertySubmissionForm() {
                           key={index}
                           className="relative aspect-video bg-muted rounded-lg overflow-hidden group"
                         >
-                          <img src={img || "/placeholder.svg"} alt="" className="object-cover w-full h-full" />
+                          <img src={img.preview} alt={`Property photo ${index + 1}`} className="object-cover w-full h-full" />
                           <button
                             onClick={() => removeImage(index)}
                             className="absolute top-2 right-2 h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground"
@@ -659,13 +850,28 @@ export function PropertySubmissionForm() {
                         </div>
                       ))}
                       <button
-                        onClick={handleImageUpload}
+                        onClick={handleCameraCapture}
+                        className="aspect-video border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary transition-colors bg-muted/30 hover:bg-muted/50"
+                      >
+                        <Camera className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
+                        <span className="text-xs sm:text-sm text-muted-foreground text-center px-2">Capture Photo</span>
+                      </button>
+                      <button
+                        onClick={() => imageFileInputRef.current?.click()}
                         className="aspect-video border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary transition-colors bg-muted/30 hover:bg-muted/50"
                       >
                         <Upload className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
                         <span className="text-xs sm:text-sm text-muted-foreground text-center px-2">Upload Photo</span>
                       </button>
                     </div>
+                    <input
+                      ref={imageFileInputRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleImageFileSelect}
+                      className="hidden"
+                    />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Video Tour (Optional)</label>
@@ -721,7 +927,10 @@ export function PropertySubmissionForm() {
                         >
                           <div className="flex items-center gap-3 min-w-0 flex-1">
                             <FileText className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                            <span className="text-sm font-medium truncate">{doc}</span>
+                            <span className="text-sm font-medium truncate">{doc.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {(doc.size / 1024 / 1024).toFixed(2)} MB
+                            </span>
                           </div>
                           <button
                             onClick={() => removeDoc(index)}
@@ -731,15 +940,33 @@ export function PropertySubmissionForm() {
                           </button>
                         </div>
                       ))}
-                      <button
-                        onClick={handleDocUpload}
-                        className="w-full border-2 border-dashed border-border rounded-lg p-4 sm:p-6 flex flex-col items-center gap-2 hover:border-primary transition-colors bg-muted/30 hover:bg-muted/50"
-                      >
-                        <Upload className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">Upload Document</span>
-                        <span className="text-xs text-muted-foreground">PDF, DOC, JPG up to 10MB</span>
-                      </button>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button
+                          onClick={handleCameraCapture}
+                          className="border-2 border-dashed border-border rounded-lg p-4 sm:p-6 flex flex-col items-center gap-2 hover:border-primary transition-colors bg-muted/30 hover:bg-muted/50"
+                        >
+                          <Camera className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">Capture Document</span>
+                          <span className="text-xs text-muted-foreground">Take photo of document</span>
+                        </button>
+                        <button
+                          onClick={() => documentFileInputRef.current?.click()}
+                          className="border-2 border-dashed border-border rounded-lg p-4 sm:p-6 flex flex-col items-center gap-2 hover:border-primary transition-colors bg-muted/30 hover:bg-muted/50"
+                        >
+                          <Upload className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">Upload Document</span>
+                          <span className="text-xs text-muted-foreground">PDF, DOC, JPG up to 10MB</span>
+                        </button>
+                      </div>
                     </div>
+                    <input
+                      ref={documentFileInputRef}
+                      type="file"
+                      accept="image/*,.pdf,.doc,.docx"
+                      multiple
+                      onChange={handleDocumentFileSelect}
+                      className="hidden"
+                    />
                   </div>
                   <div className="p-4 sm:p-6 bg-muted rounded-lg space-y-3">
                     <h4 className="font-medium text-sm sm:text-base flex items-center gap-2">
@@ -749,7 +976,7 @@ export function PropertySubmissionForm() {
                     <ul className="space-y-2 text-xs sm:text-sm">
                       {[
                         { label: "Basic property information", completed: !!(formData.title && formData.type) },
-                        { label: "Location details", completed: !!(formData.street && formData.city) },
+                        { label: "Location details", completed: !!(formData.street && formData.city && gpsLocation) },
                         { label: "Pricing information", completed: !!(formData.listingType && formData.price) },
                         { label: "At least one photo uploaded", completed: uploadedImages.length > 0 },
                         { label: "Documents uploaded", completed: uploadedDocs.length > 0 },
@@ -796,13 +1023,36 @@ export function PropertySubmissionForm() {
               <ChevronRight className="h-4 w-4 ml-2" />
             </Button>
           ) : (
-            <Button className="w-full sm:w-auto order-1 sm:order-2" disabled={!canProceed()}>
-              <Check className="h-4 w-4 mr-2" />
-              Submit Property
+            <Button
+              className="w-full sm:w-auto order-1 sm:order-2"
+              disabled={!canProceed() || isSubmitting}
+              onClick={handleSubmit}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <Check className="h-4 w-4 mr-2" />
+                  Submit Property
+                </>
+              )}
             </Button>
           )}
         </div>
       </FadeIn>
+
+      {/* Camera Capture Modal */}
+      <CameraCapture
+        isOpen={isCameraOpen}
+        onClose={closeCamera}
+        onCapture={handleCameraPhotoCaptured}
+        videoRef={videoRef}
+        stream={stream}
+        error={cameraError}
+      />
     </div>
   )
 }
