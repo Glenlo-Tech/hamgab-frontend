@@ -7,8 +7,7 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import { ChevronLeft, ChevronRight, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { motion } from "framer-motion"
 import {
@@ -186,17 +185,7 @@ export function PropertyImageCarousel({
       <Dialog open={isLightboxOpen} onOpenChange={setIsLightboxOpen}>
         <DialogContent className="max-w-6xl w-full p-0 gap-0">
           <DialogHeader className="p-4 border-b">
-            <DialogTitle className="flex items-center justify-between">
-              <span>{propertyTitle} - Image Gallery</span>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsLightboxOpen(false)}
-                className="h-8 w-8"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </DialogTitle>
+            <DialogTitle>{propertyTitle} - Image Gallery</DialogTitle>
           </DialogHeader>
 
           <div className="relative h-[70vh] bg-black">
