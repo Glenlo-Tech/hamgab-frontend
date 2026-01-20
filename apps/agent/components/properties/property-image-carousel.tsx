@@ -5,12 +5,12 @@
 
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import {
   Dialog,
   DialogContent,
@@ -35,6 +35,24 @@ export function PropertyImageCarousel({
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isLightboxOpen, setIsLightboxOpen] = useState(false)
 
+  // Preload adjacent images
+  useEffect(() => {
+    if (!images || images.length === 0) return
+
+    // Preload previous and next images using native Image API for browser caching
+    const prevIndex = currentIndex === 0 ? images.length - 1 : currentIndex - 1
+    const nextIndex = currentIndex === images.length - 1 ? 0 : currentIndex + 1
+    
+    const indicesToPreload = [prevIndex, nextIndex]
+    
+    indicesToPreload.forEach((index: number) => {
+      if (index !== currentIndex && images[index]) {
+        const img = new window.Image()
+        img.src = images[index]
+      }
+    })
+  }, [currentIndex, images])
+
   if (!images || images.length === 0) {
     return (
       <div className={cn("relative h-48 md:h-auto md:w-64 flex-shrink-0 bg-muted", className)}>
@@ -44,6 +62,7 @@ export function PropertyImageCarousel({
           fill
           className="object-cover"
           sizes="(max-width: 768px) 100vw, 256px"
+          priority
         />
       </div>
     )
@@ -76,24 +95,31 @@ export function PropertyImageCarousel({
       >
         {/* Main Image */}
         <div className="relative h-full w-full overflow-hidden">
-          <AnimatePresence mode="wait">
+          {/* Render all images but only show current one - prevents remounting */}
+          {images.map((image, index) => (
             <motion.div
-              key={currentIndex}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
+              key={`image-${index}`}
+              initial={false}
+              animate={{
+                opacity: index === currentIndex ? 1 : 0,
+                scale: index === currentIndex ? 1 : 1.05,
+              }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
               className="absolute inset-0"
+              style={{ pointerEvents: index === currentIndex ? "auto" : "none" }}
             >
               <Image
-                src={images[currentIndex]}
-                alt={`${propertyTitle} - Image ${currentIndex + 1}`}
+                src={image}
+                alt={`${propertyTitle} - Image ${index + 1}`}
                 fill
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, 256px"
+                priority={index === 0}
+                loading={index === 0 ? "eager" : "lazy"}
+                unoptimized={false}
               />
             </motion.div>
-          </AnimatePresence>
+          ))}
 
           {/* Navigation Arrows - Show on hover */}
           {hasMultipleImages && (
@@ -174,24 +200,31 @@ export function PropertyImageCarousel({
           </DialogHeader>
 
           <div className="relative h-[70vh] bg-black">
-            <AnimatePresence mode="wait">
+            {/* Render all images but only show current one - prevents remounting */}
+            {images.map((image, index) => (
               <motion.div
-                key={currentIndex}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-                className="relative h-full w-full"
+                key={`lightbox-image-${index}`}
+                initial={false}
+                animate={{
+                  opacity: index === currentIndex ? 1 : 0,
+                  x: index === currentIndex ? 0 : index < currentIndex ? -20 : 20,
+                }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="absolute inset-0"
+                style={{ pointerEvents: index === currentIndex ? "auto" : "none" }}
               >
                 <Image
-                  src={images[currentIndex]}
-                  alt={`${propertyTitle} - Image ${currentIndex + 1}`}
+                  src={image}
+                  alt={`${propertyTitle} - Image ${index + 1}`}
                   fill
                   className="object-contain"
                   sizes="100vw"
+                  priority={index === 0}
+                  loading={index === 0 ? "eager" : "lazy"}
+                  unoptimized={false}
                 />
               </motion.div>
-            </AnimatePresence>
+            ))}
 
             {/* Navigation Arrows */}
             {hasMultipleImages && (
@@ -242,6 +275,8 @@ export function PropertyImageCarousel({
                       fill
                       className="object-cover"
                       sizes="80px"
+                      loading="lazy"
+                      unoptimized={false}
                     />
                   </button>
                 ))}
