@@ -35,6 +35,27 @@ function formatLocation(city?: string | null, country?: string | null): string {
   return parts.join(", ") || "Location not specified"
 }
 
+function normalizeImageUrl(filePath: string | undefined | null): string {
+  if (!filePath) return "/placeholder.svg"
+  
+  // If it's already an absolute URL (starts with http:// or https://), return as-is
+  if (filePath.startsWith("http://") || filePath.startsWith("https://")) {
+    return filePath
+  }
+  
+  // If it's a relative path, prepend the API base URL
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || ""
+  if (apiBaseUrl) {
+    // Remove trailing slash from API base URL and leading slash from file path
+    const base = apiBaseUrl.replace(/\/$/, "")
+    const path = filePath.startsWith("/") ? filePath : `/${filePath}`
+    return `${base}${path}`
+  }
+  
+  // Fallback: return as-is (might be a local path)
+  return filePath.startsWith("/") ? filePath : `/${filePath}`
+}
+
 function ListingsGridSkeleton() {
   return (
     <StaggerContainer className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -112,7 +133,7 @@ export function ListingsGrid({ filters, page, pageSize, onPageChange }: Listings
             >
               <div className="relative aspect-[4/3] overflow-hidden bg-muted">
                 <Image
-                  src={property.media[0]?.file_path || "/placeholder.svg"}
+                  src={normalizeImageUrl(property.media[0]?.file_path)}
                   alt={property.title}
                   fill
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -225,7 +246,7 @@ export function ListingsGrid({ filters, page, pageSize, onPageChange }: Listings
 
                 <div className="relative aspect-video rounded-lg overflow-hidden bg-muted mt-4">
                   <Image
-                    src={property.media[0]?.file_path || "/placeholder.svg"}
+                    src={normalizeImageUrl(property.media[0]?.file_path)}
                     alt={property.title}
                     fill
                     className="object-cover"

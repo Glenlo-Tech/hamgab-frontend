@@ -25,6 +25,30 @@ interface PropertyImageCarouselProps {
 }
 
 /**
+ * Normalize image URL - handles both absolute and relative paths
+ */
+function normalizeImageUrl(filePath: string | undefined | null): string {
+  if (!filePath) return "/placeholder.svg"
+  
+  // If it's already an absolute URL (starts with http:// or https://), return as-is
+  if (filePath.startsWith("http://") || filePath.startsWith("https://")) {
+    return filePath
+  }
+  
+  // If it's a relative path, prepend the API base URL
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || ""
+  if (apiBaseUrl) {
+    // Remove trailing slash from API base URL and leading slash from file path
+    const base = apiBaseUrl.replace(/\/$/, "")
+    const path = filePath.startsWith("/") ? filePath : `/${filePath}`
+    return `${base}${path}`
+  }
+  
+  // Fallback: return as-is (might be a local path)
+  return filePath.startsWith("/") ? filePath : `/${filePath}`
+}
+
+/**
  * Compact carousel for property card (shows dots and allows navigation)
  */
 export function PropertyImageCarousel({
@@ -34,25 +58,34 @@ export function PropertyImageCarousel({
 }: PropertyImageCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isLightboxOpen, setIsLightboxOpen] = useState(false)
+  const [failedImages, setFailedImages] = useState<Set<number>>(new Set())
+
+  // Normalize image URLs
+  const normalizedImages = images.map(img => normalizeImageUrl(img))
 
   // Preload adjacent images
   useEffect(() => {
-    if (!images || images.length === 0) return
+    if (!normalizedImages || normalizedImages.length === 0) return
 
-    const prevIndex = currentIndex === 0 ? images.length - 1 : currentIndex - 1
-    const nextIndex = currentIndex === images.length - 1 ? 0 : currentIndex + 1
+    const prevIndex = currentIndex === 0 ? normalizedImages.length - 1 : currentIndex - 1
+    const nextIndex = currentIndex === normalizedImages.length - 1 ? 0 : currentIndex + 1
     
     const indicesToPreload = [prevIndex, nextIndex]
     
     indicesToPreload.forEach((index: number) => {
-      if (index !== currentIndex && images[index]) {
+      if (index !== currentIndex && normalizedImages[index] && !failedImages.has(index)) {
         const img = new window.Image()
-        img.src = images[index]
+        img.src = normalizedImages[index]
       }
     })
-  }, [currentIndex, images])
+  }, [currentIndex, normalizedImages, failedImages])
 
-  if (!images || images.length === 0) {
+  // Handle image load errors
+  const handleImageError = (index: number) => {
+    setFailedImages((prev) => new Set(prev).add(index))
+  }
+
+  if (!normalizedImages || normalizedImages.length === 0) {
     return (
       <div
         className={cn(
@@ -72,16 +105,19 @@ export function PropertyImageCarousel({
     )
   }
 
-  const hasMultipleImages = images.length > 1
+  const hasMultipleImages = normalizedImages.length > 1
+  const currentImage = failedImages.has(currentIndex) 
+    ? "/placeholder.svg" 
+    : normalizedImages[currentIndex]
 
   const goToPrevious = (e: React.MouseEvent) => {
     e.stopPropagation()
-    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))
+    setCurrentIndex((prev) => (prev === 0 ? normalizedImages.length - 1 : prev - 1))
   }
 
   const goToNext = (e: React.MouseEvent) => {
     e.stopPropagation()
-    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1))
+    setCurrentIndex((prev) => (prev === normalizedImages.length - 1 ? 0 : prev + 1))
   }
 
   const goToImage = (index: number) => {
@@ -100,30 +136,33 @@ export function PropertyImageCarousel({
         {/* Main Image */}
         <div className="relative h-full w-full overflow-hidden rounded-lg">
           {/* Render all images but only show current one */}
-          {images.map((image, index) => (
-            <motion.div
-              key={`image-${index}`}
-              initial={false}
-              animate={{
-                opacity: index === currentIndex ? 1 : 0,
-                scale: index === currentIndex ? 1 : 1.05,
-              }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="absolute inset-0"
-              style={{ pointerEvents: index === currentIndex ? "auto" : "none" }}
-            >
-              <Image
-                src={image}
-                alt={`${propertyTitle} - Image ${index + 1}`}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 256px"
-                priority={index === 0}
-                loading={index === 0 ? "eager" : "lazy"}
-                unoptimized={false}
-              />
-            </motion.div>
-          ))}
+          {normalizedImages.map((image, index) => {
+            const imageSrc = failedImages.has(index) ? "/placeholder.svg" : image
+            return (
+              <motion.div
+                key={`image-${index}`}
+                initial={false}
+                animate={{
+                  opacity: index === currentIndex ? 1 : 0,
+                  scale: index === currentIndex ? 1 : 1.05,
+                }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="absolute inset-0"
+                style={{ pointerEvents: index === currentIndex ? "auto" : "none" }}
+              >
+                <Image
+                  src={imageSrc}
+                  alt={`${propertyTitle} - Image ${index + 1}`}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 256px"
+                  priority={index === 0}
+                  loading={index === 0 ? "eager" : "lazy"}
+                  onError={() => handleImageError(index)}
+                />
+              </motion.div>
+            )
+          })}
 
           {/* Navigation Arrows - Show on hover (desktop) and always visible on mobile */}
           {hasMultipleImages && (
@@ -153,9 +192,9 @@ export function PropertyImageCarousel({
           )}
 
           {/* Improved Dots Indicator - Smaller on mobile */}
-          {hasMultipleImages && images.length <= 8 && (
+          {hasMultipleImages && normalizedImages.length <= 8 && (
             <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1 z-10">
-              {images.map((_, index) => (
+              {normalizedImages.map((_, index) => (
                 <button
                   key={index}
                   onClick={(e) => {
@@ -220,13 +259,13 @@ export function PropertyImageCarousel({
                 className="absolute inset-0"
               >
                 <Image
-                  src={images[currentIndex]}
+                  src={currentImage}
                   alt={`${propertyTitle} - Image ${currentIndex + 1}`}
                   fill
                   className="object-contain"
                   sizes="100vw"
                   priority
-                  unoptimized={false}
+                  onError={() => handleImageError(currentIndex)}
                 />
               </motion.div>
             </AnimatePresence>
@@ -274,42 +313,45 @@ export function PropertyImageCarousel({
             {/* Image Counter - Professional Style */}
             {hasMultipleImages && (
               <div className="absolute top-4 left-1/2 -translate-x-1/2 sm:bottom-4 sm:top-auto bg-black/80 backdrop-blur-md text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium z-10 shadow-lg">
-                {currentIndex + 1} of {images.length}
+                {currentIndex + 1} of {normalizedImages.length}
               </div>
             )}
           </div>
 
           {/* Thumbnail Strip - Improved spacing and sizing */}
-          {hasMultipleImages && images.length > 1 && (
+          {hasMultipleImages && normalizedImages.length > 1 && (
             <div className="p-3 sm:p-4 border-t bg-muted/50 overflow-x-auto">
               <div className="flex items-center gap-2 sm:gap-3 justify-start sm:justify-center">
-                {images.map((image, index) => (
-                  <button
-                    key={index}
-                    onClick={() => goToImage(index)}
-                    className={cn(
-                      "relative rounded-md overflow-hidden border-2 transition-all flex-shrink-0",
-                      "h-14 w-14 sm:h-20 sm:w-20",
-                      index === currentIndex
-                        ? "border-primary scale-105 shadow-lg"
-                        : "border-transparent hover:border-primary/50 opacity-60 hover:opacity-100"
-                    )}
-                  >
-                    <Image
-                      src={image}
-                      alt={`Thumbnail ${index + 1}`}
-                      fill
-                      className="object-cover"
-                      sizes="80px"
-                      loading="lazy"
-                      unoptimized={false}
-                    />
-                    {/* Selected indicator */}
-                    {index === currentIndex && (
-                      <div className="absolute inset-0 bg-primary/10" />
-                    )}
-                  </button>
-                ))}
+                {normalizedImages.map((image, index) => {
+                  const thumbnailSrc = failedImages.has(index) ? "/placeholder.svg" : image
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => goToImage(index)}
+                      className={cn(
+                        "relative rounded-md overflow-hidden border-2 transition-all flex-shrink-0",
+                        "h-14 w-14 sm:h-20 sm:w-20",
+                        index === currentIndex
+                          ? "border-primary scale-105 shadow-lg"
+                          : "border-transparent hover:border-primary/50 opacity-60 hover:opacity-100"
+                      )}
+                    >
+                      <Image
+                        src={thumbnailSrc}
+                        alt={`Thumbnail ${index + 1}`}
+                        fill
+                        className="object-cover"
+                        sizes="80px"
+                        loading="lazy"
+                        onError={() => handleImageError(index)}
+                      />
+                      {/* Selected indicator */}
+                      {index === currentIndex && (
+                        <div className="absolute inset-0 bg-primary/10" />
+                      )}
+                    </button>
+                  )
+                })}
               </div>
             </div>
           )}
