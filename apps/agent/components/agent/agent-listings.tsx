@@ -9,6 +9,7 @@ import { FadeIn } from "@/components/motion-wrapper"
 import { Search, Plus } from "lucide-react"
 import Link from "next/link"
 import { useKYCStatus } from "@/hooks/use-kyc-status"
+import { isAuthenticated } from "@/lib/auth"
 import { useProperties } from "@/hooks/use-properties"
 import { PropertyList } from "@/components/properties/property-list"
 import { PaginationControls } from "@/components/properties/pagination-controls"
@@ -18,7 +19,8 @@ import { Property } from "@/lib/properties"
 type StatusFilter = "all" | "GREEN" | "YELLOW" | "RED"
 
 export function AgentListings() {
-  const { kycStatus, kycApproved } = useKYCStatus()
+  const { kycStatus, kycApproved, isKYCUnavailable } = useKYCStatus()
+  const isAuthenticatedUser = isAuthenticated()
   const [currentPage, setCurrentPage] = useState(1)
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
@@ -116,7 +118,7 @@ export function AgentListings() {
             <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">My Listings</h1>
             <p className="text-muted-foreground mt-1">Manage and track all your property submissions</p>
           </div>
-          {kycApproved ? (
+          {kycApproved || (isKYCUnavailable && isAuthenticatedUser) ? (
             <Button asChild>
               <Link href="/submit">
                 <Plus className="h-4 w-4 mr-2" />
@@ -128,7 +130,9 @@ export function AgentListings() {
               disabled
               variant="outline"
               title={
-                kycStatus?.status === "PENDING"
+                isKYCUnavailable
+                  ? "KYC status unavailable - please try refreshing"
+                  : kycStatus?.status === "PENDING"
                   ? "KYC verification pending approval"
                   : "Please complete KYC verification to submit listings"
               }

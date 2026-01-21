@@ -128,7 +128,8 @@ function DesktopSidebar() {
 // Mobile Bottom Navigation Component
 function MobileBottomNav() {
   const pathname = usePathname()
-  const { kycStatus, kycApproved } = useKYCStatus()
+  const { kycStatus, kycApproved, isKYCUnavailable } = useKYCStatus()
+  const isAuthenticatedUser = isAuthenticated()
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 safe-area-inset-bottom mobile-nav">
@@ -144,7 +145,7 @@ function MobileBottomNav() {
             
             // Special styling for the Submit button (middle button)
             if (isSubmit) {
-              if (!kycApproved) {
+              if (!kycApproved && !(isKYCUnavailable && isAuthenticatedUser)) {
                 return (
                   <div
                     key={link.href}
@@ -152,7 +153,13 @@ function MobileBottomNav() {
                       "relative flex flex-col items-center justify-center gap-1.5 min-w-[64px] mb-1 transition-all duration-300",
                       "opacity-50 cursor-not-allowed"
                     )}
-                    title={kycStatus?.status === "PENDING" ? "KYC verification pending approval" : "Please complete KYC verification to submit listings"}
+                    title={
+                      isKYCUnavailable
+                        ? "KYC status unavailable - please try refreshing"
+                        : kycStatus?.status === "PENDING"
+                        ? "KYC verification pending approval"
+                        : "Please complete KYC verification to submit listings"
+                    }
                   >
                     {/* Disabled button container */}
                     <div className={cn(
