@@ -209,6 +209,8 @@ export function AgentListings() {
               error={error}
               onView={handleViewProperty}
               onEdit={handleEditProperty}
+              filterStatus={statusFilter}
+              onRetry={refresh}
             />
 
             {/* Pagination - Only show if not filtering/searching (using API pagination) */}

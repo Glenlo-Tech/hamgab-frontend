@@ -131,11 +131,11 @@ export function PropertyDetailsDialog({
                 )}
               >
                 {property.verification_status === "GREEN"
-                  ? "Verified"
+                  ? "Verified & Public"
                   : property.verification_status === "YELLOW"
-                    ? "Pending Review"
+                    ? "Under Review"
                     : property.verification_status === "RED"
-                      ? "Needs Attention"
+                      ? "Needs Attention (Not Public)"
                       : "Unknown"}
               </Badge>
             )}

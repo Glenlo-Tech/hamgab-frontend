@@ -76,11 +76,11 @@ function getVerificationStatusBadge(status: Property["verification_status"]) {
 function getVerificationStatusLabel(status: Property["verification_status"]): string {
   switch (status) {
     case "GREEN":
-      return "Verified"
+      return "Verified & Public"
     case "YELLOW":
-      return "Pending Review"
+      return "Under Review"
     case "RED":
-      return "Needs Attention"
+      return "Needs Attention (Not Public)"
     default:
       return "Unknown"
   }
