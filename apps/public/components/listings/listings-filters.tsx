@@ -4,7 +4,6 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Slider } from "@/components/ui/slider"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { FadeIn } from "@/components/motion-wrapper"
 import { Search, SlidersHorizontal, MapPin } from "lucide-react"
@@ -27,8 +26,10 @@ interface ListingsFiltersProps {
 export function ListingsFilters({ filters, onFiltersChange, totalCount }: ListingsFiltersProps) {
   const [showMobileFilters, setShowMobileFilters] = useState(false)
 
-  const handlePriceChange = (value: number[]) => {
-    onFiltersChange({ minPrice: value[0], maxPrice: value[1] })
+
+  const handleApplyFilters = () => {
+    // Close the modal smoothly
+    setShowMobileFilters(false)
   }
 
   const FilterContent = () => (
@@ -56,27 +57,42 @@ export function ListingsFilters({ filters, onFiltersChange, totalCount }: Listin
       </div>
 
       <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-foreground">Price Range</label>
-          <span className="text-xs font-medium text-muted-foreground">
-            XAF {filters.minPrice.toLocaleString()} – XAF {filters.maxPrice.toLocaleString()}
-          </span>
-        </div>
-        <Slider
-          defaultValue={[0, 5000000]}
-          max={5000000}
-          step={50000}
-          value={[filters.minPrice, filters.maxPrice]}
-          onValueChange={handlePriceChange}
-          className="mt-3"
-        />
-        <div className="flex justify-between text-[11px] text-muted-foreground">
-          <span>XAF 0</span>
-          <span>XAF 5,000,000</span>
+        <label className="text-sm font-medium text-foreground">Price Range</label>
+        <div className="flex items-center gap-3">
+          <div className="flex-1">
+            <Input
+              type="number"
+              placeholder="Min (XAF)"
+              value={filters.minPrice === 0 ? "" : filters.minPrice}
+              onChange={(e) => {
+                const value = e.target.value === "" ? 0 : Number(e.target.value)
+                onFiltersChange({ minPrice: value })
+              }}
+              className="h-11 rounded-lg"
+            />
+          </div>
+          <span className="text-sm text-muted-foreground shrink-0">to</span>
+          <div className="flex-1">
+            <Input
+              type="number"
+              placeholder="Max (XAF)"
+              value={filters.maxPrice === 5000000 ? "" : filters.maxPrice}
+              onChange={(e) => {
+                const value = e.target.value === "" ? 5000000 : Number(e.target.value)
+                onFiltersChange({ maxPrice: value })
+              }}
+              className="h-11 rounded-lg"
+            />
+          </div>
         </div>
       </div>
 
-      <Button className="w-full h-11 rounded-lg mt-2">Apply Filters</Button>
+      <Button 
+        onClick={handleApplyFilters}
+        className="w-full h-11 rounded-lg mt-2"
+      >
+        Apply Filters
+      </Button>
     </div>
   )
 

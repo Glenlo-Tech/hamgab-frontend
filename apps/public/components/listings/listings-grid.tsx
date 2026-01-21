@@ -130,7 +130,7 @@ export function ListingsGrid({ filters, page, pageSize, onPageChange }: Listings
                 </div>
                 <button
                   onClick={(e) => toggleFavorite(property.id, e)}
-                  className="absolute top-3 right-3 h-9 w-9 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background transition-colors"
+                  className="absolute top-3 right-3 h-9 w-9 rounded-full cursor-pointer bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background transition-colors"
                 >
                   <Heart
                     className={`h-5 w-5 ${
