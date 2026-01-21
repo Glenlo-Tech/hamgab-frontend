@@ -56,11 +56,23 @@ function formatPrice(property: Property): string {
 
 /**
  * Get verification status badge styling
+ * Checks both verification_status and visibility
  */
-function getVerificationStatusBadge(status: Property["verification_status"]) {
-  switch (status) {
-    case "GREEN":
+function getVerificationStatusBadge(
+  verificationStatus: Property["verification_status"],
+  visibility: Property["visibility"]
+) {
+  // GREEN status can be either PUBLIC or PRIVATE
+  if (verificationStatus === "GREEN") {
+    if (visibility === "PUBLIC") {
       return "bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400"
+    } else {
+      // Verified but Private - use blue/indigo to distinguish
+      return "bg-blue-100 text-blue-800 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400"
+    }
+  }
+  
+  switch (verificationStatus) {
     case "YELLOW":
       return "bg-yellow-100 text-yellow-800 hover:bg-yellow-100 dark:bg-yellow-900/20 dark:text-yellow-400"
     case "RED":
@@ -72,15 +84,26 @@ function getVerificationStatusBadge(status: Property["verification_status"]) {
 
 /**
  * Get verification status label
+ * Checks both verification_status and visibility
  */
-function getVerificationStatusLabel(status: Property["verification_status"]): string {
-  switch (status) {
-    case "GREEN":
+function getVerificationStatusLabel(
+  verificationStatus: Property["verification_status"],
+  visibility: Property["visibility"]
+): string {
+  // GREEN status can be either PUBLIC or PRIVATE
+  if (verificationStatus === "GREEN") {
+    if (visibility === "PUBLIC") {
       return "Verified & Public"
+    } else {
+      return "Verified (Private)"
+    }
+  }
+  
+  switch (verificationStatus) {
     case "YELLOW":
       return "Under Review"
     case "RED":
-      return "Needs Attention (Not Public)"
+      return "Needs Attention"
     default:
       return "Unknown"
   }
@@ -126,10 +149,10 @@ export function PropertyCard({ property, onView, onEdit }: PropertyCardProps) {
               variant="secondary"
               className={cn(
                 "text-xs font-medium",
-                getVerificationStatusBadge(property.verification_status)
+                getVerificationStatusBadge(property.verification_status, property.visibility)
               )}
             >
-              {getVerificationStatusLabel(property.verification_status)}
+              {getVerificationStatusLabel(property.verification_status, property.visibility)}
             </Badge>
           </div>
         </div>

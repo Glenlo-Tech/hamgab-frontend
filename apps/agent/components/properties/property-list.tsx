@@ -78,9 +78,9 @@ export function PropertyList({
       
       if (filterStatus === "GREEN") {
         return {
-          title: "No verified & public properties yet",
+          title: "No verified properties yet",
           description:
-            "You don't have any verified, publicly visible properties yet. Once a listing is certified, it will appear here.",
+            "You don't have any verified properties yet. Once a listing is approved by admin, it will appear here (whether public or private).",
         }
       }
       

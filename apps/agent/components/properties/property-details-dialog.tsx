@@ -21,16 +21,50 @@ interface PropertyDetailsDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
-function getVerificationStatusBadge(status: Property["verification_status"]) {
-  switch (status) {
-    case "GREEN":
+function getVerificationStatusBadge(
+  verificationStatus: Property["verification_status"],
+  visibility: Property["visibility"]
+) {
+  // GREEN status can be either PUBLIC or PRIVATE
+  if (verificationStatus === "GREEN") {
+    if (visibility === "PUBLIC") {
       return "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
+    } else {
+      // Verified but Private - use blue/indigo to distinguish
+      return "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
+    }
+  }
+  
+  switch (verificationStatus) {
     case "YELLOW":
       return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400"
     case "RED":
       return "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400"
     default:
       return "bg-muted text-muted-foreground"
+  }
+}
+
+function getVerificationStatusLabel(
+  verificationStatus: Property["verification_status"],
+  visibility: Property["visibility"]
+): string {
+  // GREEN status can be either PUBLIC or PRIVATE
+  if (verificationStatus === "GREEN") {
+    if (visibility === "PUBLIC") {
+      return "✓ Verified & Public"
+    } else {
+      return "✓ Verified (Private)"
+    }
+  }
+  
+  switch (verificationStatus) {
+    case "YELLOW":
+      return "⏳ Under Review"
+    case "RED":
+      return "⚠ Needs Attention"
+    default:
+      return "Unknown"
   }
 }
 
@@ -141,16 +175,10 @@ export function PropertyDetailsDialog({
                 variant="secondary"
                 className={cn(
                   "text-xs font-medium self-start whitespace-nowrap",
-                  getVerificationStatusBadge(property.verification_status)
+                  getVerificationStatusBadge(property.verification_status, property.visibility)
                 )}
               >
-                {property.verification_status === "GREEN"
-                  ? "✓ Verified"
-                  : property.verification_status === "YELLOW"
-                    ? "⏳ Under Review"
-                    : property.verification_status === "RED"
-                      ? "⚠ Needs Attention"
-                      : "Unknown"}
+                {getVerificationStatusLabel(property.verification_status, property.visibility)}
               </Badge>
             )}
           </DialogTitle>
