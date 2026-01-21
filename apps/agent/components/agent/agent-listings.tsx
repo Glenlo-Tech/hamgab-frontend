@@ -169,29 +169,31 @@ export function AgentListings() {
       {/* Status Tabs */}
       <FadeIn delay={0.2}>
         <Tabs value={statusFilter} onValueChange={handleStatusFilterChange} className="w-full">
-          <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
-            <TabsList className="inline-flex h-auto w-full sm:w-auto bg-muted/50 p-1 rounded-lg border border-border/50">
+          <div className="px-1 sm:px-0">
+            <TabsList
+              className="flex flex-wrap gap-2 sm:gap-3 h-auto w-full sm:w-auto bg-muted/50 p-1.5 sm:p-1 rounded-lg border border-border/50"
+            >
               <TabsTrigger
                 value="all"
-                className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground transition-all whitespace-nowrap"
+                className="flex-1 sm:flex-initial px-2.5 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs font-medium rounded-full data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground transition-all"
               >
                 All ({statusCounts.all})
               </TabsTrigger>
               <TabsTrigger
                 value="GREEN"
-                className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground transition-all whitespace-nowrap"
+                className="flex-1 sm:flex-initial px-2.5 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs font-medium rounded-full data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground transition-all"
               >
                 Verified ({statusCounts.GREEN})
               </TabsTrigger>
               <TabsTrigger
                 value="YELLOW"
-                className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground transition-all whitespace-nowrap"
+                className="flex-1 sm:flex-initial px-2.5 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs font-medium rounded-full data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground transition-all"
               >
                 Pending ({statusCounts.YELLOW})
               </TabsTrigger>
               <TabsTrigger
                 value="RED"
-                className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground transition-all whitespace-nowrap"
+                className="flex-1 sm:flex-initial px-2.5 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs font-medium rounded-full data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground transition-all"
               >
                 Needs Attention ({statusCounts.RED})
               </TabsTrigger>
