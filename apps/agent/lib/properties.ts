@@ -132,6 +132,17 @@ export interface Property {
 }
 
 /**
+ * Single property response
+ */
+export interface PropertyDetailResponse {
+  success: boolean
+  message: string
+  data: Property
+  meta: any
+  error: string | null
+}
+
+/**
  * Properties list response
  */
 export interface PropertiesListResponse {
@@ -383,4 +394,39 @@ export async function getProperties(params?: {
     )
   }
 }
+
+/**
+ * Get a single property by ID
+ */
+export async function getPropertyById(id: string): Promise<PropertyDetailResponse> {
+  try {
+    if (!id) {
+      throw new ApiClientError("Property ID is required")
+    }
+
+    const response = await apiClient.get<Property>(`/api/v1/properties/${id}`)
+
+    if (!response.success || !response.data) {
+      throw new ApiClientError(response.message || "Failed to fetch property details")
+    }
+
+    const responseWithMeta = response as any
+
+    return {
+      success: true,
+      message: response.message || "Property retrieved successfully",
+      data: response.data,
+      meta: responseWithMeta.meta || {},
+      error: null,
+    }
+  } catch (error) {
+    if (error instanceof ApiClientError) {
+      throw error
+    }
+    throw new ApiClientError(
+      error instanceof Error ? error.message : "Failed to fetch property details"
+    )
+  }
+}
+
 

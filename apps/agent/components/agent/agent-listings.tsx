@@ -12,6 +12,7 @@ import { useKYCStatus } from "@/hooks/use-kyc-status"
 import { useProperties } from "@/hooks/use-properties"
 import { PropertyList } from "@/components/properties/property-list"
 import { PaginationControls } from "@/components/properties/pagination-controls"
+import { PropertyDetailsDialog } from "@/components/properties/property-details-dialog"
 import { Property } from "@/lib/properties"
 
 type StatusFilter = "all" | "GREEN" | "YELLOW" | "RED"
@@ -22,6 +23,8 @@ export function AgentListings() {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
   const [sortBy, setSortBy] = useState<string>("newest")
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null)
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false)
   const pageSize = 20
 
   // Fetch properties
@@ -95,8 +98,8 @@ export function AgentListings() {
 
   // Handle property actions
   const handleViewProperty = (property: Property) => {
-    // TODO: Navigate to property details page
-    console.log("View property:", property.id)
+    setSelectedPropertyId(property.id)
+    setIsDetailsOpen(true)
   }
 
   const handleEditProperty = (property: Property) => {
@@ -218,6 +221,18 @@ export function AgentListings() {
           </TabsContent>
         </Tabs>
       </FadeIn>
+
+      {/* Property Details Dialog */}
+      <PropertyDetailsDialog
+        propertyId={selectedPropertyId}
+        open={isDetailsOpen}
+        onOpenChange={(open) => {
+          setIsDetailsOpen(open)
+          if (!open) {
+            setSelectedPropertyId(null)
+          }
+        }}
+      />
     </div>
   )
 }
