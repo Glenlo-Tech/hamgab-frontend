@@ -1,5 +1,5 @@
 /**
- * Property Image Carousel Component
+ * Property Image Carousel Component - IMPROVED
  * Displays multiple property images with navigation
  */
 
@@ -9,7 +9,7 @@ import { useState, useEffect } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight, X } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import {
   Dialog,
   DialogContent,
@@ -39,7 +39,6 @@ export function PropertyImageCarousel({
   useEffect(() => {
     if (!images || images.length === 0) return
 
-    // Preload previous and next images using native Image API for browser caching
     const prevIndex = currentIndex === 0 ? images.length - 1 : currentIndex - 1
     const nextIndex = currentIndex === images.length - 1 ? 0 : currentIndex + 1
     
@@ -55,7 +54,12 @@ export function PropertyImageCarousel({
 
   if (!images || images.length === 0) {
     return (
-      <div className={cn("relative h-48 md:h-auto md:w-64 flex-shrink-0 bg-muted", className)}>
+      <div
+        className={cn(
+          "relative bg-muted",
+          className ?? "w-full h-48 md:h-64"
+        )}
+      >
         <Image
           src="/placeholder.svg"
           alt={propertyTitle}
@@ -88,14 +92,14 @@ export function PropertyImageCarousel({
     <>
       <div
         className={cn(
-          "relative h-48 md:h-auto md:w-64 flex-shrink-0 group cursor-pointer",
-          className
+          "relative group cursor-pointer",
+          className ?? "w-full h-48 md:h-64"
         )}
         onClick={() => hasMultipleImages && setIsLightboxOpen(true)}
       >
         {/* Main Image */}
-        <div className="relative h-full w-full overflow-hidden">
-          {/* Render all images but only show current one - prevents remounting */}
+        <div className="relative h-full w-full overflow-hidden rounded-lg">
+          {/* Render all images but only show current one */}
           {images.map((image, index) => (
             <motion.div
               key={`image-${index}`}
@@ -104,7 +108,7 @@ export function PropertyImageCarousel({
                 opacity: index === currentIndex ? 1 : 0,
                 scale: index === currentIndex ? 1 : 1.05,
               }}
-              transition={{ duration: 0.2, ease: "easeInOut" }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
               className="absolute inset-0"
               style={{ pointerEvents: index === currentIndex ? "auto" : "none" }}
             >
@@ -121,36 +125,36 @@ export function PropertyImageCarousel({
             </motion.div>
           ))}
 
-          {/* Navigation Arrows - Show on hover */}
+          {/* Navigation Arrows - Show on hover (desktop) and always visible on mobile */}
           {hasMultipleImages && (
             <>
               <button
                 onClick={goToPrevious}
-                className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background z-10"
+                className="absolute left-2 top-1/2 -translate-y-1/2 h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-all hover:bg-black/80 z-10 shadow-lg"
                 aria-label="Previous image"
               >
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className="h-4 w-4 text-white" />
               </button>
               <button
                 onClick={goToNext}
-                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background z-10"
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-all hover:bg-black/80 z-10 shadow-lg"
                 aria-label="Next image"
               >
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="h-4 w-4 text-white" />
               </button>
             </>
           )}
 
           {/* Image Counter Badge */}
           {hasMultipleImages && (
-            <div className="absolute top-2 right-2 bg-background/90 backdrop-blur-sm px-2 py-1 rounded-md text-xs font-medium z-10">
-              {currentIndex + 1} / {images.length}
+            <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white px-2 py-0.5 rounded-md text-xs font-medium z-10">
+              {currentIndex + 1}/{images.length}
             </div>
           )}
 
-          {/* Dots Indicator */}
-          {hasMultipleImages && images.length <= 5 && (
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-0.5 sm:gap-1.5 z-10">
+          {/* Improved Dots Indicator - Smaller on mobile */}
+          {hasMultipleImages && images.length <= 8 && (
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1 z-10">
               {images.map((_, index) => (
                 <button
                   key={index}
@@ -159,24 +163,15 @@ export function PropertyImageCarousel({
                     goToImage(index)
                   }}
                   className={cn(
-                    "rounded-full transition-all duration-300 shrink-0",
+                    "rounded-full transition-all duration-200",
+                    "h-1.5 sm:h-2",
                     index === currentIndex
-                      ? "bg-primary sm:h-2 sm:w-6"
-                      : "bg-background/60 hover:bg-background/80 sm:h-2 sm:w-2"
+                      ? "w-4 sm:w-6 bg-white shadow-md"
+                      : "w-1.5 sm:w-2 bg-white/60 hover:bg-white/80"
                   )}
-                  style={{
-                    height: index === currentIndex ? "3px" : "3px",
-                    width: index === currentIndex ? "8px" : "3px",
-                  }}
                   aria-label={`Go to image ${index + 1}`}
                 />
               ))}
-            </div>
-          )}
-
-          {/* Click hint for multiple images */}
-          {hasMultipleImages && (
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex items-center justify-center">
             </div>
           )}
         </div>
@@ -184,99 +179,120 @@ export function PropertyImageCarousel({
 
       {/* Lightbox Modal for Full-Screen Viewing */}
       <Dialog open={isLightboxOpen} onOpenChange={setIsLightboxOpen}>
-        <DialogContent className="max-w-6xl w-full max-h-[95vh] p-0 gap-0 m-2 sm:m-4" showCloseButton={false}>
-          {/* Custom Close Button */}
-          <DialogClose asChild>
-            <button
-              className={cn(
-                "absolute top-15 sm:top-3 right-3 z-50",
-                "h-3 w-3 sm:h-9 sm:w-9",
-                "rounded-full bg-background/90 backdrop-blur-sm",
-                "flex items-center justify-center",
-                "border border-border/50",
-                "transition-all duration-200",
-                "hover:bg-red-500 hover:border-red-500 hover:text-white",
-                "focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2",
-                "shadow-lg hover:shadow-xl cursor-pointer"
-              )}
-              aria-label="Close gallery"
-            >
-              <X className="h-3 w-3 sm:h-4 sm:w-4" />
-            </button>
-          </DialogClose>
+        <DialogContent 
+          className="max-w-7xl w-[calc(100%-1rem)] sm:w-[calc(100%-2rem)] max-h-[95vh] p-0 gap-0 border-0" 
+          showCloseButton={false}
+        >
+          {/* Professional Close Button */}
+          <button
+            onClick={() => setIsLightboxOpen(false)}
+            className={cn(
+              "absolute top-3 right-3 sm:top-4 sm:right-4 z-50",
+              "h-9 w-9 sm:h-10 sm:w-10",
+              "rounded-full",
+              "bg-black/80 hover:bg-black",
+              "backdrop-blur-md",
+              "flex items-center justify-center",
+              "transition-all duration-200",
+              "shadow-lg hover:shadow-xl",
+              "focus:outline-none focus:ring-2 focus:ring-white/50",
+              "group"
+            )}
+            aria-label="Close gallery"
+          >
+            <X className="h-5 w-5 sm:h-5 sm:w-5 text-white group-hover:rotate-90 transition-transform duration-200" />
+          </button>
 
-          <DialogHeader className="p-4 border-b">
-            <DialogTitle>{propertyTitle} - Image Gallery</DialogTitle>
+          {/* Header - Hidden on mobile for cleaner look */}
+          <DialogHeader className="hidden sm:block p-4 sm:p-6 border-b bg-background/95 backdrop-blur-sm">
+            <DialogTitle className="text-lg">{propertyTitle}</DialogTitle>
           </DialogHeader>
 
-          <div className="relative h-[60vh] sm:h-[70vh] bg-black">
-            {/* Render all images but only show current one - prevents remounting */}
-            {images.map((image, index) => (
+          <div className="relative h-[65vh] sm:h-[70vh] bg-black">
+            {/* Main Image Display */}
+            <AnimatePresence mode="wait">
               <motion.div
-                key={`lightbox-image-${index}`}
-                initial={false}
-                animate={{
-                  opacity: index === currentIndex ? 1 : 0,
-                  x: index === currentIndex ? 0 : index < currentIndex ? -20 : 20,
-                }}
-                transition={{ duration: 0.2, ease: "easeInOut" }}
+                key={currentIndex}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
                 className="absolute inset-0"
-                style={{ pointerEvents: index === currentIndex ? "auto" : "none" }}
               >
                 <Image
-                  src={image}
-                  alt={`${propertyTitle} - Image ${index + 1}`}
+                  src={images[currentIndex]}
+                  alt={`${propertyTitle} - Image ${currentIndex + 1}`}
                   fill
                   className="object-contain"
                   sizes="100vw"
-                  priority={index === 0}
-                  loading={index === 0 ? "eager" : "lazy"}
+                  priority
                   unoptimized={false}
                 />
               </motion.div>
-            ))}
+            </AnimatePresence>
 
             {/* Navigation Arrows */}
             {hasMultipleImages && (
               <>
                 <button
                   onClick={goToPrevious}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center hover:bg-background transition-colors z-10"
+                  className={cn(
+                    "absolute left-2 sm:left-4 top-1/2 -translate-y-1/2",
+                    "h-10 w-10 sm:h-12 sm:w-12",
+                    "rounded-full",
+                    "bg-black/80 hover:bg-black",
+                    "backdrop-blur-md",
+                    "flex items-center justify-center",
+                    "transition-all duration-200",
+                    "shadow-lg hover:shadow-xl hover:scale-110",
+                    "z-10"
+                  )}
                   aria-label="Previous image"
                 >
-                  <ChevronLeft className="h-6 w-6 cursor-pointer" />
+                  <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                 </button>
                 <button
                   onClick={goToNext}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center hover:bg-background transition-colors z-10"
+                  className={cn(
+                    "absolute right-2 sm:right-4 top-1/2 -translate-y-1/2",
+                    "h-10 w-10 sm:h-12 sm:w-12",
+                    "rounded-full",
+                    "bg-black/80 hover:bg-black",
+                    "backdrop-blur-md",
+                    "flex items-center justify-center",
+                    "transition-all duration-200",
+                    "shadow-lg hover:shadow-xl hover:scale-110",
+                    "z-10"
+                  )}
                   aria-label="Next image"
                 >
-                  <ChevronRight className="h-6 w-6 cursor-pointer" />
+                  <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                 </button>
               </>
             )}
 
-            {/* Image Counter */}
+            {/* Image Counter - Professional Style */}
             {hasMultipleImages && (
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-background/90 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium z-10">
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 sm:bottom-4 sm:top-auto bg-black/80 backdrop-blur-md text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium z-10 shadow-lg">
                 {currentIndex + 1} of {images.length}
               </div>
             )}
           </div>
 
-          {/* Thumbnail Strip */}
+          {/* Thumbnail Strip - Improved spacing and sizing */}
           {hasMultipleImages && images.length > 1 && (
-            <div className="p-4 border-t bg-muted/30 overflow-x-auto">
-              <div className="flex items-center gap-2 justify-center">
+            <div className="p-3 sm:p-4 border-t bg-muted/50 overflow-x-auto">
+              <div className="flex items-center gap-2 sm:gap-3 justify-start sm:justify-center">
                 {images.map((image, index) => (
                   <button
                     key={index}
                     onClick={() => goToImage(index)}
                     className={cn(
-                      "relative h-16 w-16 sm:h-20 sm:w-20 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0",
+                      "relative rounded-md overflow-hidden border-2 transition-all flex-shrink-0",
+                      "h-14 w-14 sm:h-20 sm:w-20",
                       index === currentIndex
-                        ? "border-primary scale-105"
-                        : "border-transparent hover:border-muted-foreground/50 opacity-70 hover:opacity-100"
+                        ? "border-primary scale-105 shadow-lg"
+                        : "border-transparent hover:border-primary/50 opacity-60 hover:opacity-100"
                     )}
                   >
                     <Image
@@ -288,6 +304,10 @@ export function PropertyImageCarousel({
                       loading="lazy"
                       unoptimized={false}
                     />
+                    {/* Selected indicator */}
+                    {index === currentIndex && (
+                      <div className="absolute inset-0 bg-primary/10" />
+                    )}
                   </button>
                 ))}
               </div>
@@ -298,4 +318,3 @@ export function PropertyImageCarousel({
     </>
   )
 }
-
