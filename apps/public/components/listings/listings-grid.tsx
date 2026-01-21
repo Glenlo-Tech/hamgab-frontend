@@ -9,9 +9,9 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { StaggerContainer, StaggerItem } from "@/components/motion-wrapper"
 import { Bed, Bath, Square, MapPin, CheckCircle, Heart, Phone, Mail, ChevronLeft, ChevronRight } from "lucide-react"
-import Image from "next/image"
 import { usePublicProperties } from "@/hooks/use-public-properties"
 import { ListingsFilterState } from "./listings-filters"
+import { PropertyImageCarousel } from "./property-image-carousel"
 
 interface ListingsGridProps {
   filters: ListingsFilterState
@@ -33,27 +33,6 @@ function formatPrice(value: number | null, transactionType: string): string {
 function formatLocation(city?: string | null, country?: string | null): string {
   const parts = [city, country].filter(Boolean)
   return parts.join(", ") || "Location not specified"
-}
-
-function normalizeImageUrl(filePath: string | undefined | null): string {
-  if (!filePath) return "/placeholder.svg"
-  
-  // If it's already an absolute URL (starts with http:// or https://), return as-is
-  if (filePath.startsWith("http://") || filePath.startsWith("https://")) {
-    return filePath
-  }
-  
-  // If it's a relative path, prepend the API base URL
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || ""
-  if (apiBaseUrl) {
-    // Remove trailing slash from API base URL and leading slash from file path
-    const base = apiBaseUrl.replace(/\/$/, "")
-    const path = filePath.startsWith("/") ? filePath : `/${filePath}`
-    return `${base}${path}`
-  }
-  
-  // Fallback: return as-is (might be a local path)
-  return filePath.startsWith("/") ? filePath : `/${filePath}`
 }
 
 function ListingsGridSkeleton() {
@@ -125,20 +104,26 @@ export function ListingsGrid({ filters, page, pageSize, onPageChange }: Listings
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {properties.map((property) => (
+          {properties.map((property) => {
+            // Extract all image URLs from media array
+            const images = property.media
+              ?.filter((m) => m.file_type === "image")
+              .map((m) => m.file_path) || []
+            
+            return (
             <Card
               key={property.id}
               className="overflow-hidden group h-full flex flex-col cursor-pointer hover:shadow-lg transition-shadow bg-card border"
               onClick={() => setSelectedPropertyId(property.id)}
             >
               <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-                <Image
-                  src={normalizeImageUrl(property.media[0]?.file_path)}
-                  alt={property.title}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                <PropertyImageCarousel
+                  images={images}
+                  propertyTitle={property.title}
+                  className="w-full h-full"
+                  disableLightbox={true}
                 />
-                <div className="absolute top-3 left-3 flex gap-2">
+                <div className="absolute top-3 left-3 flex gap-2 z-20">
                   <Badge variant={property.transaction_type === "RENT" ? "secondary" : "default"}>
                     {property.transaction_type === "RENT" ? "For Rent" : "For Sale"}
                   </Badge>
@@ -151,7 +136,7 @@ export function ListingsGrid({ filters, page, pageSize, onPageChange }: Listings
                 </div>
                 <button
                   onClick={(e) => toggleFavorite(property.id, e)}
-                  className="absolute top-3 right-3 h-9 w-9 rounded-full cursor-pointer bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background transition-colors"
+                  className="absolute top-3 right-3 h-9 w-9 rounded-full cursor-pointer bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background transition-colors z-20"
                 >
                   <Heart
                     className={`h-5 w-5 ${
@@ -187,7 +172,8 @@ export function ListingsGrid({ filters, page, pageSize, onPageChange }: Listings
                 </div>
               </CardFooter>
             </Card>
-          ))}
+            )
+          })}
         </div>
       )}
 
@@ -234,6 +220,11 @@ export function ListingsGrid({ filters, page, pageSize, onPageChange }: Listings
             const property = properties.find((p) => p.id === selectedPropertyId)
             if (!property) return null
 
+            // Extract all image URLs from media array for the detail dialog
+            const detailImages = property.media
+              ?.filter((m) => m.file_type === "image")
+              .map((m) => m.file_path) || []
+
             return (
               <>
                 <DialogHeader>
@@ -245,11 +236,10 @@ export function ListingsGrid({ filters, page, pageSize, onPageChange }: Listings
                 </DialogHeader>
 
                 <div className="relative aspect-video rounded-lg overflow-hidden bg-muted mt-4">
-                  <Image
-                    src={normalizeImageUrl(property.media[0]?.file_path)}
-                    alt={property.title}
-                    fill
-                    className="object-cover"
+                  <PropertyImageCarousel
+                    images={detailImages}
+                    propertyTitle={property.title}
+                    className="w-full h-full"
                   />
                 </div>
 
