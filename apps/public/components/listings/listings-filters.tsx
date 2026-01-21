@@ -11,12 +11,8 @@ import { Search, SlidersHorizontal, MapPin } from "lucide-react"
 
 export type ListingsFilterState = {
   propertyType: string
-  listingType: string
   minPrice: number
   maxPrice: number
-  bedrooms: string
-  bathrooms: string
-  status: string
   city: string
   country: string
   sortBy: "newest" | "oldest" | "price-low" | "price-high"
@@ -36,14 +32,14 @@ export function ListingsFilters({ filters, onFiltersChange, totalCount }: Listin
   }
 
   const FilterContent = () => (
-    <div className="space-y-6">
-      <div>
-        <label className="text-sm font-medium mb-2 block">Property Type</label>
+    <div className="space-y-5 px-4">
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-foreground">Property Type</label>
         <Select
           value={filters.propertyType}
           onValueChange={(value) => onFiltersChange({ propertyType: value })}
         >
-          <SelectTrigger>
+          <SelectTrigger className="h-11 rounded-lg">
             <SelectValue placeholder="Select type" />
           </SelectTrigger>
           <SelectContent>
@@ -54,99 +50,33 @@ export function ListingsFilters({ filters, onFiltersChange, totalCount }: Listin
             <SelectItem value="villa">Villa</SelectItem>
             <SelectItem value="land">Land</SelectItem>
             <SelectItem value="commercial">Commercial</SelectItem>
+            <SelectItem value="other">Other</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      <div>
-        <label className="text-sm font-medium mb-2 block">Listing Type</label>
-        <Select
-          value={filters.listingType}
-          onValueChange={(value) => onFiltersChange({ listingType: value })}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select listing type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Listings</SelectItem>
-            <SelectItem value="rent">For Rent</SelectItem>
-            <SelectItem value="sale">For Sale</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div>
-        <label className="text-sm font-medium mb-2 block">Bedrooms</label>
-        <Select
-          value={filters.bedrooms}
-          onValueChange={(value) => onFiltersChange({ bedrooms: value })}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select bedrooms" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="any">Any</SelectItem>
-            <SelectItem value="1">1+</SelectItem>
-            <SelectItem value="2">2+</SelectItem>
-            <SelectItem value="3">3+</SelectItem>
-            <SelectItem value="4">4+</SelectItem>
-            <SelectItem value="5">5+</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div>
-        <label className="text-sm font-medium mb-2 block">Bathrooms</label>
-        <Select
-          value={filters.bathrooms}
-          onValueChange={(value) => onFiltersChange({ bathrooms: value })}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select bathrooms" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="any">Any</SelectItem>
-            <SelectItem value="1">1+</SelectItem>
-            <SelectItem value="2">2+</SelectItem>
-            <SelectItem value="3">3+</SelectItem>
-            <SelectItem value="4">4+</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div>
-        <label className="text-sm font-medium mb-4 block">
-          Price Range: ${filters.minPrice.toLocaleString()} - ${filters.maxPrice.toLocaleString()}
-        </label>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-foreground">Price Range</label>
+          <span className="text-xs font-medium text-muted-foreground">
+            XAF {filters.minPrice.toLocaleString()} – XAF {filters.maxPrice.toLocaleString()}
+          </span>
+        </div>
         <Slider
           defaultValue={[0, 5000000]}
           max={5000000}
           step={50000}
           value={[filters.minPrice, filters.maxPrice]}
           onValueChange={handlePriceChange}
-          className="mt-2"
+          className="mt-3"
         />
+        <div className="flex justify-between text-[11px] text-muted-foreground">
+          <span>XAF 0</span>
+          <span>XAF 5,000,000</span>
+        </div>
       </div>
 
-      <div>
-        <label className="text-sm font-medium mb-2 block">Status</label>
-        <Select
-          value={filters.status}
-          onValueChange={(value) => onFiltersChange({ status: value })}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="verified">Verified Only</SelectItem>
-            <SelectItem value="available">Available</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <Button className="w-full">Apply Filters</Button>
+      <Button className="w-full h-11 rounded-lg mt-2">Apply Filters</Button>
     </div>
   )
 
@@ -218,12 +148,12 @@ export function ListingsFilters({ filters, onFiltersChange, totalCount }: Listin
         </div>
       </div>
 
-      <div className="hidden lg:grid grid-cols-6 gap-4 mt-6 p-4 bg-muted/50 rounded-xl">
+      <div className="hidden lg:flex items-center gap-4 mt-6 p-4 bg-muted/50 rounded-xl">
         <Select
           value={filters.propertyType}
           onValueChange={(value) => onFiltersChange({ propertyType: value })}
         >
-          <SelectTrigger>
+          <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Property Type" />
           </SelectTrigger>
           <SelectContent>
@@ -233,54 +163,8 @@ export function ListingsFilters({ filters, onFiltersChange, totalCount }: Listin
             <SelectItem value="condo">Condo</SelectItem>
             <SelectItem value="villa">Villa</SelectItem>
             <SelectItem value="land">Land</SelectItem>
-            <SelectItem value="commercial">Commercial</SelectItem>  
+            <SelectItem value="commercial">Commercial</SelectItem>
             <SelectItem value="other">Other</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select
-          value={filters.listingType}
-          onValueChange={(value) => onFiltersChange({ listingType: value })}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Listing Type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Listings</SelectItem>
-            <SelectItem value="rent">For Rent</SelectItem>
-            <SelectItem value="sale">For Sale</SelectItem>
-            <SelectItem value="rental">For Lease</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select
-          value={filters.bedrooms}
-          onValueChange={(value) => onFiltersChange({ bedrooms: value })}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Bedrooms" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="any">Any Beds</SelectItem>
-            <SelectItem value="1">1+ Bed</SelectItem>
-            <SelectItem value="2">2+ Beds</SelectItem>
-            <SelectItem value="3">3+ Beds</SelectItem>
-            <SelectItem value="4">4+ Beds</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select
-          value={filters.bathrooms}
-          onValueChange={(value) => onFiltersChange({ bathrooms: value })}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Bathrooms" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="any">Any Baths</SelectItem>
-            <SelectItem value="1">1+ Bath</SelectItem>
-            <SelectItem value="2">2+ Baths</SelectItem>
-            <SelectItem value="3">3+ Baths</SelectItem>
           </SelectContent>
         </Select>
 
@@ -299,29 +183,15 @@ export function ListingsFilters({ filters, onFiltersChange, totalCount }: Listin
             }
           }}
         >
-          <SelectTrigger>
+          <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Price Range" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="any">Any Price</SelectItem>
-            <SelectItem value="0-100000">$0 - $100K</SelectItem>
-            <SelectItem value="100000-500000">$100K - $500K</SelectItem>
-            <SelectItem value="500000-1000000">$500K - $1M</SelectItem>
-            <SelectItem value="1000000+">$1M+</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select
-          value={filters.status}
-          onValueChange={(value) => onFiltersChange({ status: value })}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="verified">Verified</SelectItem>
-            <SelectItem value="available">Available</SelectItem>
+            <SelectItem value="0-100000">XAF 0 - XAF 100K</SelectItem>
+            <SelectItem value="100000-500000">XAF 100K - XAF 500K</SelectItem>
+            <SelectItem value="500000-1000000">XAF 500K - XAF 1M</SelectItem>
+            <SelectItem value="1000000-5000000">XAF 1M - XAF 5M</SelectItem>
           </SelectContent>
         </Select>
       </div>

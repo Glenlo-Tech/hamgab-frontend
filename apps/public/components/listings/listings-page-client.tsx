@@ -12,12 +12,8 @@ interface ListingsPageClientProps {
 export function ListingsPageClient({ initialPage = 1, pageSize = 20 }: ListingsPageClientProps) {
   const [filters, setFilters] = useState<ListingsFilterState>({
     propertyType: "all",
-    listingType: "all",
     minPrice: 0,
     maxPrice: 5_000_000,
-    bedrooms: "any",
-    bathrooms: "any",
-    status: "all",
     city: "",
     country: "",
     sortBy: "newest",
