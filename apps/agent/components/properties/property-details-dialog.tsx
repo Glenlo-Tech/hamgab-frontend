@@ -6,9 +6,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogClose,
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import { MapPin, Calendar, Eye } from "lucide-react"
+import { MapPin, Calendar, Eye, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { formatDistanceToNow } from "date-fns"
 import { useProperty } from "@/hooks/use-property"
@@ -94,7 +95,27 @@ export function PropertyDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto m-2 sm:m-4" showCloseButton={false}>
+        {/* Custom Close Button */}
+        <DialogClose asChild>
+          <button
+            className={cn(
+              "absolute top-15 sm:top-13 right-3 z-50",
+              "h-3 w-3 sm:h-9 sm:w-9",
+              "rounded-full bg-background/90 backdrop-blur-sm",
+              "flex items-center justify-center",
+              "border border-border/50",
+              "transition-all duration-200",
+              "hover:bg-red-500 hover:border-red-500 hover:text-white",
+              "focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2",
+              "shadow-lg hover:shadow-xl cursor-pointer"
+            )}
+            aria-label="Close dialog"
+          >
+            <X className="h-3 w-3 sm:h-4 sm:w-4" />
+          </button>
+        </DialogClose>
+
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between gap-3">
             <span className="flex items-center gap-2">
@@ -207,9 +228,9 @@ export function PropertyDetailsDialog({
                   <Calendar className="h-3.5 w-3.5" />
                   <span>Submitted {formatRelativeDate(property.created_at)}</span>
                 </div>
-                <p className="text-xs text-muted-foreground">
+                {/* <p className="text-xs text-muted-foreground">
                   ID: <span className="font-mono text-[11px] break-all">{property.id}</span>
-                </p>
+                </p> */}
               </div>
 
               {property.verification_status === "RED" && property.admin_feedback && (

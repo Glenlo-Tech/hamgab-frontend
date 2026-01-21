@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { motion } from "framer-motion"
 import {
@@ -15,6 +15,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from "@/components/ui/dialog"
 
 interface PropertyImageCarouselProps {
@@ -183,12 +184,32 @@ export function PropertyImageCarousel({
 
       {/* Lightbox Modal for Full-Screen Viewing */}
       <Dialog open={isLightboxOpen} onOpenChange={setIsLightboxOpen}>
-        <DialogContent className="max-w-6xl w-full p-0 gap-0">
+        <DialogContent className="max-w-6xl w-full max-h-[95vh] p-0 gap-0 m-2 sm:m-4" showCloseButton={false}>
+          {/* Custom Close Button */}
+          <DialogClose asChild>
+            <button
+              className={cn(
+                "absolute top-15 sm:top-3 right-3 z-50",
+                "h-3 w-3 sm:h-9 sm:w-9",
+                "rounded-full bg-background/90 backdrop-blur-sm",
+                "flex items-center justify-center",
+                "border border-border/50",
+                "transition-all duration-200",
+                "hover:bg-red-500 hover:border-red-500 hover:text-white",
+                "focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2",
+                "shadow-lg hover:shadow-xl cursor-pointer"
+              )}
+              aria-label="Close gallery"
+            >
+              <X className="h-3 w-3 sm:h-4 sm:w-4" />
+            </button>
+          </DialogClose>
+
           <DialogHeader className="p-4 border-b">
             <DialogTitle>{propertyTitle} - Image Gallery</DialogTitle>
           </DialogHeader>
 
-          <div className="relative h-[70vh] bg-black">
+          <div className="relative h-[60vh] sm:h-[70vh] bg-black">
             {/* Render all images but only show current one - prevents remounting */}
             {images.map((image, index) => (
               <motion.div
@@ -223,14 +244,14 @@ export function PropertyImageCarousel({
                   className="absolute left-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center hover:bg-background transition-colors z-10"
                   aria-label="Previous image"
                 >
-                  <ChevronLeft className="h-6 w-6" />
+                  <ChevronLeft className="h-6 w-6 cursor-pointer" />
                 </button>
                 <button
                   onClick={goToNext}
                   className="absolute right-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center hover:bg-background transition-colors z-10"
                   aria-label="Next image"
                 >
-                  <ChevronRight className="h-6 w-6" />
+                  <ChevronRight className="h-6 w-6 cursor-pointer" />
                 </button>
               </>
             )}
