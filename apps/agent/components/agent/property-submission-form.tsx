@@ -379,45 +379,63 @@ export function PropertySubmissionForm() {
         <Card className="overflow-hidden">
           <CardContent className="p-3 sm:p-4 lg:p-6">
             <div className="flex items-center justify-between overflow-x-auto pb-2 scrollbar-hide">
-              {steps.map((step, index) => (
-                <div key={step.id} className="flex items-center flex-shrink-0">
-                  <button
-                    onClick={() => setCurrentStep(step.id)}
-                    className={cn(
-                      "flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2 px-2 sm:px-3 lg:px-4 py-2 rounded-lg transition-all",
-                      currentStep === step.id
-                        ? "bg-primary text-primary-foreground"
-                        : currentStep > step.id
-                          ? "bg-muted text-foreground"
-                          : "text-muted-foreground hover:bg-muted/50",
-                    )}
-                  >
-                    <div
+              {steps.map((step, index) => {
+                const isCompleted = step.id < currentStep
+                const isCurrent = step.id === currentStep
+                const isLocked = step.id > currentStep
+
+                return (
+                  <div key={step.id} className="flex items-center flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // Allow going back to previous steps or staying on current
+                        if (isLocked) return
+                        setCurrentStep(step.id)
+                        window.scrollTo({ top: 0, behavior: "smooth" })
+                      }}
+                      disabled={isLocked}
                       className={cn(
-                        "h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium flex-shrink-0",
-                        currentStep === step.id
-                          ? "bg-primary-foreground/20"
-                          : currentStep > step.id
-                            ? "bg-foreground/10"
-                            : "bg-muted",
+                        "flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2 px-2 sm:px-3 lg:px-4 py-2 rounded-lg transition-all",
+                        isCurrent
+                          ? "bg-primary text-primary-foreground"
+                          : isCompleted
+                            ? "bg-muted text-foreground"
+                            : "text-muted-foreground",
+                        isLocked
+                          ? "cursor-not-allowed opacity-60"
+                          : "hover:bg-muted/50 cursor-pointer",
                       )}
                     >
-                      {currentStep > step.id ? (
-                        <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                      ) : (
-                        <step.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                      )}
-                    </div>
-                    <div className="text-left sm:text-center">
-                      <div className="text-[10px] sm:text-xs font-medium">{step.title}</div>
-                      <div className="hidden lg:block text-[10px] text-muted-foreground/70">{step.description}</div>
-                    </div>
-                  </button>
-                  {index < steps.length - 1 && (
-                    <div className="w-4 sm:w-8 lg:w-12 h-[2px] bg-border mx-1 sm:mx-2 flex-shrink-0" />
-                  )}
-                </div>
-              ))}
+                      <div
+                        className={cn(
+                          "h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium flex-shrink-0",
+                          isCurrent
+                            ? "bg-primary-foreground/20"
+                            : isCompleted
+                              ? "bg-foreground/10"
+                              : "bg-muted",
+                        )}
+                      >
+                        {isCompleted ? (
+                          <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                        ) : (
+                          <step.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                        )}
+                      </div>
+                      <div className="text-left sm:text-center">
+                        <div className="text-[10px] sm:text-xs font-medium">{step.title}</div>
+                        <div className="hidden lg:block text-[10px] text-muted-foreground/70">
+                          {step.description}
+                        </div>
+                      </div>
+                    </button>
+                    {index < steps.length - 1 && (
+                      <div className="w-4 sm:w-8 lg:w-12 h-[2px] bg-border mx-1 sm:mx-2 flex-shrink-0" />
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </CardContent>
         </Card>
