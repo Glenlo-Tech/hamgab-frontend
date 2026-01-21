@@ -856,13 +856,13 @@ export function PropertySubmissionForm() {
                         <Camera className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
                         <span className="text-xs sm:text-sm text-muted-foreground text-center px-2">Capture Photo</span>
                       </button>
-                      <button
+                      {/* <button
                         onClick={() => imageFileInputRef.current?.click()}
                         className="aspect-video border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary transition-colors bg-muted/30 hover:bg-muted/50"
                       >
                         <Upload className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
                         <span className="text-xs sm:text-sm text-muted-foreground text-center px-2">Upload Photo</span>
-                      </button>
+                      </button> */}
                     </div>
                     <input
                       ref={imageFileInputRef}

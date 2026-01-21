@@ -1,9 +1,9 @@
 /**
- * Camera Capture Hook
+ * Camera Capture Hook - FIXED VERSION
  * Handles live camera capture for property images
  */
 
-import React, { useState, useRef, useCallback } from "react"
+import React, { useState, useRef, useCallback, useEffect } from "react"
 
 export interface CameraCaptureResult {
   file: File
@@ -28,46 +28,91 @@ export function useCameraCapture(): UseCameraCaptureReturn {
   const [stream, setStream] = useState<MediaStream | null>(null)
   const videoRef = useRef<HTMLVideoElement | null>(null)
 
+  // Clean up stream when component unmounts
+  useEffect(() => {
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop())
+      }
+    }
+  }, [stream])
+
   const openCamera = useCallback(async () => {
     try {
       setError(null)
       setIsCapturing(true)
 
-      // Request camera access
+      // Request camera with optimal settings
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode: "environment", // Use back camera on mobile
+          facingMode: "environment", // Prefer back camera on mobile
           width: { ideal: 1920 },
-          height: { ideal: 1080 },
+          height: { ideal: 1080 }
         },
         audio: false,
       })
 
       setStream(mediaStream)
       setIsOpen(true)
-      setIsCapturing(false)
 
-      // Attach stream to video element if ref exists
+      // Wait a bit for the video element to be ready
+      await new Promise(resolve => setTimeout(resolve, 100))
+
+      // Attach stream to video element
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream
-        videoRef.current.play()
+        
+        // Wait for metadata to load
+        await new Promise<void>((resolve, reject) => {
+          if (!videoRef.current) {
+            reject(new Error("Video element not found"))
+            return
+          }
+
+          const video = videoRef.current
+          
+          const onLoadedMetadata = () => {
+            video.removeEventListener("loadedmetadata", onLoadedMetadata)
+            resolve()
+          }
+
+          const onError = () => {
+            video.removeEventListener("error", onError)
+            reject(new Error("Video loading error"))
+          }
+
+          video.addEventListener("loadedmetadata", onLoadedMetadata)
+          video.addEventListener("error", onError)
+
+          // Start playing
+          video.play().catch(reject)
+        })
       }
+
+      setIsCapturing(false)
     } catch (err) {
       setIsCapturing(false)
       setIsOpen(false)
+      
+      // Clean up stream on error
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop())
+        setStream(null)
+      }
+
       if (err instanceof Error) {
         if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
-          setError("Camera permission denied. Please allow camera access.")
+          setError("Camera permission denied. Please allow camera access in your browser settings.")
         } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
           setError("No camera found. Please connect a camera device.")
         } else {
-          setError("Failed to access camera. Please try again.")
+          setError(`Failed to access camera: ${err.message}`)
         }
       } else {
         setError("Failed to access camera. Please try again.")
       }
     }
-  }, [])
+  }, [stream])
 
   const closeCamera = useCallback(() => {
     // Stop all tracks
@@ -75,6 +120,12 @@ export function useCameraCapture(): UseCameraCaptureReturn {
       stream.getTracks().forEach((track) => track.stop())
       setStream(null)
     }
+    
+    // Clear video source
+    if (videoRef.current) {
+      videoRef.current.srcObject = null
+    }
+    
     setIsOpen(false)
     setError(null)
   }, [stream])
@@ -85,11 +136,22 @@ export function useCameraCapture(): UseCameraCaptureReturn {
       return null
     }
 
+    const video = videoRef.current
+
+    // Check if video is actually playing
+    if (video.readyState < 2) {
+      setError("Video not ready. Please wait a moment and try again.")
+      return null
+    }
+
+    if (video.videoWidth === 0 || video.videoHeight === 0) {
+      setError("Invalid video dimensions. Please try reopening the camera.")
+      return null
+    }
+
     try {
       // Create canvas to capture frame
       const canvas = document.createElement("canvas")
-      const video = videoRef.current
-
       canvas.width = video.videoWidth
       canvas.height = video.videoHeight
 
@@ -113,7 +175,7 @@ export function useCameraCapture(): UseCameraCaptureReturn {
             }
           },
           "image/jpeg",
-          0.95 // Quality
+          0.95
         )
       })
 
@@ -141,8 +203,6 @@ export function useCameraCapture(): UseCameraCaptureReturn {
     closeCamera,
     capturePhoto,
     stream,
-    // Expose videoRef for component to use
     videoRef: videoRef as React.MutableRefObject<HTMLVideoElement | null>,
   }
 }
-
