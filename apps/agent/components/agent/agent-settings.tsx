@@ -219,6 +219,13 @@ export function AgentSettings() {
               onCheckedChange={setMarketingEmails}
             />
           </div>
+          {/* Save Button */}
+          <div className="flex justify-start gap-3 pt-4">
+            <Button variant="outline" onClick={() => router.back()}>
+              Cancel
+            </Button>
+            <Button onClick={handleSavePreferences}>Save Preferences</Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -257,6 +264,7 @@ export function AgentSettings() {
             </select>
             <p className="text-xs text-muted-foreground">Choose your preferred language</p>
           </div>
+          
         </CardContent>
       </Card>
 
@@ -380,13 +388,7 @@ export function AgentSettings() {
         </CardContent>
       </Card>
 
-      {/* Save Button */}
-      <div className="flex justify-end gap-3 pt-4">
-        <Button variant="outline" onClick={() => router.back()}>
-          Cancel
-        </Button>
-        <Button onClick={handleSavePreferences}>Save Preferences</Button>
-      </div>
+      
     </div>
   )
 }
