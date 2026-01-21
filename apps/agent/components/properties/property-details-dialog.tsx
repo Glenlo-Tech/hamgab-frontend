@@ -299,18 +299,65 @@ export function PropertyDetailsDialog({
                   </div>
                 </div>
 
-                {/* Admin Feedback */}
-                {property.verification_status === "RED" && property.admin_feedback && (
-                  <div className="p-4 lg:p-5 xl:p-6 bg-red-50 dark:bg-red-900/20 rounded-lg border-2 border-red-200 dark:border-red-800">
+                {/* Admin Feedback - Show for any status if feedback exists */}
+                {property.admin_feedback && (
+                  <div className={cn(
+                    "p-4 lg:p-5 xl:p-6 rounded-lg border-2",
+                    property.verification_status === "RED"
+                      ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
+                      : property.verification_status === "GREEN"
+                        ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
+                        : property.verification_status === "YELLOW"
+                          ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800"
+                          : "bg-muted border-border"
+                  )}>
                     <div className="flex items-start gap-2 lg:gap-3">
-                      <div className="flex-shrink-0 w-5 h-5 lg:w-6 lg:h-6 rounded-full bg-red-200 dark:bg-red-800 flex items-center justify-center mt-0.5">
-                        <span className="text-red-700 dark:text-red-300 text-xs lg:text-sm font-bold">!</span>
+                      <div className={cn(
+                        "flex-shrink-0 w-5 h-5 lg:w-6 lg:h-6 rounded-full flex items-center justify-center mt-0.5",
+                        property.verification_status === "RED"
+                          ? "bg-red-200 dark:bg-red-800"
+                          : property.verification_status === "GREEN"
+                            ? "bg-green-200 dark:bg-green-800"
+                            : property.verification_status === "YELLOW"
+                              ? "bg-yellow-200 dark:bg-yellow-800"
+                              : "bg-muted"
+                      )}>
+                        <span className={cn(
+                          "text-xs lg:text-sm font-bold",
+                          property.verification_status === "RED"
+                            ? "text-red-700 dark:text-red-300"
+                            : property.verification_status === "GREEN"
+                              ? "text-green-700 dark:text-green-300"
+                              : property.verification_status === "YELLOW"
+                                ? "text-yellow-700 dark:text-yellow-300"
+                                : "text-muted-foreground"
+                        )}>
+                          {property.verification_status === "GREEN" ? "✓" : property.verification_status === "YELLOW" ? "⏳" : "!"}
+                        </span>
                       </div>
                       <div className="space-y-1 lg:space-y-2 flex-1">
-                        <p className="text-xs lg:text-sm font-semibold text-red-900 dark:text-red-100">
+                        <p className={cn(
+                          "text-xs lg:text-sm font-semibold",
+                          property.verification_status === "RED"
+                            ? "text-red-900 dark:text-red-100"
+                            : property.verification_status === "GREEN"
+                              ? "text-green-900 dark:text-green-100"
+                              : property.verification_status === "YELLOW"
+                                ? "text-yellow-900 dark:text-yellow-100"
+                                : "text-foreground"
+                        )}>
                           Admin Feedback
                         </p>
-                        <p className="text-xs sm:text-sm lg:text-base text-red-800 dark:text-red-200 leading-relaxed">
+                        <p className={cn(
+                          "text-xs sm:text-sm lg:text-base leading-relaxed",
+                          property.verification_status === "RED"
+                            ? "text-red-800 dark:text-red-200"
+                            : property.verification_status === "GREEN"
+                              ? "text-green-800 dark:text-green-200"
+                              : property.verification_status === "YELLOW"
+                                ? "text-yellow-800 dark:text-yellow-200"
+                                : "text-muted-foreground"
+                        )}>
                           {property.admin_feedback}
                         </p>
                       </div>

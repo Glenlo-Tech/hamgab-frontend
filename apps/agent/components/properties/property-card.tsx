@@ -225,11 +225,29 @@ export function PropertyCard({ property, onView, onEdit }: PropertyCardProps) {
             </div>
           </div>
 
-          {/* Admin Feedback (if rejected) */}
-          {property.verification_status === "RED" && property.admin_feedback && (
-            <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-900">
-              <p className="text-xs text-red-800 dark:text-red-200">
-                <span className="font-medium">Feedback:</span> {property.admin_feedback}
+          {/* Admin Feedback - Show for any status if feedback exists */}
+          {property.admin_feedback && (
+            <div className={cn(
+              "mt-4 p-3 rounded-lg border",
+              property.verification_status === "RED"
+                ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-900"
+                : property.verification_status === "GREEN"
+                  ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-900"
+                  : property.verification_status === "YELLOW"
+                    ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-900"
+                    : "bg-muted border-border"
+            )}>
+              <p className={cn(
+                "text-xs",
+                property.verification_status === "RED"
+                  ? "text-red-800 dark:text-red-200"
+                  : property.verification_status === "GREEN"
+                    ? "text-green-800 dark:text-green-200"
+                    : property.verification_status === "YELLOW"
+                      ? "text-yellow-800 dark:text-yellow-200"
+                      : "text-muted-foreground"
+              )}>
+                <span className="font-medium">Admin Feedback:</span> {property.admin_feedback}
               </p>
             </div>
           )}
