@@ -107,13 +107,13 @@ export function AdminDashboard() {
           </div>
           <div className="flex gap-2">
             <Button variant="outline" asChild className="bg-transparent">
-              <Link href="/admin/users">
+              <Link href="/users">
                 <UserPlus className="h-4 w-4 mr-2" />
                 Manage Users
               </Link>
             </Button>
             <Button asChild>
-              <Link href="/admin/verification">
+              <Link href="/verification">
                 <CheckCircle2 className="h-4 w-4 mr-2" />
                 Review Properties
               </Link>
