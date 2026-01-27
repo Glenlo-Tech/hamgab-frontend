@@ -34,7 +34,11 @@ import {
   FileText,
 } from "lucide-react"
 import { useVerificationQueue } from "@/hooks/use-verification-queue"
-import { VerificationQueueProperty } from "@/lib/admin-properties"
+import {
+  VerificationQueueProperty,
+  updatePropertyStatus,
+  updatePropertyVisibility,
+} from "@/lib/admin-properties"
 import { useToast } from "@/hooks/use-toast"
  
 type SortOption = "newest" | "oldest" | "price-high" | "price-low"
@@ -53,6 +57,9 @@ export function PropertyVerification() {
     useState<VerificationQueueProperty | null>(null)
   const [showRejectDialog, setShowRejectDialog] = useState(false)
   const [rejectionReason, setRejectionReason] = useState("")
+  const [approvalNotes, setApprovalNotes] = useState("")
+  const [isStatusUpdating, setIsStatusUpdating] = useState(false)
+  const [isVisibilityUpdating, setIsVisibilityUpdating] = useState(false)
  
   const filteredProperties = useMemo(() => {
     const withSearch = properties.filter((property) => {
@@ -89,25 +96,118 @@ export function PropertyVerification() {
       return 0
     })
   }, [properties, search, sortBy])
- 
-  const handleApprove = () => {
-    // Placeholder – approval endpoint not provided yet
-    toast({
-      title: "Coming soon",
-      description: "Property approval will be wired once the endpoint is available.",
-    })
-    setSelectedProperty(null)
+  const handleApprove = async () => {
+    if (!selectedProperty || isStatusUpdating) return
+    setIsStatusUpdating(true)
+    try {
+      const updated = await updatePropertyStatus(
+        selectedProperty.id,
+        "GREEN",
+        approvalNotes.trim() || "Approved"
+      )
+      toast({
+        title: "Property approved",
+        description: "The property has been marked as GREEN (certified).",
+      })
+      // Keep dialog open with updated data so admin can optionally toggle visibility
+      setSelectedProperty(updated)
+      setApprovalNotes("")
+      await refresh()
+    } catch (error) {
+      toast({
+        title: "Failed to approve property",
+        description:
+          error instanceof Error ? error.message : "Something went wrong. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsStatusUpdating(false)
+    }
   }
- 
-  const handleReject = () => {
-    // Placeholder – rejection endpoint not provided yet
-    toast({
-      title: "Coming soon",
-      description: "Property rejection will be wired once the endpoint is available.",
-    })
-    setShowRejectDialog(false)
-    setSelectedProperty(null)
-    setRejectionReason("")
+
+  const handleMarkUnderReview = async () => {
+    if (!selectedProperty || isStatusUpdating) return
+    setIsStatusUpdating(true)
+    try {
+      const updated = await updatePropertyStatus(
+        selectedProperty.id,
+        "YELLOW",
+        "Property moved to YELLOW (under review)."
+      )
+      toast({
+        title: "Marked as under review",
+        description: "The property is now in YELLOW status (under admin review).",
+      })
+      setSelectedProperty(updated)
+      await refresh()
+    } catch (error) {
+      toast({
+        title: "Failed to mark as under review",
+        description:
+          error instanceof Error ? error.message : "Something went wrong. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsStatusUpdating(false)
+    }
+  }
+
+  const handleReject = async () => {
+    if (!selectedProperty || isStatusUpdating || !rejectionReason.trim()) return
+    setIsStatusUpdating(true)
+    try {
+      await updatePropertyStatus(selectedProperty.id, "RED", rejectionReason.trim())
+      toast({
+        title: "Feedback sent",
+        description:
+          "The property remains RED and the agent will see your feedback for required changes.",
+      })
+      setShowRejectDialog(false)
+      setSelectedProperty(null)
+      setRejectionReason("")
+      await refresh()
+    } catch (error) {
+      toast({
+        title: "Failed to submit feedback",
+        description:
+          error instanceof Error ? error.message : "Something went wrong. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsStatusUpdating(false)
+    }
+  }
+
+  const handleToggleVisibility = async () => {
+    if (!selectedProperty || selectedProperty.verification_status !== "GREEN") return
+    if (isVisibilityUpdating) return
+    setIsVisibilityUpdating(true)
+    try {
+      const nextVisibility =
+        selectedProperty.visibility === "PUBLIC" ? "PRIVATE" : "PUBLIC"
+      const updated = await updatePropertyVisibility(
+        selectedProperty.id,
+        nextVisibility
+      )
+      setSelectedProperty(updated)
+      toast({
+        title: "Visibility updated",
+        description:
+          updated.visibility === "PUBLIC"
+            ? "The property is now publicly visible."
+            : "The property is now private.",
+      })
+      await refresh()
+    } catch (error) {
+      toast({
+        title: "Failed to update visibility",
+        description:
+          error instanceof Error ? error.message : "Something went wrong. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsVisibilityUpdating(false)
+    }
   }
 
   return (
@@ -253,14 +353,14 @@ export function PropertyVerification() {
                   <div className="flex gap-2 mt-6">
                     <Button
                       variant="outline"
-                      className="flex-1 bg-transparent"
+                      className="flex-1 bg-transparent cursor-pointer"
                       onClick={() => setSelectedProperty(property)}
                     >
                       <Eye className="h-4 w-4 mr-2" />
                       Review Details
                     </Button>
                     <Button
-                      className="flex-1 bg-green-600 hover:bg-green-700"
+                      className="flex-1 bg-green-600 hover:bg-green-700 cursor-pointer"
                       onClick={() => setSelectedProperty(property)}
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
@@ -268,7 +368,7 @@ export function PropertyVerification() {
                     </Button>
                     <Button
                       variant="destructive"
-                      className="flex-1"
+                      className="flex-1 cursor-pointer"
                       onClick={() => {
                         setSelectedProperty(property)
                         setShowRejectDialog(true)
@@ -286,8 +386,11 @@ export function PropertyVerification() {
         </StaggerContainer>
       )}
 
-      <Dialog open={!!selectedProperty && !showRejectDialog} onOpenChange={() => setSelectedProperty(null)}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <Dialog
+        open={!!selectedProperty && !showRejectDialog}
+        onOpenChange={() => setSelectedProperty(null)}
+      >
+        <DialogContent className="w-full max-w-[95vw] md:max-w-4xl lg:max-w-5xl max-h-[90vh] overflow-y-auto">
           {selectedProperty && (
             <>
               <DialogHeader>
@@ -301,32 +404,67 @@ export function PropertyVerification() {
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="relative aspect-video rounded-lg overflow-hidden bg-muted mt-4">
-                <Image
-                  src={selectedProperty.media[0]?.file_path || "/placeholder.svg"}
-                  alt={selectedProperty.title}
-                  fill
-                  className="object-cover"
-                />
-              </div>
+              <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+                <div className="space-y-3">
+                  <div className="relative rounded-lg overflow-hidden bg-muted h-56 sm:h-64 lg:h-72">
+                    <Image
+                      src={selectedProperty.media[0]?.file_path || "/placeholder.svg"}
+                      alt={selectedProperty.title}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
 
-              {selectedProperty.media.length > 1 && (
-                <div className="mt-4 flex gap-3 overflow-x-auto pb-1">
-                  {selectedProperty.media.slice(1).map((media) => (
-                    <div
-                      key={media.id}
-                      className="relative h-20 w-28 rounded-md overflow-hidden border flex-shrink-0 bg-muted"
-                    >
-                      <Image
-                        src={media.file_path}
-                        alt={selectedProperty.title}
-                        fill
-                        className="object-cover"
-                      />
+                  {selectedProperty.media.length > 1 && (
+                    <div className="flex gap-2 overflow-x-auto pb-1">
+                      {selectedProperty.media.slice(1).map((media) => (
+                        <div
+                          key={media.id}
+                          className="relative h-16 w-24 sm:h-20 sm:w-28 rounded-md overflow-hidden border flex-shrink-0 bg-muted"
+                        >
+                          <Image
+                            src={media.file_path}
+                            alt={selectedProperty.title}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
-              )}
+
+                <div className="space-y-3 text-sm text-muted-foreground">
+                  <div>
+                    <h4 className="font-semibold mb-1 text-foreground">Quick summary</h4>
+                    <p>
+                      Type: <span className="font-medium text-foreground">{selectedProperty.property_type}</span>
+                    </p>
+                    <p>
+                      Transaction:{" "}
+                      <span className="font-medium text-foreground">
+                        {selectedProperty.transaction_type}
+                      </span>
+                    </p>
+                    <p>
+                      Price:{" "}
+                      <span className="font-medium text-foreground">
+                        {selectedProperty.price != null
+                          ? new Intl.NumberFormat("en-US", {
+                              style: "currency",
+                              currency: "XAF",
+                              maximumFractionDigits: 0,
+                            }).format(selectedProperty.price)
+                          : "Price on request"}
+                      </span>
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-1 text-foreground">Submitted</h4>
+                    <p>{new Date(selectedProperty.created_at).toLocaleString()}</p>
+                  </div>
+                </div>
+              </div>
 
               <div className="mt-4">
                 <h4 className="font-semibold mb-2">Description</h4>
@@ -353,6 +491,20 @@ export function PropertyVerification() {
                         Property ID: {selectedProperty.id}
                       </p>
                     </div>
+                  </div>
+                  <div className="mt-4 flex flex-wrap items-center gap-3 text-xs">
+                    <Badge
+                      variant="outline"
+                      className="border border-red-500/60 text-red-700"
+                    >
+                      Status: {selectedProperty.verification_status}
+                    </Badge>
+                    <Badge
+                      variant="outline"
+                      className="border border-blue-500/60 text-blue-700"
+                    >
+                      Visibility: {selectedProperty.visibility}
+                    </Badge>
                   </div>
                 </CardContent>
               </Card>
@@ -389,20 +541,81 @@ export function PropertyVerification() {
                 </CardContent>
               </Card>
 
+              {selectedProperty.verification_status === "GREEN" && (
+                <Card className="mt-4">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">Public Visibility</CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <p className="text-sm text-muted-foreground">
+                      Toggle whether this certified property is visible on the public listings.
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleToggleVisibility}
+                      disabled={isVisibilityUpdating}
+                      className="cursor-pointer"
+                    >
+                      {isVisibilityUpdating
+                        ? "Updating..."
+                        : selectedProperty.visibility === "PUBLIC"
+                          ? "Set to Private"
+                          : "Set to Public"}
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
               <DialogFooter className="mt-6">
-                <Button
-                  variant="destructive"
-                  onClick={() => {
-                    setShowRejectDialog(true)
-                  }}
-                >
-                  <XCircle className="h-4 w-4 mr-2" />
-                  Reject
-                </Button>
-                <Button className="bg-green-600 hover:bg-green-700" onClick={handleApprove}>
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Approve Property
-                </Button>
+                <div className="w-full flex flex-col gap-4">
+                  <div className="w-full space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Approval notes (optional, shared with the agent)
+                    </p>
+                    <Textarea
+                      value={approvalNotes}
+                      onChange={(e) => setApprovalNotes(e.target.value)}
+                      placeholder="Add any helpful context for the agent about this approval…"
+                      className="min-h-[72px] w-full"
+                    />
+                  </div>
+                  <div className="w-full flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      {selectedProperty.verification_status === "RED" && (
+                        <Button
+                          variant="outline"
+                          onClick={handleMarkUnderReview}
+                          disabled={isStatusUpdating}
+                          className="sm:w-auto bg-yellow-300 hover:bg-yellow-400 cursor-pointer"
+                        >
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          {isStatusUpdating ? "Updating…" : "Mark as Under Review (YELLOW)"}
+                        </Button>
+                      )}
+                      {/* <Button
+                        variant="destructive"
+                        onClick={() => {
+                          setShowRejectDialog(true)
+                        }}
+                        className="sm:w-auto"
+                      >
+                        <XCircle className="h-4 w-4 mr-2" />
+                        Reject
+                      </Button> */}
+                    </div>
+                    <div className="flex justify-end">
+                      <Button
+                        className="bg-green-600 hover:bg-green-700 min-w-[170px] cursor-pointer"
+                        onClick={handleApprove}
+                        disabled={isStatusUpdating}
+                      >
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        {isStatusUpdating ? "Approving…" : "Approve Property (GREEN)"}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               </DialogFooter>
             </>
           )}
@@ -443,7 +656,12 @@ export function PropertyVerification() {
               </div>
               <div>
                 <label className="text-sm font-medium mb-2 block">Additional Notes</label>
-                <Textarea placeholder="Provide additional details for the agent..." rows={4} />
+                <Textarea
+                  placeholder="Provide additional details for the agent..."
+                  rows={4}
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                />
               </div>
             </div>
           )}
@@ -451,8 +669,12 @@ export function PropertyVerification() {
             <Button variant="outline" onClick={() => setShowRejectDialog(false)} className="bg-transparent">
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleReject}>
-              Reject Property
+            <Button
+              variant="destructive"
+              onClick={handleReject}
+              disabled={isStatusUpdating || !rejectionReason.trim()}
+            >
+              {isStatusUpdating ? "Submitting…" : "Reject Property"}
             </Button>
           </DialogFooter>
         </DialogContent>

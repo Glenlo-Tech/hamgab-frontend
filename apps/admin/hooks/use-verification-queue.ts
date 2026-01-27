@@ -49,7 +49,6 @@ export function useVerificationQueue(
 
   useEffect(() => {
     const key = JSON.stringify(filters)
-    // Avoid duplicate fetches in React StrictMode or on re-renders
     if (lastFiltersKeyRef.current === key) return
     lastFiltersKeyRef.current = key
     void fetchData(filters)

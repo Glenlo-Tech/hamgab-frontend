@@ -131,4 +131,61 @@ export async function fetchVerificationQueue(
   }
 }
 
+export async function updatePropertyStatus(
+  propertyId: string,
+  status: VerificationStatus,
+  adminFeedback?: string | null
+): Promise<VerificationQueueProperty> {
+  try {
+    const response: ApiResponse<VerificationQueueProperty> = await apiClient.patch(
+      `/api/v1/admin/properties/${propertyId}/status`,
+      {
+        status,
+        admin_feedback: adminFeedback ?? "",
+      }
+    )
+
+    if (!response.success || !response.data) {
+      throw new ApiClientError(response.message || "Failed to update property status")
+    }
+
+    return response.data
+  } catch (error) {
+    if (error instanceof ApiClientError) {
+      throw error
+    }
+    throw new ApiClientError(
+      error instanceof Error ? error.message : "Failed to update property status"
+    )
+  }
+}
+
+export async function updatePropertyVisibility(
+  propertyId: string,
+  visibility: Visibility
+): Promise<VerificationQueueProperty> {
+  try {
+    const response: ApiResponse<VerificationQueueProperty> = await apiClient.patch(
+      `/api/v1/admin/properties/${propertyId}/visibility`,
+      { visibility }
+    )
+
+    if (!response.success || !response.data) {
+      throw new ApiClientError(
+        response.message || "Failed to update property visibility"
+      )
+    }
+
+    return response.data
+  } catch (error) {
+    if (error instanceof ApiClientError) {
+      throw error
+    }
+    throw new ApiClientError(
+      error instanceof Error ? error.message : "Failed to update property visibility"
+    )
+  }
+}
+
+
 

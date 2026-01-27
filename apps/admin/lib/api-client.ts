@@ -163,6 +163,16 @@ export const apiClient = {
   },
 
   /**
+   * PATCH request
+   */
+  patch: <T = any>(endpoint: string, body?: any): Promise<ApiResponse<T>> => {
+    return apiRequest<T>(endpoint, {
+      method: "PATCH",
+      body: body ? JSON.stringify(body) : undefined,
+    })
+  },
+
+  /**
    * DELETE request
    */
   delete: <T = any>(endpoint: string): Promise<ApiResponse<T>> => {
