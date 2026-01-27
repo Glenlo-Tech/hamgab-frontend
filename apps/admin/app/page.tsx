@@ -1,15 +1,13 @@
-import { AdminLayout } from "@/components/admin/admin-layout"
-import { AdminDashboard } from "@/components/admin/admin-dashboard"
+import type { Metadata } from "next"
+import AdminLoginPage from "./login/page"
 
-export const metadata = {
-  title: "Admin Dashboard | HAMGAB",
-  description: "Platform administration and analytics.",
+export const metadata: Metadata = {
+  title: "Admin Login | HAMGAB",
+  description: "Secure login for HAMGAB administrators.",
 }
 
 export default function AdminPage() {
   return (
-    <AdminLayout>
-      <AdminDashboard />
-    </AdminLayout>
+    <AdminLoginPage />
   )
 }

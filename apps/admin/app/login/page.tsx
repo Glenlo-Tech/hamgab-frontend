@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Mail, Lock, Eye, EyeOff, Shield, Loader2 } from "lucide-react"
@@ -73,6 +73,15 @@ export default function AdminLoginPage() {
     return !validateField("email", email) && !validateField("password", password)
   }
 
+  // If already authenticated, redirect to dashboard
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const token = localStorage.getItem("admin_auth_token")
+    if (token) {
+      router.replace("/dashboard")
+    }
+  }, [router])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
@@ -88,7 +97,7 @@ export default function AdminLoginPage() {
     try {
       await loginAdmin(email.trim(), password)
       // Redirect to admin dashboard on success
-      router.push("/admin")
+      router.push("/dashboard")
     } catch (err) {
       if (err instanceof ApiClientError) {
         setError(err.message)
@@ -223,7 +232,7 @@ export default function AdminLoginPage() {
 
             <Button
               type="submit"
-              className="w-full h-11 mt-1"
+              className="w-full h-11 mt-1 cursor-pointer"
               disabled={isLoading || !isFormValid()}
             >
               {isLoading ? (

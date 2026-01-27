@@ -4,7 +4,7 @@
  */
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "https://hamgab-backend.onrender.com"
+  process.env.NEXT_PUBLIC_API_URL
 
 // Use a distinct key so admin auth does not conflict with agent/public
 const ADMIN_AUTH_TOKEN_KEY = "admin_auth_token"

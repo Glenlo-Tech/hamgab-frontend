@@ -3,7 +3,7 @@
 import type React from "react"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -28,14 +28,15 @@ import {
   ChevronDown,
   Shield,
 } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { clearAdminToken } from "@/lib/admin-auth"
 
 interface AdminLayoutProps {
   children: React.ReactNode
 }
 
 const sidebarLinks = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/users", label: "Users & Agents", icon: Users },
   { href: "/verification", label: "Verification", icon: CheckSquare, badge: 12 },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
@@ -48,7 +49,7 @@ function Sidebar({ className }: { className?: string }) {
   return (
     <div className={cn("flex flex-col h-full bg-foreground text-background", className)}>
       <div className="p-6 border-b border-background/10">
-        <Link href="/admin" className="flex items-center gap-2">
+        <Link href="/dashboard" className="flex items-center gap-2">
           <div className="h-10 w-10 rounded-lg bg-background flex items-center justify-center">
             <Shield className="h-6 w-6 text-foreground" />
           </div>
@@ -101,7 +102,46 @@ function Sidebar({ className }: { className?: string }) {
 }
 
 export function AdminLayout({ children }: AdminLayoutProps) {
+  const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+
+  // Simple client-side guard based on stored admin token
+  useEffect(() => {
+    if (typeof window === "undefined") return
+
+    const token = localStorage.getItem("admin_auth_token")
+    if (!token) {
+      setIsAuthenticated(false)
+      setIsCheckingAuth(false)
+      router.replace("/")
+      return
+    }
+
+    setIsAuthenticated(true)
+    setIsCheckingAuth(false)
+  }, [router])
+
+  const handleSignOut = () => {
+    clearAdminToken()
+    router.push("/")
+  }
+
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3 text-sm text-muted-foreground">
+          <div className="h-8 w-8 border-2 border-muted-foreground/40 border-t-transparent rounded-full animate-spin" />
+          <span>Checking admin session…</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return null
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -148,7 +188,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive">
+              <DropdownMenuItem
+                className="text-destructive"
+                onClick={handleSignOut}
+              >
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign Out
               </DropdownMenuItem>
