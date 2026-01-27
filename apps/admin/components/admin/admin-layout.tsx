@@ -35,11 +35,11 @@ interface AdminLayoutProps {
 }
 
 const sidebarLinks = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/users", label: "Users & Agents", icon: Users },
-  { href: "/admin/verification", label: "Verification", icon: CheckSquare, badge: 12 },
-  { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/admin/settings", label: "Settings", icon: Settings },
+  { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/users", label: "Users & Agents", icon: Users },
+  { href: "/verification", label: "Verification", icon: CheckSquare, badge: 12 },
+  { href: "/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/settings", label: "Settings", icon: Settings },
 ]
 
 function Sidebar({ className }: { className?: string }) {
