@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 import { loginAdmin } from "@/lib/admin-auth"
 import { ApiClientError } from "@/lib/api-client"
+import Image from "next/image"
 
 export default function AdminLoginPage() {
   const router = useRouter()
@@ -118,9 +119,7 @@ export default function AdminLoginPage() {
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4 max-w-4xl mx-auto w-full">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-            <Shield className="h-6 w-6 text-primary" />
-          </div>
+          <Image src="/favicon_io/android-chrome-512x512.png" alt="HAMGAB" width={60} height={60} />
           <div>
             <p className="text-sm font-semibold leading-tight">HAMGAB</p>
             <p className="text-xs text-muted-foreground leading-tight">Admin Portal</p>

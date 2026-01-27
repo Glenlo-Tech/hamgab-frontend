@@ -30,6 +30,7 @@ import {
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { clearAdminToken } from "@/lib/admin-auth"
+import Image from "next/image"
 
 interface AdminLayoutProps {
   children: React.ReactNode
@@ -50,9 +51,7 @@ function Sidebar({ className }: { className?: string }) {
     <div className={cn("flex flex-col h-full bg-foreground text-background", className)}>
       <div className="p-6 border-b border-background/10">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="h-10 w-10 rounded-lg bg-background flex items-center justify-center">
-            <Shield className="h-6 w-6 text-foreground" />
-          </div>
+          <Image src="/favicon_io/android-chrome-512x512.png" alt="HAMGAB" width={100} height={100} />
           <div>
             <span className="text-lg font-semibold tracking-tight block">HAMGAB</span>
             <span className="text-xs text-background/60">Admin Portal</span>
