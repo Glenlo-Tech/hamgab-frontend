@@ -40,6 +40,13 @@ import {
   updatePropertyVisibility,
 } from "@/lib/admin-properties"
 import { useToast } from "@/hooks/use-toast"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
  
 type SortOption = "newest" | "oldest" | "price-high" | "price-low"
  
@@ -406,32 +413,41 @@ export function PropertyVerification() {
 
               <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
                 <div className="space-y-3">
-                  <div className="relative rounded-lg overflow-hidden bg-muted h-56 sm:h-64 lg:h-72">
-                    <Image
-                      src={selectedProperty.media[0]?.file_path || "/placeholder.svg"}
-                      alt={selectedProperty.title}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-
-                  {selectedProperty.media.length > 1 && (
-                    <div className="flex gap-2 overflow-x-auto pb-1">
-                      {selectedProperty.media.slice(1).map((media) => (
-                        <div
-                          key={media.id}
-                          className="relative h-16 w-24 sm:h-20 sm:w-28 rounded-md overflow-hidden border flex-shrink-0 bg-muted"
-                        >
-                          <Image
-                            src={media.file_path}
-                            alt={selectedProperty.title}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <Carousel className="w-full">
+                    <CarouselContent>
+                      {selectedProperty.media.length > 0 ? (
+                        selectedProperty.media.map((media) => (
+                          <CarouselItem key={media.id}>
+                            <div className="relative rounded-lg overflow-hidden bg-muted h-56 sm:h-64 lg:h-72">
+                              <Image
+                                src={media.file_path}
+                                alt={selectedProperty.title}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                          </CarouselItem>
+                        ))
+                      ) : (
+                        <CarouselItem>
+                          <div className="relative rounded-lg overflow-hidden bg-muted h-56 sm:h-64 lg:h-72">
+                            <Image
+                              src="/placeholder.svg"
+                              alt={selectedProperty.title}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        </CarouselItem>
+                      )}
+                    </CarouselContent>
+                    {selectedProperty.media.length > 1 && (
+                      <>
+                        <CarouselPrevious className="left-3 sm:left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white border-none shadow-lg" />
+                        <CarouselNext className="right-3 sm:right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white border-none shadow-lg" />
+                      </>
+                    )}
+                  </Carousel>
                 </div>
 
                 <div className="space-y-3 text-sm text-muted-foreground">
