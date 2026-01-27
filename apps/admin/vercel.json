@@ -1,0 +1,7 @@
+{
+    "buildCommand": "pnpm --filter @propflow/admin build",
+    "devCommand": "pnpm --filter @propflow/admin dev",
+    "installCommand": "pnpm install",
+    "framework": "nextjs",
+    "outputDirectory": ".next"
+}
