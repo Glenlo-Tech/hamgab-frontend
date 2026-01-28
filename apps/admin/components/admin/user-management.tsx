@@ -42,6 +42,7 @@ import {
   Building2,
   IdCard,
   ImageIcon,
+  Loader2,
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -770,6 +771,11 @@ export function UserManagement() {
               onClick={handleReject}
               disabled={isActionLoading || !actionNotes.trim()}
             >
+              {isActionLoading ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <UserX className="h-4 w-4 mr-2" />
+              )}
               {isActionLoading ? "Rejecting..." : "Reject Agent"}
             </Button>
           </DialogFooter>
@@ -799,6 +805,11 @@ export function UserManagement() {
               onClick={handleDelete}
               disabled={isActionLoading}
             >
+              {isActionLoading ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Trash2 className="h-4 w-4 mr-2" />
+              )}
               {isActionLoading ? "Deleting..." : "Delete Agent"}
             </Button>
           </DialogFooter>

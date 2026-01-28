@@ -32,7 +32,8 @@ import {
   XCircle,
   ImageIcon,
   FileText,
-  Download
+  Download,
+  Loader2,
 } from "lucide-react"
 import { useVerificationQueue } from "@/hooks/use-verification-queue"
 import {
@@ -682,6 +683,9 @@ export function PropertyVerification() {
                       disabled={isVisibilityUpdating}
                       className="cursor-pointer"
                     >
+                      {isVisibilityUpdating && (
+                        <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                      )}
                       {isVisibilityUpdating
                         ? "Updating..."
                         : selectedProperty.visibility === "PUBLIC"
@@ -733,7 +737,11 @@ export function PropertyVerification() {
                                 disabled={isStatusUpdating}
                                 className="sm:w-auto bg-yellow-300 hover:bg-yellow-400 cursor-pointer"
                               >
-                                <CheckCircle className="h-4 w-4 mr-2" />
+                                {isStatusUpdating ? (
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                ) : (
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                )}
                                 {isStatusUpdating ? "Updating…" : "Mark as Under Review (YELLOW)"}
                               </Button>
                             )}
@@ -745,7 +753,11 @@ export function PropertyVerification() {
                                 onClick={handleApprove}
                                 disabled={isStatusUpdating}
                               >
-                                <CheckCircle className="h-4 w-4 mr-2" />
+                                {isStatusUpdating ? (
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                ) : (
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                )}
                                 {isStatusUpdating ? "Approving…" : "Approve Property (GREEN)"}
                               </Button>
                             </div>
@@ -813,6 +825,11 @@ export function PropertyVerification() {
               onClick={handleReject}
               disabled={isStatusUpdating || !rejectionReason.trim()}
             >
+              {isStatusUpdating ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <XCircle className="h-4 w-4 mr-2" />
+              )}
               {isStatusUpdating ? "Submitting…" : "Reject Property"}
             </Button>
           </DialogFooter>

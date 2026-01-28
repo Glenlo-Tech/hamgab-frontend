@@ -35,6 +35,7 @@ import {
   AlertCircle,
   Globe,
   Lock,
+  Loader2,
 } from "lucide-react"
 import { useAdminProperties } from "@/hooks/use-admin-properties"
 import {
@@ -552,6 +553,7 @@ export function PropertiesList() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setSelectedProperty(property)}
+                                className="cursor-pointer hover:bg-red-100"
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
@@ -602,8 +604,14 @@ export function PropertiesList() {
                                             disabled={updatingPropertyId === property.id}
                                             className="text-green-600"
                                           >
-                                            <CheckCircle className="h-4 w-4 mr-2" />
-                                            Mark as GREEN (Certified)
+                                            {updatingPropertyId === property.id ? (
+                                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                            ) : (
+                                              <CheckCircle className="h-4 w-4 mr-2" />
+                                            )}
+                                            {updatingPropertyId === property.id
+                                              ? "Updating..."
+                                              : "Mark as GREEN (Certified)"}
                                           </DropdownMenuItem>
                                         )}
                                         {allowedTransitions.includes("YELLOW") && (
@@ -618,8 +626,14 @@ export function PropertiesList() {
                                             disabled={updatingPropertyId === property.id}
                                             className="text-amber-600"
                                           >
-                                            <AlertCircle className="h-4 w-4 mr-2" />
-                                            Mark as YELLOW (Under Review)
+                                            {updatingPropertyId === property.id ? (
+                                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                            ) : (
+                                              <AlertCircle className="h-4 w-4 mr-2" />
+                                            )}
+                                            {updatingPropertyId === property.id
+                                              ? "Updating..."
+                                              : "Mark as YELLOW (Under Review)"}
                                           </DropdownMenuItem>
                                         )}
                                         {allowedTransitions.includes("RED") && (
@@ -634,8 +648,14 @@ export function PropertiesList() {
                                             disabled={updatingPropertyId === property.id}
                                             className="text-red-600"
                                           >
-                                            <AlertCircle className="h-4 w-4 mr-2" />
-                                            Mark as RED (Rejected)
+                                            {updatingPropertyId === property.id ? (
+                                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                            ) : (
+                                              <AlertCircle className="h-4 w-4 mr-2" />
+                                            )}
+                                            {updatingPropertyId === property.id
+                                              ? "Updating..."
+                                              : "Mark as RED (Rejected)"}
                                           </DropdownMenuItem>
                                         )}
                                       </>
@@ -659,8 +679,14 @@ export function PropertiesList() {
                                           disabled={updatingPropertyId === property.id}
                                           className="text-blue-600"
                                         >
-                                          <Globe className="h-4 w-4 mr-2" />
-                                          Set to Public
+                                          {updatingPropertyId === property.id ? (
+                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                          ) : (
+                                            <Globe className="h-4 w-4 mr-2" />
+                                          )}
+                                          {updatingPropertyId === property.id
+                                            ? "Updating..."
+                                            : "Set to Public"}
                                         </DropdownMenuItem>
                                       )}
                                       {property.visibility !== "PRIVATE" && (
@@ -675,8 +701,14 @@ export function PropertiesList() {
                                           disabled={updatingPropertyId === property.id}
                                           className="text-gray-600"
                                         >
-                                          <Lock className="h-4 w-4 mr-2" />
-                                          Set to Private
+                                          {updatingPropertyId === property.id ? (
+                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                          ) : (
+                                            <Lock className="h-4 w-4 mr-2" />
+                                          )}
+                                          {updatingPropertyId === property.id
+                                            ? "Updating..."
+                                            : "Set to Private"}
                                         </DropdownMenuItem>
                                       )}
                                     </>
@@ -959,8 +991,14 @@ export function PropertiesList() {
                               disabled={updatingPropertyId === selectedProperty.id}
                               className="text-blue-600 border-blue-200 hover:bg-blue-50 cursor-pointer"
                             >
-                              <Globe className="h-3.5 w-3.5 mr-1.5" />
-                              Set Public
+                              {updatingPropertyId === selectedProperty.id ? (
+                                <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                              ) : (
+                                <Globe className="h-3.5 w-3.5 mr-1.5" />
+                              )}
+                              {updatingPropertyId === selectedProperty.id
+                                ? "Updating..."
+                                : "Set Public"}
                             </Button>
                           )}
                           {selectedProperty.visibility !== "PRIVATE" && (
@@ -977,8 +1015,14 @@ export function PropertiesList() {
                               disabled={updatingPropertyId === selectedProperty.id}
                               className="text-gray-600 border-gray-200 hover:bg-gray-50 cursor-pointer"
                             >
-                              <Lock className="h-3.5 w-3.5 mr-1.5" />
-                              Set Private
+                              {updatingPropertyId === selectedProperty.id ? (
+                                <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                              ) : (
+                                <Lock className="h-3.5 w-3.5 mr-1.5" />
+                              )}
+                              {updatingPropertyId === selectedProperty.id
+                                ? "Updating..."
+                                : "Set Private"}
                             </Button>
                           )}
                         </div>
