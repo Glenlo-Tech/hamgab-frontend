@@ -29,7 +29,7 @@ import {
   Shield,
   Building2,
 } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo, memo } from "react"
 import { clearAdminToken } from "@/lib/admin-auth"
 import Image from "next/image"
 import { useVerificationQueue } from "@/hooks/use-verification-queue"
@@ -47,17 +47,21 @@ const sidebarLinks = [
   { href: "/settings", label: "Settings", icon: Settings },
 ]
 
-function Sidebar({ className }: { className?: string }) {
+function SidebarComponent({ className }: { className?: string }) {
   const pathname = usePathname()
-  const { meta: verificationMeta, isLoading: isLoadingVerification } = useVerificationQueue({})
+  // Use empty object with useMemo to prevent re-fetching on every render
+  const emptyFilters = useMemo(() => ({}), [])
+  const { meta: verificationMeta, isLoading: isLoadingVerification } = useVerificationQueue(emptyFilters)
   
-  const getBadgeCount = (badgeKey?: string): number | undefined => {
-    if (badgeKey === "verification") {
-      if (isLoadingVerification) return undefined
-      return verificationMeta?.total ?? 0
+  const getBadgeCount = useMemo(() => {
+    return (badgeKey?: string): number | undefined => {
+      if (badgeKey === "verification") {
+        if (isLoadingVerification) return undefined
+        return verificationMeta?.total ?? 0
+      }
+      return undefined
     }
-    return undefined
-  }
+  }, [isLoadingVerification, verificationMeta?.total])
 
   return (
     <div className={cn("flex flex-col h-full bg-foreground text-background", className)}>
@@ -117,6 +121,8 @@ function Sidebar({ className }: { className?: string }) {
   )
 }
 
+const Sidebar = memo(SidebarComponent)
+
 export function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -124,6 +130,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   // Simple client-side guard based on stored admin token
+  // Only run once on mount, not on every navigation
   useEffect(() => {
     if (typeof window === "undefined") return
 
@@ -137,7 +144,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
     setIsAuthenticated(true)
     setIsCheckingAuth(false)
-  }, [router])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Empty dependency array - only run on mount
 
   const handleSignOut = () => {
     clearAdminToken()
