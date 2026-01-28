@@ -30,6 +30,11 @@ import {
   Calendar,
   Filter,
   X,
+  MoreVertical,
+  CheckCircle,
+  AlertCircle,
+  Globe,
+  Lock,
 } from "lucide-react"
 import { useAdminProperties } from "@/hooks/use-admin-properties"
 import {
@@ -37,7 +42,17 @@ import {
   type VerificationStatus,
   type Visibility,
   AllPropertiesFilters,
+  updatePropertyStatus,
+  updatePropertyVisibility,
 } from "@/lib/admin-properties"
+import { useToast } from "@/hooks/use-toast"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import {
   Dialog,
@@ -57,12 +72,14 @@ import {
 import { useEffect } from "react"
 
 export function PropertiesList() {
+  const { toast } = useToast()
   const [search, setSearch] = useState("")
   const [page, setPage] = useState(1)
   const [filters, setFilters] = useState<AllPropertiesFilters>({
     page: 1,
     page_size: 20,
   })
+  const [updatingPropertyId, setUpdatingPropertyId] = useState<string | null>(null)
 
   const [verificationStatusFilter, setVerificationStatusFilter] =
     useState<VerificationStatus | "all">("all")
@@ -190,6 +207,66 @@ export function PropertiesList() {
     setCountryFilter("")
     setDateFromFilter("")
     setDateToFilter("")
+  }
+
+  const handleUpdateStatus = async (
+    propertyId: string,
+    status: VerificationStatus,
+    propertyTitle: string
+  ) => {
+    if (updatingPropertyId) return
+    setUpdatingPropertyId(propertyId)
+    try {
+      const updated = await updatePropertyStatus(propertyId, status)
+      toast({
+        title: "Status updated",
+        description: `${propertyTitle} status has been updated to ${status}.`,
+      })
+      await refresh()
+      // Update selected property if it's the one being updated
+      if (selectedProperty?.id === propertyId) {
+        setSelectedProperty(updated)
+      }
+    } catch (error) {
+      toast({
+        title: "Failed to update status",
+        description:
+          error instanceof Error ? error.message : "Something went wrong. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setUpdatingPropertyId(null)
+    }
+  }
+
+  const handleUpdateVisibility = async (
+    propertyId: string,
+    visibility: Visibility,
+    propertyTitle: string
+  ) => {
+    if (updatingPropertyId) return
+    setUpdatingPropertyId(propertyId)
+    try {
+      const updated = await updatePropertyVisibility(propertyId, visibility)
+      toast({
+        title: "Visibility updated",
+        description: `${propertyTitle} visibility has been set to ${visibility}.`,
+      })
+      await refresh()
+      // Update selected property if it's the one being updated
+      if (selectedProperty?.id === propertyId) {
+        setSelectedProperty(updated)
+      }
+    } catch (error) {
+      toast({
+        title: "Failed to update visibility",
+        description:
+          error instanceof Error ? error.message : "Something went wrong. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setUpdatingPropertyId(null)
+    }
   }
 
   return (
@@ -625,8 +702,8 @@ export function PropertiesList() {
                     </p>
                   </div>
                   <div>
-                    <h4 className="font-semibold mb-1 text-foreground">Status</h4>
-                    <div className="flex flex-wrap gap-2">
+                    <h4 className="font-semibold mb-2 text-foreground">Status & Visibility</h4>
+                    <div className="flex flex-wrap gap-2 mb-3">
                       <Badge
                         variant="outline"
                         className={getVerificationStatusBadgeClasses(
@@ -645,6 +722,109 @@ export function PropertiesList() {
                       >
                         {selectedProperty.visibility}
                       </Badge>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap gap-2">
+                        {selectedProperty.verification_status !== "GREEN" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              handleUpdateStatus(
+                                selectedProperty.id,
+                                "GREEN",
+                                selectedProperty.title
+                              )
+                            }
+                            disabled={updatingPropertyId === selectedProperty.id}
+                            className="text-green-600 border-green-200 hover:bg-green-50"
+                          >
+                            <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
+                            Mark GREEN
+                          </Button>
+                        )}
+                        {selectedProperty.verification_status !== "YELLOW" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              handleUpdateStatus(
+                                selectedProperty.id,
+                                "YELLOW",
+                                selectedProperty.title
+                              )
+                            }
+                            disabled={updatingPropertyId === selectedProperty.id}
+                            className="text-amber-600 border-amber-200 hover:bg-amber-50"
+                          >
+                            <AlertCircle className="h-3.5 w-3.5 mr-1.5" />
+                            Mark YELLOW
+                          </Button>
+                        )}
+                        {selectedProperty.verification_status !== "RED" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              handleUpdateStatus(
+                                selectedProperty.id,
+                                "RED",
+                                selectedProperty.title
+                              )
+                            }
+                            disabled={updatingPropertyId === selectedProperty.id}
+                            className="text-red-600 border-red-200 hover:bg-red-50"
+                          >
+                            <AlertCircle className="h-3.5 w-3.5 mr-1.5" />
+                            Mark RED
+                          </Button>
+                        )}
+                      </div>
+                      {selectedProperty.verification_status === "GREEN" && (
+                        <div className="flex flex-wrap gap-2 pt-2 border-t">
+                          {selectedProperty.visibility !== "PUBLIC" && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                handleUpdateVisibility(
+                                  selectedProperty.id,
+                                  "PUBLIC",
+                                  selectedProperty.title
+                                )
+                              }
+                              disabled={updatingPropertyId === selectedProperty.id}
+                              className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                            >
+                              <Globe className="h-3.5 w-3.5 mr-1.5" />
+                              Set Public
+                            </Button>
+                          )}
+                          {selectedProperty.visibility !== "PRIVATE" && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                handleUpdateVisibility(
+                                  selectedProperty.id,
+                                  "PRIVATE",
+                                  selectedProperty.title
+                                )
+                              }
+                              disabled={updatingPropertyId === selectedProperty.id}
+                              className="text-gray-600 border-gray-200 hover:bg-gray-50"
+                            >
+                              <Lock className="h-3.5 w-3.5 mr-1.5" />
+                              Set Private
+                            </Button>
+                          )}
+                        </div>
+                      )}
+                      {selectedProperty.verification_status !== "GREEN" && (
+                        <p className="text-xs text-muted-foreground pt-2 border-t">
+                          Only GREEN (certified) properties can change visibility.
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div>
