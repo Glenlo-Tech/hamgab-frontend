@@ -50,11 +50,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useAdminAgents, usePendingAgents } from "@/hooks/use-admin-agents"
+import { useAdminUsers } from "@/hooks/use-admin-users"
 import { approveAgent, deleteAgent, rejectAgent, PendingAgent } from "@/lib/admin-agents"
 import { useToast } from "@/hooks/use-toast"
 import { Textarea } from "@/components/ui/textarea"
+import type { UserRole, UserStatus } from "@/lib/admin-users"
 
 type StatusFilter = "all" | "ACTIVE" | "PENDING" | "SUSPENDED" | "REJECTED"
+type UserStatusFilter = "all" | UserStatus
+type UserRoleFilter = "all" | UserRole
 
 export function UserManagement() {
   const { toast } = useToast()
@@ -70,6 +74,10 @@ export function UserManagement() {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
 
+  const [userSearch, setUserSearch] = useState("")
+  const [userRoleFilter, setUserRoleFilter] = useState<UserRoleFilter>("all")
+  const [userStatusFilter, setUserStatusFilter] = useState<UserStatusFilter>("all")
+
   const [selectedPendingAgent, setSelectedPendingAgent] = useState<PendingAgent | null>(null)
   const [showKycDialog, setShowKycDialog] = useState(false)
 
@@ -79,6 +87,13 @@ export function UserManagement() {
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isActionLoading, setIsActionLoading] = useState(false)
+
+  const {
+    users,
+    isLoading: isUsersLoading,
+    error: usersError,
+    refresh: refreshUsers,
+  } = useAdminUsers()
 
   const filteredAgents = useMemo(() => {
     return agents.filter((agent) => {
@@ -93,6 +108,23 @@ export function UserManagement() {
       return matchesSearch && matchesStatus
     })
   }, [agents, search, statusFilter])
+
+  const filteredUsers = useMemo(() => {
+    return users.filter((user) => {
+      const matchesSearch =
+        !userSearch ||
+        user.email.toLowerCase().includes(userSearch.toLowerCase()) ||
+        (user.phone || "").toLowerCase().includes(userSearch.toLowerCase())
+
+      const matchesRole =
+        userRoleFilter === "all" ? true : user.role === userRoleFilter
+
+      const matchesStatus =
+        userStatusFilter === "all" ? true : user.status === userStatusFilter
+
+      return matchesSearch && matchesRole && matchesStatus
+    })
+  }, [users, userSearch, userRoleFilter, userStatusFilter])
 
   const handleOpenKycDialog = (agentId: string) => {
     const pending = pendingAgents.find((p) => p.id === agentId)
@@ -215,7 +247,7 @@ export function UserManagement() {
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">User Management</h1>
           <p className="text-muted-foreground mt-1">
-            Manage agents on the platform. User management is coming soon.
+            Manage agents and users on the platform.
           </p>
         </div>
       </FadeIn>
@@ -251,10 +283,12 @@ export function UserManagement() {
 
       <FadeIn delay={0.2}>
         <Tabs defaultValue="agents">
-          <TabsList>
-            <TabsTrigger value="agents">Agents ({filteredAgents.length})</TabsTrigger>
-            <TabsTrigger value="users" disabled>
-              Users (coming soon)
+          <TabsList className="">
+            <TabsTrigger value="agents" className="flex-1 sm:flex-none cursor-pointer">
+              Agents ({filteredAgents.length})
+            </TabsTrigger>
+            <TabsTrigger value="users" className="flex-1 sm:flex-none cursor-pointer">
+              Users ({filteredUsers.length})
             </TabsTrigger>
           </TabsList>
 
@@ -410,9 +444,140 @@ export function UserManagement() {
 
           <TabsContent value="users" className="mt-6">
             <Card>
-              <CardContent className="p-8 text-center text-sm text-muted-foreground">
-                End-user management will be available in a future update. For now, this section
-                focuses on agents only.
+              <CardContent className="p-0">
+                <div className="p-4 sm:p-6 border-b flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
+                  <div className="flex-1 space-y-2">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search by email or phone..."
+                        className="pl-9"
+                        value={userSearch}
+                        onChange={(e) => setUserSearch(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                    <Select
+                      value={userRoleFilter}
+                      onValueChange={(value: UserRoleFilter) => setUserRoleFilter(value)}
+                    >
+                      <SelectTrigger className="w-full sm:w-[160px]">
+                        <SelectValue placeholder="All roles" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All roles</SelectItem>
+                        <SelectItem value="ADMIN">Admin</SelectItem>
+                        <SelectItem value="AGENT">Agent</SelectItem>
+                        <SelectItem value="CLIENT">Client</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    <Select
+                      value={userStatusFilter}
+                      onValueChange={(value: UserStatusFilter) => setUserStatusFilter(value)}
+                    >
+                      <SelectTrigger className="w-full sm:w-[180px]">
+                        <SelectValue placeholder="All statuses" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All statuses</SelectItem>
+                        <SelectItem value="ACTIVE">Active</SelectItem>
+                        <SelectItem value="PENDING">Pending</SelectItem>
+                        <SelectItem value="INACTIVE">Inactive</SelectItem>
+                        <SelectItem value="REJECTED">Rejected</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {isUsersLoading && (
+                  <div className="p-6 text-sm text-muted-foreground">
+                    Loading users…
+                  </div>
+                )}
+
+                {!isUsersLoading && usersError && (
+                  <div className="p-6 flex items-center justify-between gap-4">
+                    <div className="text-sm text-destructive">
+                      Failed to load users. Please try again.
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        void refreshUsers()
+                      }}
+                    >
+                      Retry
+                    </Button>
+                  </div>
+                )}
+
+                {!isUsersLoading && !usersError && filteredUsers.length === 0 && (
+                  <div className="p-8 text-center text-sm text-muted-foreground">
+                    No users found matching your filters.
+                  </div>
+                )}
+
+                {!isUsersLoading && !usersError && filteredUsers.length > 0 && (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>User</TableHead>
+                          <TableHead>Role</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Phone</TableHead>
+                          <TableHead>Joined</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredUsers.map((user) => {
+                          const badge = getStatusBadge(user.status)
+                          return (
+                            <TableRow key={user.id}>
+                              <TableCell>
+                                <div className="flex items-center gap-3">
+                                  <Avatar className="h-9 w-9">
+                                    <AvatarFallback>
+                                      {user.email
+                                        .split("@")[0]
+                                        .slice(0, 2)
+                                        .toUpperCase()}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    <p className="font-medium break-all">{user.email}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      ID: {user.id.slice(0, 8)}…
+                                    </p>
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-xs sm:text-sm">
+                                <Badge variant="outline" className="uppercase">
+                                  {user.role}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant={badge.variant} className={badge.className}>
+                                  {user.status}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-sm">
+                                {user.phone && user.phone.trim() !== "" ? user.phone : "—"}
+                              </TableCell>
+                              <TableCell className="text-xs text-muted-foreground">
+                                {new Date(user.created_at).toLocaleDateString()}
+                              </TableCell>
+                            </TableRow>
+                          )
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
