@@ -13,6 +13,7 @@ import {
   Clock,
   AlertCircle,
   UserPlus,
+  CheckCircle,
 } from "lucide-react"
 import Link from "next/link"
 import {
@@ -29,6 +30,8 @@ import {
   Cell,
 } from "recharts"
 import { useDashboardStats } from "@/hooks/use-dashboard-stats"
+import { useVerificationQueue } from "@/hooks/use-verification-queue"
+import type { VerificationQueueProperty } from "@/lib/admin-properties"
 
 function formatTrend(value: number | null | undefined, asPercent: boolean = true): {
   text: string
@@ -49,6 +52,44 @@ function formatTrend(value: number | null | undefined, asPercent: boolean = true
     text: `${isUp ? "+" : "-"}${abs}${suffix}`,
     isUp,
   }
+}
+
+function formatTimeAgo(date: string): string {
+  const now = new Date()
+  const past = new Date(date)
+  const diffInSeconds = Math.floor((now.getTime() - past.getTime()) / 1000)
+
+  if (diffInSeconds < 60) return "just now"
+  if (diffInSeconds < 3600) {
+    const minutes = Math.floor(diffInSeconds / 60)
+    return `${minutes} ${minutes === 1 ? "minute" : "minutes"} ago`
+  }
+  if (diffInSeconds < 86400) {
+    const hours = Math.floor(diffInSeconds / 3600)
+    return `${hours} ${hours === 1 ? "hour" : "hours"} ago`
+  }
+  const days = Math.floor(diffInSeconds / 86400)
+  return `${days} ${days === 1 ? "day" : "days"} ago`
+}
+
+function formatLocationAddress(location: VerificationQueueProperty["locations"][0] | undefined): string {
+  if (!location) return "Location not specified"
+  
+  const parts: string[] = []
+  if (location.city) parts.push(location.city.trim())
+  if (location.country) parts.push(location.country.trim())
+  
+  return parts.length > 0 ? parts.join(", ") : "Location not specified"
+}
+
+function formatPrice(property: VerificationQueueProperty): string {
+  if (property.price == null) return "Price on request"
+  
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "XAF",
+    maximumFractionDigits: 0,
+  }).format(property.price)
 }
 
 const submissionsData = [
@@ -113,6 +154,12 @@ const pendingVerifications = [
 
 export function AdminDashboard() {
   const { stats, isLoading, error } = useDashboardStats()
+  const verificationQueue = useVerificationQueue({
+    page: 1,
+    page_size: 3, // Only show first 3 for dashboard preview
+  })
+  const verificationProperties = verificationQueue.properties
+  const isLoadingVerification = verificationQueue.isLoading
 
   const cards = [
     {
@@ -424,7 +471,11 @@ export function AdminDashboard() {
                 <Clock className="h-5 w-5 text-amber-600" />
                 Pending Verifications
               </CardTitle>
-              <CardDescription className="text-sm mt-1">Properties awaiting admin approval</CardDescription>
+              <CardDescription className="text-sm mt-1">
+                {isLoadingVerification
+                  ? "Loading..."
+                  : `${verificationProperties.length} ${verificationProperties.length === 1 ? "property" : "properties"} awaiting admin approval`}
+              </CardDescription>
             </div>
             <Button variant="outline" size="sm" asChild className="border-2 hover:bg-amber-50 hover:border-amber-300">
               <Link href="/verification">
@@ -434,39 +485,58 @@ export function AdminDashboard() {
             </Button>
           </CardHeader>
           <CardContent className="pt-6">
-            <div className="space-y-3">
-              {pendingVerifications.map((property) => (
-                <div
-                  key={property.id}
-                  className="flex items-center justify-between p-4 rounded-xl border-2 border-amber-100 dark:border-amber-900/30 bg-white dark:bg-card hover:border-amber-200 dark:hover:border-amber-800/50 hover:shadow-md transition-all"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 flex items-center justify-center shadow-sm">
-                      <Building2 className="h-7 w-7 text-amber-600 dark:text-amber-400" />
+            {isLoadingVerification ? (
+              <div className="p-8 text-center text-sm text-muted-foreground">
+                <div className="h-8 w-8 border-2 border-amber-500/40 border-t-amber-500 rounded-full animate-spin mx-auto mb-3" />
+                Loading pending verifications...
+              </div>
+            ) : verificationProperties.length === 0 ? (
+              <div className="p-8 text-center">
+                <CheckCircle2 className="h-12 w-12 mx-auto text-green-600 mb-3" />
+                <p className="font-semibold text-base mb-1">No pending verifications</p>
+                <p className="text-sm text-muted-foreground">All properties have been reviewed</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {verificationProperties.map((property: VerificationQueueProperty) => {
+                  const location = formatLocationAddress(property.locations[0])
+                  const price = formatPrice(property)
+                  const timeAgo = formatTimeAgo(property.created_at)
+                  
+                  return (
+                    <div
+                      key={property.id}
+                      className="flex items-center justify-between p-4 rounded-xl border-2 border-amber-100 dark:border-amber-900/30 bg-white dark:bg-card hover:border-amber-200 dark:hover:border-amber-800/50 hover:shadow-md transition-all"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 flex items-center justify-center shadow-sm">
+                          <Building2 className="h-7 w-7 text-amber-600 dark:text-amber-400" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-base">{property.title}</p>
+                          <p className="text-sm text-muted-foreground mt-0.5">
+                            {location} • {property.agent_email}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right mr-4">
+                        <p className="font-bold text-lg text-foreground">{price}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{timeAgo}</p>
+                      </div>
+                      <Button
+                        size="sm"
+                        className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-md hover:shadow-lg transition-all"
+                        asChild
+                      >
+                        <Link href="/verification">
+                          Review
+                        </Link>
+                      </Button>
                     </div>
-                    <div>
-                      <p className="font-semibold text-base">{property.title}</p>
-                      <p className="text-sm text-muted-foreground mt-0.5">
-                        {property.location} • {property.agent}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right mr-4">
-                    <p className="font-bold text-lg text-foreground">{property.price}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{property.submitted}</p>
-                  </div>
-                  <Button
-                    size="sm"
-                    className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-md hover:shadow-lg transition-all"
-                    asChild
-                  >
-                    <Link href="/verification">
-                      Review
-                    </Link>
-                  </Button>
-                </div>
-              ))}
-            </div>
+                  )
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
       </FadeIn>
