@@ -31,7 +31,9 @@ import {
 } from "recharts"
 import { useDashboardStats } from "@/hooks/use-dashboard-stats"
 import { useVerificationQueue } from "@/hooks/use-verification-queue"
+import { useRecentActivity } from "@/hooks/use-recent-activity"
 import type { VerificationQueueProperty } from "@/lib/admin-properties"
+import type { ActivityItem } from "@/lib/admin-dashboard"
 
 function formatTrend(value: number | null | undefined, asPercent: boolean = true): {
   text: string
@@ -117,13 +119,6 @@ const statusData = [
   { name: "Rejected", value: 10, color: "#ef4444" },
 ]
 
-const recentActivity = [
-  { id: 1, type: "approval", message: "Property #4521 approved by Admin", time: "2 min ago", user: "John Doe" },
-  { id: 2, type: "user", message: "New agent registered: Sarah Johnson", time: "15 min ago", user: "System" },
-  { id: 3, type: "submission", message: "New property submitted in Miami", time: "32 min ago", user: "Mike Chen" },
-  { id: 4, type: "rejection", message: "Property #4518 rejected - Missing docs", time: "1 hour ago", user: "Admin" },
-  { id: 5, type: "approval", message: "Property #4520 approved by Admin", time: "2 hours ago", user: "Jane Smith" },
-]
 
 const pendingVerifications = [
   {
@@ -160,6 +155,8 @@ export function AdminDashboard() {
   })
   const verificationProperties = verificationQueue.properties
   const isLoadingVerification = verificationQueue.isLoading
+  
+  const { activities: recentActivity, isLoading: isLoadingActivity } = useRecentActivity(5)
 
   const cards = [
     {
@@ -417,47 +414,60 @@ export function AdminDashboard() {
               </div>
             </CardHeader>
             <CardContent className="pt-6">
-              <div className="space-y-3">
-                {recentActivity.map((activity) => (
-                  <div
-                    key={activity.id}
-                    className="flex gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-border"
-                  >
+              {isLoadingActivity ? (
+                <div className="p-8 text-center text-sm text-muted-foreground">
+                  <div className="h-8 w-8 border-2 border-primary/40 border-t-primary rounded-full animate-spin mx-auto mb-3" />
+                  Loading recent activity...
+                </div>
+              ) : recentActivity.length === 0 ? (
+                <div className="p-8 text-center">
+                  <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+                  <p className="font-semibold text-base mb-1">No recent activity</p>
+                  <p className="text-sm text-muted-foreground">Activity will appear here as actions occur</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {recentActivity.map((activity: ActivityItem) => (
                     <div
-                      className={`h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm ${
-                        activity.type === "approval"
-                          ? "bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30"
-                          : activity.type === "rejection"
-                            ? "bg-gradient-to-br from-red-100 to-rose-100 dark:from-red-900/30 dark:to-rose-900/30"
-                            : activity.type === "user"
-                              ? "bg-gradient-to-br from-blue-100 to-cyan-100 dark:from-blue-900/30 dark:to-cyan-900/30"
-                              : "bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30"
-                      }`}
+                      key={activity.id}
+                      className="flex gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-border"
                     >
-                      {activity.type === "approval" && (
-                        <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
-                      )}
-                      {activity.type === "rejection" && (
-                        <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
-                      )}
-                      {activity.type === "user" && (
-                        <UserPlus className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                      )}
-                      {activity.type === "submission" && (
-                        <Building2 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">{activity.message}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <p className="text-xs text-muted-foreground">{activity.time}</p>
-                        <span className="text-xs text-muted-foreground">•</span>
-                        <p className="text-xs text-muted-foreground">{activity.user}</p>
+                      <div
+                        className={`h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm ${
+                          activity.type === "approval"
+                            ? "bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30"
+                            : activity.type === "rejection"
+                              ? "bg-gradient-to-br from-red-100 to-rose-100 dark:from-red-900/30 dark:to-rose-900/30"
+                              : activity.type === "user"
+                                ? "bg-gradient-to-br from-blue-100 to-cyan-100 dark:from-blue-900/30 dark:to-cyan-900/30"
+                                : "bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30"
+                        }`}
+                      >
+                        {activity.type === "approval" && (
+                          <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                        )}
+                        {activity.type === "rejection" && (
+                          <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                        )}
+                        {activity.type === "user" && (
+                          <UserPlus className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        )}
+                        {activity.type === "submission" && (
+                          <Building2 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium">{activity.message}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-xs text-muted-foreground">{activity.time}</p>
+                          <span className="text-xs text-muted-foreground">•</span>
+                          <p className="text-xs text-muted-foreground">{activity.user}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </FadeIn>
