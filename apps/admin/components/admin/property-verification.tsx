@@ -34,6 +34,7 @@ import {
   FileText,
   Download,
   Loader2,
+  ExternalLink,
 } from "lucide-react"
 import { useVerificationQueue } from "@/hooks/use-verification-queue"
 import {
@@ -99,6 +100,27 @@ export function PropertyVerification() {
       default:
         return []
     }
+  }
+
+  // Generate Google Maps URL from latitude and longitude
+  const getGoogleMapsUrl = (latitude: number | null, longitude: number | null): string | undefined => {
+    if (latitude == null || longitude == null) return undefined
+    return `https://www.google.com/maps?q=${latitude},${longitude}`
+  }
+
+  // Format location address string
+  const formatLocationAddress = (
+    location: VerificationQueueProperty["locations"][0] | undefined
+  ): string => {
+    if (!location) return "Location not specified"
+
+    const parts: string[] = []
+    if (location.address) parts.push(location.address.trim())
+    if (location.city) parts.push(location.city.trim())
+    if (location.state) parts.push(location.state.trim())
+    if (location.country) parts.push(location.country.trim())
+
+    return parts.length > 0 ? parts.join(", ") : "Location not specified"
   }
 
   // Track carousel slide changes
@@ -369,10 +391,7 @@ export function PropertyVerification() {
                         <h3 className="text-lg font-semibold">{property.title}</h3>
                         <p className="text-sm text-muted-foreground flex items-center gap-1">
                           <MapPin className="h-3.5 w-3.5" />
-                          {property.locations[0]?.address ||
-                            property.locations[0]?.city ||
-                            property.locations[0]?.country ||
-                            "Location not specified"}
+                          {formatLocationAddress(property.locations[0])}
                         </p>
                       </div>
 
@@ -459,12 +478,8 @@ export function PropertyVerification() {
             <>
               <DialogHeader>
                 <DialogTitle>{selectedProperty.title}</DialogTitle>
-                <DialogDescription className="flex items-center gap-1">
-                  <MapPin className="h-4 w-4" />
-                  {selectedProperty.locations[0]?.address ||
-                    selectedProperty.locations[0]?.city ||
-                    selectedProperty.locations[0]?.country ||
-                    "Location not specified"}
+                <DialogDescription>
+                  {formatLocationAddress(selectedProperty.locations[0])}
                 </DialogDescription>
               </DialogHeader>
 
@@ -633,6 +648,93 @@ export function PropertyVerification() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Location Details Card */}
+              {selectedProperty.locations[0] && (
+                <Card className="mt-4">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <MapPin className="h-4 w-4" />
+                      Location Details
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                      {selectedProperty.locations[0].address && (
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground mb-1">Address</p>
+                          <p className="text-foreground">{selectedProperty.locations[0].address}</p>
+                        </div>
+                      )}
+                      {selectedProperty.locations[0].city && (
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground mb-1">City</p>
+                          <p className="text-foreground">{selectedProperty.locations[0].city}</p>
+                        </div>
+                      )}
+                      {selectedProperty.locations[0].state && (
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground mb-1">State</p>
+                          <p className="text-foreground">{selectedProperty.locations[0].state}</p>
+                        </div>
+                      )}
+                      {selectedProperty.locations[0].country && (
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground mb-1">Country</p>
+                          <p className="text-foreground">{selectedProperty.locations[0].country}</p>
+                        </div>
+                      )}
+                      {selectedProperty.locations[0].postal_code && (
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground mb-1">Postal Code</p>
+                          <p className="text-foreground">{selectedProperty.locations[0].postal_code}</p>
+                        </div>
+                      )}
+                      {(selectedProperty.locations[0].latitude != null ||
+                        selectedProperty.locations[0].longitude != null) && (
+                        <div className="sm:col-span-2">
+                          <p className="text-xs font-medium text-muted-foreground mb-1">Coordinates</p>
+                          <p className="text-foreground font-mono text-xs">
+                            {selectedProperty.locations[0].latitude != null &&
+                            selectedProperty.locations[0].longitude != null
+                              ? `${selectedProperty.locations[0].latitude}, ${selectedProperty.locations[0].longitude}`
+                              : selectedProperty.locations[0].latitude != null
+                                ? `Lat: ${selectedProperty.locations[0].latitude}`
+                                : selectedProperty.locations[0].longitude != null
+                                  ? `Lng: ${selectedProperty.locations[0].longitude}`
+                                  : "—"}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                    {selectedProperty.locations[0].latitude != null &&
+                      selectedProperty.locations[0].longitude != null && (
+                        <div className="pt-2 border-t">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            asChild
+                            className="w-full sm:w-auto"
+                          >
+                            <a
+                              href={
+                                getGoogleMapsUrl(
+                                  selectedProperty.locations[0].latitude,
+                                  selectedProperty.locations[0].longitude
+                                ) || "#"
+                              }
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <ExternalLink className="h-4 w-4 mr-2" />
+                              View on Google Maps
+                            </a>
+                          </Button>
+                        </div>
+                      )}
+                  </CardContent>
+                </Card>
+              )}
 
               <Card className="mt-4">
                 <CardHeader className="pb-3">
