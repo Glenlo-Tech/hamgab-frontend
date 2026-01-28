@@ -34,6 +34,7 @@ import { useVerificationQueue } from "@/hooks/use-verification-queue"
 import { useRecentActivity } from "@/hooks/use-recent-activity"
 import type { VerificationQueueProperty } from "@/lib/admin-properties"
 import type { ActivityItem } from "@/lib/admin-dashboard"
+import { useEffect, useState } from "react"
 
 function formatTrend(value: number | null | undefined, asPercent: boolean = true): {
   text: string
@@ -72,6 +73,24 @@ function formatTimeAgo(date: string): string {
   }
   const days = Math.floor(diffInSeconds / 86400)
   return `${days} ${days === 1 ? "day" : "days"} ago`
+}
+
+function getGreeting(): string {
+  const hour = new Date().getHours()
+  if (hour < 12) {
+    return "Good Morning"
+  } else if (hour < 17) {
+    return "Good Afternoon"
+  } else {
+    return "Good Evening"
+  }
+}
+
+function formatTime(date: Date): string {
+  const hours = String(date.getHours()).padStart(2, "0")
+  const minutes = String(date.getMinutes()).padStart(2, "0")
+  const seconds = String(date.getSeconds()).padStart(2, "0")
+  return `${hours}:${minutes}:${seconds}`
 }
 
 function formatLocationAddress(location: VerificationQueueProperty["locations"][0] | undefined): string {
@@ -157,6 +176,21 @@ export function AdminDashboard() {
   const isLoadingVerification = verificationQueue.isLoading
   
   const { activities: recentActivity, isLoading: isLoadingActivity } = useRecentActivity(5)
+  
+  const [currentTime, setCurrentTime] = useState(new Date())
+  const [greeting, setGreeting] = useState(getGreeting())
+
+  useEffect(() => {
+    // Update time every second
+    const timer = setInterval(() => {
+      const now = new Date()
+      setCurrentTime(now)
+      // Update greeting if hour changed
+      setGreeting(getGreeting())
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [])
 
   const cards = [
     {
@@ -216,12 +250,20 @@ export function AdminDashboard() {
   return (
     <div className="space-y-8">
       <FadeIn>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b">
-          <div>
-            <h1 className="text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
-              Admin Dashboard
-            </h1>
-            <p className="text-muted-foreground mt-2 text-sm">Platform overview and management</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+                {greeting} Admin
+              </h1>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-200/50 dark:border-blue-800/50">
+                <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <span className="text-base font-mono font-semibold text-blue-700 dark:text-blue-300">
+                  {formatTime(currentTime)}
+                </span>
+              </div>
+            </div>
+            <p className="text-muted-foreground text-sm">Platform overview and management</p>
           </div>
           <div className="flex gap-3">
             <Button variant="outline" asChild className="border-2 hover:bg-blue-50 hover:border-blue-300 transition-colors">
