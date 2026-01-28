@@ -27,6 +27,7 @@ import {
   Bell,
   ChevronDown,
   Shield,
+  Building2,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { clearAdminToken } from "@/lib/admin-auth"
@@ -38,6 +39,7 @@ interface AdminLayoutProps {
 
 const sidebarLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/properties", label: "Properties", icon: Building2 },
   { href: "/users", label: "Users & Agents", icon: Users },
   { href: "/verification", label: "Verification", icon: CheckSquare, badge: 12 },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },

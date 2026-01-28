@@ -83,6 +83,23 @@ export interface VerificationQueueFilters {
   country?: string | null
 }
 
+export interface AllPropertiesFilters {
+  page?: number
+  page_size?: number
+  agent_id?: string | null
+  verification_status?: VerificationStatus | null
+  visibility?: Visibility | null
+  date_from?: string | null
+  date_to?: string | null
+  city?: string | null
+  country?: string | null
+}
+
+export interface AllPropertiesResult {
+  properties: VerificationQueueProperty[]
+  meta: VerificationQueueMeta
+}
+
 export async function fetchVerificationQueue(
   filters: VerificationQueueFilters = {}
 ): Promise<VerificationQueueResult> {
@@ -183,6 +200,58 @@ export async function updatePropertyVisibility(
     }
     throw new ApiClientError(
       error instanceof Error ? error.message : "Failed to update property visibility"
+    )
+  }
+}
+
+export async function fetchAllProperties(
+  filters: AllPropertiesFilters = {}
+): Promise<AllPropertiesResult> {
+  const {
+    page = 1,
+    page_size = 20,
+    agent_id,
+    verification_status,
+    visibility,
+    date_from,
+    date_to,
+    city,
+    country,
+  } = filters
+
+  const params = new URLSearchParams()
+  params.set("page", String(page))
+  params.set("page_size", String(page_size))
+
+  if (agent_id) params.set("agent_id", agent_id)
+  if (verification_status) params.set("verification_status", verification_status)
+  if (visibility) params.set("visibility", visibility)
+  if (date_from) params.set("date_from", date_from)
+  if (date_to) params.set("date_to", date_to)
+  if (city) params.set("city", city)
+  if (country) params.set("country", country)
+
+  try {
+    const response: ApiResponse<VerificationQueueProperty[]> = await apiClient.get(
+      `/api/v1/admin/properties?${params.toString()}`
+    )
+
+    if (!response.success) {
+      throw new ApiClientError(
+        response.message || "Failed to fetch properties"
+      )
+    }
+
+    return {
+      properties: response.data,
+      meta: (response.meta || {}) as VerificationQueueMeta,
+    }
+  } catch (error) {
+    if (error instanceof ApiClientError) {
+      throw error
+    }
+    throw new ApiClientError(
+      error instanceof Error ? error.message : "Failed to fetch properties"
     )
   }
 }
