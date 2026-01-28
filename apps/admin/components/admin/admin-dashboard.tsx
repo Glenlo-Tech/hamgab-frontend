@@ -28,13 +28,28 @@ import {
   Pie,
   Cell,
 } from "recharts"
+import { useDashboardStats } from "@/hooks/use-dashboard-stats"
 
-const stats = [
-  { label: "Total Properties", value: "5,234", icon: Building2, trend: "+12%", trendUp: true },
-  { label: "Active Users", value: "2,847", icon: Users, trend: "+8%", trendUp: true },
-  { label: "Monthly Revenue", value: "$142,580", icon: DollarSign, trend: "+23%", trendUp: true },
-  { label: "Pending Approvals", value: "12", icon: Clock, trend: "-5", trendUp: false },
-]
+function formatTrend(value: number | null | undefined, asPercent: boolean = true): {
+  text: string
+  isUp: boolean
+} {
+  if (value == null || Number.isNaN(value)) {
+    return {
+      text: "—",
+      isUp: true,
+    }
+  }
+
+  const isUp = value >= 0
+  const abs = Math.abs(value)
+  const suffix = asPercent ? "%" : ""
+
+  return {
+    text: `${isUp ? "+" : "-"}${abs}${suffix}`,
+    isUp,
+  }
+}
 
 const submissionsData = [
   { name: "Mon", submissions: 12 },
@@ -97,6 +112,47 @@ const pendingVerifications = [
 ]
 
 export function AdminDashboard() {
+  const { stats, isLoading, error } = useDashboardStats()
+
+  const cards = [
+    {
+      key: "total_properties",
+      label: "Total Properties",
+      value: stats ? stats.total_properties.toLocaleString() : isLoading ? "…" : "—",
+      icon: Building2,
+      trendInfo: formatTrend(stats?.total_properties_trend),
+    },
+    {
+      key: "active_users",
+      label: "Active Users",
+      value: stats ? stats.active_users.toLocaleString() : isLoading ? "…" : "—",
+      icon: Users,
+      trendInfo: formatTrend(stats?.active_users_trend),
+    },
+    {
+      key: "monthly_revenue",
+      label: "Monthly Revenue",
+      value: stats
+        ? new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "XAF",
+            maximumFractionDigits: 0,
+          }).format(stats.monthly_revenue)
+        : isLoading
+          ? "…"
+          : "—",
+      icon: DollarSign,
+      trendInfo: formatTrend(stats?.monthly_revenue_trend),
+    },
+    {
+      key: "pending_approvals",
+      label: "Pending Approvals",
+      value: stats ? stats.pending_approvals.toLocaleString() : isLoading ? "…" : "—",
+      icon: Clock,
+      trendInfo: formatTrend(stats?.pending_approvals_trend, false),
+    },
+  ] as const
+
   return (
     <div className="space-y-8">
       <FadeIn>
@@ -122,25 +178,37 @@ export function AdminDashboard() {
         </div>
       </FadeIn>
 
-      <StaggerContainer className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => (
-          <StaggerItem key={stat.label}>
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
+      {error && !isLoading && (
+        <p className="text-sm text-red-600">
+          Failed to load dashboard statistics: {error.message}
+        </p>
+      )}
+
+      <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6">
+        {cards.map((stat) => (
+          <StaggerItem key={stat.key}>
+            <Card className="h-full shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-5 sm:p-6 flex flex-col justify-between gap-4">
+                <div className="flex items-start justify-between gap-3">
                   <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
                     <stat.icon className="h-6 w-6" />
                   </div>
                   <div
-                    className={`flex items-center gap-1 text-xs font-medium ${stat.trendUp ? "text-green-600" : "text-muted-foreground"}`}
+                    className={`flex items-center gap-1 text-xs font-medium whitespace-nowrap ${
+                      stat.trendInfo.isUp ? "text-green-600" : "text-muted-foreground"
+                    }`}
                   >
-                    {stat.trendUp && <TrendingUp className="h-3 w-3" />}
-                    {stat.trend}
+                    {stat.trendInfo.isUp && <TrendingUp className="h-3 w-3" />}
+                    {stat.trendInfo.text}
                   </div>
                 </div>
-                <div className="mt-4">
-                  <span className="text-3xl font-bold">{stat.value}</span>
-                  <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
+                <div className="mt-1">
+                  <span className="block text-2xl sm:text-3xl font-bold leading-tight">
+                    {stat.value}
+                  </span>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                    {stat.label}
+                  </p>
                 </div>
               </CardContent>
             </Card>
