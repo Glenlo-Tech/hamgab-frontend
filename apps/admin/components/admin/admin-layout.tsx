@@ -32,6 +32,7 @@ import {
 import { useEffect, useState } from "react"
 import { clearAdminToken } from "@/lib/admin-auth"
 import Image from "next/image"
+import { useVerificationQueue } from "@/hooks/use-verification-queue"
 
 interface AdminLayoutProps {
   children: React.ReactNode
@@ -41,13 +42,22 @@ const sidebarLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/properties", label: "Properties", icon: Building2 },
   { href: "/users", label: "Users & Agents", icon: Users },
-  { href: "/verification", label: "Verification", icon: CheckSquare, badge: 12 },
+  { href: "/verification", label: "Verification", icon: CheckSquare, badgeKey: "verification" },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/settings", label: "Settings", icon: Settings },
 ]
 
 function Sidebar({ className }: { className?: string }) {
   const pathname = usePathname()
+  const { meta: verificationMeta, isLoading: isLoadingVerification } = useVerificationQueue({})
+  
+  const getBadgeCount = (badgeKey?: string): number | undefined => {
+    if (badgeKey === "verification") {
+      if (isLoadingVerification) return undefined
+      return verificationMeta?.total ?? 0
+    }
+    return undefined
+  }
 
   return (
     <div className={cn("flex flex-col h-full bg-foreground text-background", className)}>
@@ -78,11 +88,16 @@ function Sidebar({ className }: { className?: string }) {
                 <link.icon className="h-5 w-5" />
                 {link.label}
               </span>
-              {link.badge && (
-                <Badge variant="secondary" className="bg-background/20 text-background hover:bg-background/20">
-                  {link.badge}
-                </Badge>
-              )}
+              {link.badgeKey && (() => {
+                const badgeCount = getBadgeCount(link.badgeKey)
+                if (badgeCount === undefined) return null
+                if (badgeCount === 0) return null
+                return (
+                  <Badge variant="secondary" className="bg-background/20 text-background hover:bg-background/20">
+                    {badgeCount}
+                  </Badge>
+                )
+              })()}
             </Link>
           )
         })}
