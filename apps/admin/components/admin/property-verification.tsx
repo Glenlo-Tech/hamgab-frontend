@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import Image from "next/image"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -32,20 +32,24 @@ import {
   XCircle,
   ImageIcon,
   FileText,
+  Download
 } from "lucide-react"
 import { useVerificationQueue } from "@/hooks/use-verification-queue"
 import {
   VerificationQueueProperty,
   updatePropertyStatus,
   updatePropertyVisibility,
+  type VerificationStatus,
 } from "@/lib/admin-properties"
 import { useToast } from "@/hooks/use-toast"
+import { cn } from "@/lib/utils"
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
+  type CarouselApi,
 } from "@/components/ui/carousel"
  
 type SortOption = "newest" | "oldest" | "price-high" | "price-low"
@@ -67,6 +71,44 @@ export function PropertyVerification() {
   const [approvalNotes, setApprovalNotes] = useState("")
   const [isStatusUpdating, setIsStatusUpdating] = useState(false)
   const [isVisibilityUpdating, setIsVisibilityUpdating] = useState(false)
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>()
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+
+  const getVerificationStatusBadgeClasses = (status: VerificationStatus) => {
+    switch (status) {
+      case "GREEN":
+        return "border-green-500/60 text-green-700 bg-green-50"
+      case "YELLOW":
+        return "border-amber-500/60 text-amber-700 bg-amber-50"
+      case "RED":
+      default:
+        return "border-red-500/60 text-red-700 bg-red-50"
+    }
+  }
+
+  // Track carousel slide changes
+  useEffect(() => {
+    if (!carouselApi) return
+
+    const onSelect = () => {
+      setCurrentImageIndex(carouselApi.selectedScrollSnap())
+    }
+
+    carouselApi.on("select", onSelect)
+    onSelect() // Set initial index
+
+    return () => {
+      carouselApi.off("select", onSelect)
+    }
+  }, [carouselApi])
+
+  // Reset carousel index when property changes
+  useEffect(() => {
+    if (selectedProperty) {
+      setCurrentImageIndex(0)
+      carouselApi?.scrollTo(0)
+    }
+  }, [selectedProperty?.id, carouselApi])
  
   const filteredProperties = useMemo(() => {
     const withSearch = properties.filter((property) => {
@@ -413,41 +455,83 @@ export function PropertyVerification() {
 
               <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
                 <div className="space-y-3">
-                  <Carousel className="w-full">
-                    <CarouselContent>
-                      {selectedProperty.media.length > 0 ? (
-                        selectedProperty.media.map((media) => (
-                          <CarouselItem key={media.id}>
+                  <div className="relative">
+                    <Carousel className="w-full" setApi={setCarouselApi}>
+                      <CarouselContent>
+                        {selectedProperty.media.length > 0 ? (
+                          selectedProperty.media.map((media) => (
+                            <CarouselItem key={media.id}>
+                              <div className="relative rounded-lg overflow-hidden bg-muted h-56 sm:h-64 lg:h-72">
+                                <Image
+                                  src={media.file_path}
+                                  alt={selectedProperty.title}
+                                  fill
+                                  className="object-cover"
+                                />
+                              </div>
+                            </CarouselItem>
+                          ))
+                        ) : (
+                          <CarouselItem>
                             <div className="relative rounded-lg overflow-hidden bg-muted h-56 sm:h-64 lg:h-72">
                               <Image
-                                src={media.file_path}
+                                src="/placeholder.svg"
                                 alt={selectedProperty.title}
                                 fill
                                 className="object-cover"
                               />
                             </div>
                           </CarouselItem>
-                        ))
-                      ) : (
-                        <CarouselItem>
-                          <div className="relative rounded-lg overflow-hidden bg-muted h-56 sm:h-64 lg:h-72">
+                        )}
+                      </CarouselContent>
+                      {selectedProperty.media.length > 1 && (
+                        <>
+                          <CarouselPrevious className="left-3 sm:left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white border-none shadow-lg cursor-pointer z-10" />
+                          <CarouselNext className="right-3 sm:right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white border-none shadow-lg cursor-pointer z-10" />
+                        </>
+                      )}
+                    </Carousel>
+
+                    {/* Image Counter Overlay */}
+                    {selectedProperty.media.length > 1 && (
+                      <div className="absolute top-3 right-3 bg-black/70 text-white text-xs font-medium px-2.5 py-1.5 rounded-md backdrop-blur-sm z-10">
+                        {currentImageIndex + 1} / {selectedProperty.media.length}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Thumbnail Navigation */}
+                  {selectedProperty.media.length > 1 && (
+                    <div className="pt-2 border-t">
+                      <div className="flex items-center gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                        {selectedProperty.media.map((media, index) => (
+                          <button
+                            key={media.id}
+                            onClick={() => carouselApi?.scrollTo(index)}
+                            className={cn(
+                              "relative flex-shrink-0 rounded-md overflow-hidden border-2 transition-all",
+                              "h-16 w-16 sm:h-20 sm:w-20",
+                              index === currentImageIndex
+                                ? "border-primary scale-105 shadow-md ring-2 ring-primary/20"
+                                : "border-transparent hover:border-primary/50 opacity-70 hover:opacity-100"
+                            )}
+                            aria-label={`Go to image ${index + 1}`}
+                          >
                             <Image
-                              src="/placeholder.svg"
-                              alt={selectedProperty.title}
+                              src={media.file_path}
+                              alt={`Thumbnail ${index + 1}`}
                               fill
                               className="object-cover"
+                              sizes="80px"
                             />
-                          </div>
-                        </CarouselItem>
-                      )}
-                    </CarouselContent>
-                    {selectedProperty.media.length > 1 && (
-                      <>
-                        <CarouselPrevious className="left-3 sm:left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white border-none shadow-lg" />
-                        <CarouselNext className="right-3 sm:right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white border-none shadow-lg" />
-                      </>
-                    )}
-                  </Carousel>
+                            {index === currentImageIndex && (
+                              <div className="absolute inset-0 bg-primary/10" />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-3 text-sm text-muted-foreground">
@@ -496,13 +580,21 @@ export function PropertyVerification() {
                 <CardContent>
                   <div className="flex items-center gap-4">
                     <div className="h-12 w-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold">
-                      {selectedProperty.agent_email
-                        .split("@")[0]
-                        .slice(0, 2)
-                        .toUpperCase()}
+                      {(() => {
+                        const email = selectedProperty.agent_email
+                        if (email && typeof email === "string") {
+                          const localPart = email.split("@")[0] || ""
+                          if (localPart) {
+                            return localPart.slice(0, 2).toUpperCase()
+                          }
+                        }
+                        return "AG"
+                      })()}
                     </div>
                     <div>
-                      <p className="font-medium">{selectedProperty.agent_email}</p>
+                      <p className="font-medium">
+                        {selectedProperty.agent_email || "Unknown agent"}
+                      </p>
                       <p className="text-sm text-muted-foreground">
                         Property ID: {selectedProperty.id}
                       </p>
@@ -511,7 +603,9 @@ export function PropertyVerification() {
                   <div className="mt-4 flex flex-wrap items-center gap-3 text-xs">
                     <Badge
                       variant="outline"
-                      className="border border-red-500/60 text-red-700"
+                      className={getVerificationStatusBadgeClasses(
+                        selectedProperty.verification_status
+                      )}
                     >
                       Status: {selectedProperty.verification_status}
                     </Badge>
@@ -547,9 +641,10 @@ export function PropertyVerification() {
                           href={doc.file_path}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-xs text-primary hover:underline"
+                          className="text-xs flex items-center justify-center gap-2 text-primary hover:underline"
                         >
-                          View
+                          Download
+                          <Download width="12px" height="12px" />
                         </a>
                       </div>
                     ))}
