@@ -5,6 +5,8 @@ import { Analytics } from "@vercel/analytics/next"
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register"
 import { Toaster } from "@/components/ui/toaster"
 import { SWRProvider } from "@/components/providers/swr-provider"
+import { ErrorBoundary } from "@/components/error-boundary"
+import { GlobalErrorHandler } from "@/components/global-error-handler"
 import "./globals.css"
 
 const inter = Inter({
@@ -65,12 +67,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${geistMono.variable} font-sans antialiased`}>
-        <SWRProvider>
-          {children}
-          <ServiceWorkerRegister />
-          <Toaster />
-          <Analytics />
-        </SWRProvider>
+        <ErrorBoundary>
+          <SWRProvider>
+            {children}
+            <GlobalErrorHandler />
+            <ServiceWorkerRegister />
+            <Toaster />
+            <Analytics />
+          </SWRProvider>
+        </ErrorBoundary>
       </body>
     </html>
   )

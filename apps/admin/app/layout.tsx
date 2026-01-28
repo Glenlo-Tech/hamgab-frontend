@@ -3,6 +3,8 @@ import type { Metadata, Viewport } from "next"
 import { Inter, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Toaster } from "@/components/ui/toaster"
+import { ErrorBoundary } from "@/components/error-boundary"
+import { GlobalErrorHandler } from "@/components/global-error-handler"
 import "./globals.css"
 
 const inter = Inter({
@@ -33,9 +35,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${geistMono.variable} font-sans antialiased`}>
-        {children}
-        <Toaster />
-        <Analytics />
+        <ErrorBoundary>
+          {children}
+          <GlobalErrorHandler />
+          <Toaster />
+          <Analytics />
+        </ErrorBoundary>
       </body>
     </html>
   )
