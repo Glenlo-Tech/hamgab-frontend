@@ -90,7 +90,15 @@ function formatTime(date: Date): string {
   const hours = String(date.getHours()).padStart(2, "0")
   const minutes = String(date.getMinutes()).padStart(2, "0")
   const seconds = String(date.getSeconds()).padStart(2, "0")
-  return `${hours}:${minutes}:${seconds}`
+  
+  // Get timezone abbreviation (e.g., GMT, EST, PST)
+  const timeZone = Intl.DateTimeFormat("en", {
+    timeZoneName: "short",
+  })
+    .formatToParts(date)
+    .find((part) => part.type === "timeZoneName")?.value || ""
+  
+  return `${hours}:${minutes}:${seconds} ${timeZone}`
 }
 
 function formatLocationAddress(location: VerificationQueueProperty["locations"][0] | undefined): string {
@@ -288,31 +296,35 @@ export function AdminDashboard() {
         </p>
       )}
 
-      <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6">
+      <StaggerContainer className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6">
         {cards.map((stat) => (
           <StaggerItem key={stat.key}>
             <Card className={`h-full border-2 ${stat.borderColor} bg-gradient-to-br ${stat.gradient} shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]`}>
-              <CardContent className="p-6 flex flex-col justify-between gap-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className={`h-14 w-14 rounded-xl ${stat.iconBg} flex items-center justify-center shadow-md`}>
-                    <stat.icon className={`h-7 w-7 ${stat.iconColor}`} />
+              <CardContent className="p-2 sm:px-6 flex flex-col justify-between gap-4 sm:gap-5 min-w-0">
+                <div className="flex items-start justify-between gap-2 sm:gap-3 min-w-0">
+                  <div className={`h-12 w-12 sm:h-14 sm:w-14 rounded-xl ${stat.iconBg} flex items-center justify-center shadow-md flex-shrink-0`}>
+                    <stat.icon className={`h-6 w-6 sm:h-7 sm:w-7 ${stat.iconColor}`} />
                   </div>
                   <div
-                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
+                    className={`flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0 ${
                       stat.trendInfo.isUp
                         ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
                         : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
                     }`}
                   >
-                    {stat.trendInfo.isUp && <TrendingUp className="h-3.5 w-3.5" />}
+                    {stat.trendInfo.isUp && <TrendingUp className="h-3 w-3 sm:h-3.5 sm:w-3.5" />}
                     {stat.trendInfo.text}
                   </div>
                 </div>
-                <div className="space-y-1">
-                  <span className="block text-3xl sm:text-4xl font-bold leading-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+                <div className="space-y-1 min-w-0">
+                  <span className={`block font-bold leading-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text break-words ${
+                    stat.key === "monthly_revenue"
+                      ? "text-xl sm:text-2xl lg:text-3xl"
+                      : "text-2xl sm:text-3xl lg:text-4xl"
+                  }`}>
                     {stat.value}
                   </span>
-                  <p className="text-sm font-medium text-muted-foreground">
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                     {stat.label}
                   </p>
                 </div>
