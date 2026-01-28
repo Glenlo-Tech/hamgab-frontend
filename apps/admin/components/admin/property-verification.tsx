@@ -86,6 +86,20 @@ export function PropertyVerification() {
     }
   }
 
+  // Get allowed status transitions (only upward: RED → YELLOW → GREEN)
+  const getAllowedStatusTransitions = (currentStatus: VerificationStatus): VerificationStatus[] => {
+    switch (currentStatus) {
+      case "RED":
+        return ["YELLOW", "GREEN"] // RED can move to YELLOW or GREEN
+      case "YELLOW":
+        return ["GREEN"] // YELLOW can only move to GREEN
+      case "GREEN":
+        return [] // GREEN cannot be downgraded
+      default:
+        return []
+    }
+  }
+
   // Track carousel slide changes
   useEffect(() => {
     if (!carouselApi) return
@@ -692,39 +706,53 @@ export function PropertyVerification() {
                     />
                   </div>
                   <div className="w-full flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex flex-col gap-2 sm:flex-row">
-                      {selectedProperty.verification_status === "RED" && (
-                        <Button
-                          variant="outline"
-                          onClick={handleMarkUnderReview}
-                          disabled={isStatusUpdating}
-                          className="sm:w-auto bg-yellow-300 hover:bg-yellow-400 cursor-pointer"
-                        >
-                          <CheckCircle className="h-4 w-4 mr-2" />
-                          {isStatusUpdating ? "Updating…" : "Mark as Under Review (YELLOW)"}
-                        </Button>
-                      )}
-                      {/* <Button
-                        variant="destructive"
-                        onClick={() => {
-                          setShowRejectDialog(true)
-                        }}
-                        className="sm:w-auto"
-                      >
-                        <XCircle className="h-4 w-4 mr-2" />
-                        Reject
-                      </Button> */}
-                    </div>
-                    <div className="flex justify-end">
-                      <Button
-                        className="bg-green-600 hover:bg-green-700 min-w-[170px] cursor-pointer"
-                        onClick={handleApprove}
-                        disabled={isStatusUpdating}
-                      >
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        {isStatusUpdating ? "Approving…" : "Approve Property (GREEN)"}
-                      </Button>
-                    </div>
+                    {(() => {
+                      const allowedTransitions = getAllowedStatusTransitions(
+                        selectedProperty.verification_status
+                      )
+                      const canApprove = allowedTransitions.includes("GREEN")
+                      const canMarkYellow = allowedTransitions.includes("YELLOW")
+
+                      if (selectedProperty.verification_status === "GREEN") {
+                        return (
+                          <div className="w-full">
+                            <p className="text-sm text-muted-foreground mb-3">
+                              This property is already GREEN (certified). Status cannot be downgraded. Only visibility can be changed.
+                            </p>
+                          </div>
+                        )
+                      }
+
+                      return (
+                        <>
+                          <div className="flex flex-col gap-2 sm:flex-row">
+                            {canMarkYellow && (
+                              <Button
+                                variant="outline"
+                                onClick={handleMarkUnderReview}
+                                disabled={isStatusUpdating}
+                                className="sm:w-auto bg-yellow-300 hover:bg-yellow-400 cursor-pointer"
+                              >
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                {isStatusUpdating ? "Updating…" : "Mark as Under Review (YELLOW)"}
+                              </Button>
+                            )}
+                          </div>
+                          {canApprove && (
+                            <div className="flex justify-end">
+                              <Button
+                                className="bg-green-600 hover:bg-green-700 min-w-[170px] cursor-pointer"
+                                onClick={handleApprove}
+                                disabled={isStatusUpdating}
+                              >
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                {isStatusUpdating ? "Approving…" : "Approve Property (GREEN)"}
+                              </Button>
+                            </div>
+                          )}
+                        </>
+                      )
+                    })()}
                   </div>
                 </div>
               </DialogFooter>

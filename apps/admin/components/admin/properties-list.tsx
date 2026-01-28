@@ -192,6 +192,20 @@ export function PropertiesList() {
     }
   }
 
+  // Get allowed status transitions (only upward: RED → YELLOW → GREEN)
+  const getAllowedStatusTransitions = (currentStatus: VerificationStatus): VerificationStatus[] => {
+    switch (currentStatus) {
+      case "RED":
+        return ["YELLOW", "GREEN"] // RED can move to YELLOW or GREEN
+      case "YELLOW":
+        return ["GREEN"] // YELLOW can only move to GREEN
+      case "GREEN":
+        return [] // GREEN cannot be downgraded
+      default:
+        return []
+    }
+  }
+
   const hasActiveFilters =
     verificationStatusFilter !== "all" ||
     visibilityFilter !== "all" ||
@@ -533,14 +547,149 @@ export function PropertiesList() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setSelectedProperty(property)}
-                              className="cursor-pointer hover:bg-red-100"
-                            >
-                              <Eye className="h-4 w-4 " />
-                            </Button>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setSelectedProperty(property)}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    disabled={updatingPropertyId === property.id}
+                                  >
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-56">
+                                  <DropdownMenuItem
+                                    onClick={() => setSelectedProperty(property)}
+                                  >
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    View Details
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                                    Update Status
+                                  </div>
+                                  {(() => {
+                                    const allowedTransitions = getAllowedStatusTransitions(
+                                      property.verification_status
+                                    )
+                                    if (allowedTransitions.length === 0) {
+                                      return (
+                                        <DropdownMenuItem disabled className="text-muted-foreground">
+                                          <CheckCircle className="h-4 w-4 mr-2" />
+                                          Status cannot be changed (GREEN is final)
+                                        </DropdownMenuItem>
+                                      )
+                                    }
+                                    return (
+                                      <>
+                                        {allowedTransitions.includes("GREEN") && (
+                                          <DropdownMenuItem
+                                            onClick={() =>
+                                              handleUpdateStatus(
+                                                property.id,
+                                                "GREEN",
+                                                property.title
+                                              )
+                                            }
+                                            disabled={updatingPropertyId === property.id}
+                                            className="text-green-600"
+                                          >
+                                            <CheckCircle className="h-4 w-4 mr-2" />
+                                            Mark as GREEN (Certified)
+                                          </DropdownMenuItem>
+                                        )}
+                                        {allowedTransitions.includes("YELLOW") && (
+                                          <DropdownMenuItem
+                                            onClick={() =>
+                                              handleUpdateStatus(
+                                                property.id,
+                                                "YELLOW",
+                                                property.title
+                                              )
+                                            }
+                                            disabled={updatingPropertyId === property.id}
+                                            className="text-amber-600"
+                                          >
+                                            <AlertCircle className="h-4 w-4 mr-2" />
+                                            Mark as YELLOW (Under Review)
+                                          </DropdownMenuItem>
+                                        )}
+                                        {allowedTransitions.includes("RED") && (
+                                          <DropdownMenuItem
+                                            onClick={() =>
+                                              handleUpdateStatus(
+                                                property.id,
+                                                "RED",
+                                                property.title
+                                              )
+                                            }
+                                            disabled={updatingPropertyId === property.id}
+                                            className="text-red-600"
+                                          >
+                                            <AlertCircle className="h-4 w-4 mr-2" />
+                                            Mark as RED (Rejected)
+                                          </DropdownMenuItem>
+                                        )}
+                                      </>
+                                    )
+                                  })()}
+                                  <DropdownMenuSeparator />
+                                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                                    Update Visibility
+                                  </div>
+                                  {property.verification_status === "GREEN" && (
+                                    <>
+                                      {property.visibility !== "PUBLIC" && (
+                                        <DropdownMenuItem
+                                          onClick={() =>
+                                            handleUpdateVisibility(
+                                              property.id,
+                                              "PUBLIC",
+                                              property.title
+                                            )
+                                          }
+                                          disabled={updatingPropertyId === property.id}
+                                          className="text-blue-600"
+                                        >
+                                          <Globe className="h-4 w-4 mr-2" />
+                                          Set to Public
+                                        </DropdownMenuItem>
+                                      )}
+                                      {property.visibility !== "PRIVATE" && (
+                                        <DropdownMenuItem
+                                          onClick={() =>
+                                            handleUpdateVisibility(
+                                              property.id,
+                                              "PRIVATE",
+                                              property.title
+                                            )
+                                          }
+                                          disabled={updatingPropertyId === property.id}
+                                          className="text-gray-600"
+                                        >
+                                          <Lock className="h-4 w-4 mr-2" />
+                                          Set to Private
+                                        </DropdownMenuItem>
+                                      )}
+                                    </>
+                                  )}
+                                  {property.verification_status !== "GREEN" && (
+                                    <DropdownMenuItem disabled className="text-muted-foreground">
+                                      <Lock className="h-4 w-4 mr-2" />
+                                      Only GREEN properties can change visibility
+                                    </DropdownMenuItem>
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
                           </TableCell>
                         </TableRow>
                       )
@@ -724,62 +873,76 @@ export function PropertiesList() {
                       </Badge>
                     </div>
                     <div className="space-y-2">
-                      <div className="flex flex-wrap gap-2">
-                        {selectedProperty.verification_status !== "GREEN" && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              handleUpdateStatus(
-                                selectedProperty.id,
-                                "GREEN",
-                                selectedProperty.title
-                              )
-                            }
-                            disabled={updatingPropertyId === selectedProperty.id}
-                            className="text-green-600 border-green-200 hover:bg-green-50"
-                          >
-                            <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
-                            Mark GREEN
-                          </Button>
-                        )}
-                        {selectedProperty.verification_status !== "YELLOW" && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              handleUpdateStatus(
-                                selectedProperty.id,
-                                "YELLOW",
-                                selectedProperty.title
-                              )
-                            }
-                            disabled={updatingPropertyId === selectedProperty.id}
-                            className="text-amber-600 border-amber-200 hover:bg-amber-50"
-                          >
-                            <AlertCircle className="h-3.5 w-3.5 mr-1.5" />
-                            Mark YELLOW
-                          </Button>
-                        )}
-                        {selectedProperty.verification_status !== "RED" && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              handleUpdateStatus(
-                                selectedProperty.id,
-                                "RED",
-                                selectedProperty.title
-                              )
-                            }
-                            disabled={updatingPropertyId === selectedProperty.id}
-                            className="text-red-600 border-red-200 hover:bg-red-50"
-                          >
-                            <AlertCircle className="h-3.5 w-3.5 mr-1.5" />
-                            Mark RED
-                          </Button>
-                        )}
-                      </div>
+                      {(() => {
+                        const allowedTransitions = getAllowedStatusTransitions(
+                          selectedProperty.verification_status
+                        )
+                        if (allowedTransitions.length === 0) {
+                          return (
+                            <p className="text-xs text-muted-foreground">
+                              Status is GREEN (certified) and cannot be downgraded. Only visibility can be changed.
+                            </p>
+                          )
+                        }
+                        return (
+                          <div className="flex flex-wrap gap-2">
+                            {allowedTransitions.includes("GREEN") && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  handleUpdateStatus(
+                                    selectedProperty.id,
+                                    "GREEN",
+                                    selectedProperty.title
+                                  )
+                                }
+                                disabled={updatingPropertyId === selectedProperty.id}
+                                className="text-green-600 border-green-200 hover:bg-green-50"
+                              >
+                                <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
+                                Mark GREEN
+                              </Button>
+                            )}
+                            {allowedTransitions.includes("YELLOW") && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  handleUpdateStatus(
+                                    selectedProperty.id,
+                                    "YELLOW",
+                                    selectedProperty.title
+                                  )
+                                }
+                                disabled={updatingPropertyId === selectedProperty.id}
+                                className="text-amber-600 border-amber-200 hover:bg-amber-50"
+                              >
+                                <AlertCircle className="h-3.5 w-3.5 mr-1.5" />
+                                Mark YELLOW
+                              </Button>
+                            )}
+                            {allowedTransitions.includes("RED") && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  handleUpdateStatus(
+                                    selectedProperty.id,
+                                    "RED",
+                                    selectedProperty.title
+                                  )
+                                }
+                                disabled={updatingPropertyId === selectedProperty.id}
+                                className="text-red-600 border-red-200 hover:bg-red-50"
+                              >
+                                <AlertCircle className="h-3.5 w-3.5 mr-1.5" />
+                                Mark RED
+                              </Button>
+                            )}
+                          </div>
+                        )
+                      })()}
                       {selectedProperty.verification_status === "GREEN" && (
                         <div className="flex flex-wrap gap-2 pt-2 border-t">
                           {selectedProperty.visibility !== "PUBLIC" && (
@@ -794,7 +957,7 @@ export function PropertiesList() {
                                 )
                               }
                               disabled={updatingPropertyId === selectedProperty.id}
-                              className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                              className="text-blue-600 border-blue-200 hover:bg-blue-50 cursor-pointer"
                             >
                               <Globe className="h-3.5 w-3.5 mr-1.5" />
                               Set Public
@@ -812,7 +975,7 @@ export function PropertiesList() {
                                 )
                               }
                               disabled={updatingPropertyId === selectedProperty.id}
-                              className="text-gray-600 border-gray-200 hover:bg-gray-50"
+                              className="text-gray-600 border-gray-200 hover:bg-gray-50 cursor-pointer"
                             >
                               <Lock className="h-3.5 w-3.5 mr-1.5" />
                               Set Private
