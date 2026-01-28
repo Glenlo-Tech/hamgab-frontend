@@ -121,6 +121,10 @@ export function AdminDashboard() {
       value: stats ? stats.total_properties.toLocaleString() : isLoading ? "…" : "—",
       icon: Building2,
       trendInfo: formatTrend(stats?.total_properties_trend),
+      gradient: "from-blue-500/10 to-indigo-500/10",
+      iconBg: "bg-blue-500/10",
+      iconColor: "text-blue-600",
+      borderColor: "border-blue-200/50",
     },
     {
       key: "active_users",
@@ -128,6 +132,10 @@ export function AdminDashboard() {
       value: stats ? stats.active_users.toLocaleString() : isLoading ? "…" : "—",
       icon: Users,
       trendInfo: formatTrend(stats?.active_users_trend),
+      gradient: "from-green-500/10 to-emerald-500/10",
+      iconBg: "bg-green-500/10",
+      iconColor: "text-green-600",
+      borderColor: "border-green-200/50",
     },
     {
       key: "monthly_revenue",
@@ -143,6 +151,10 @@ export function AdminDashboard() {
           : "—",
       icon: DollarSign,
       trendInfo: formatTrend(stats?.monthly_revenue_trend),
+      gradient: "from-purple-500/10 to-pink-500/10",
+      iconBg: "bg-purple-500/10",
+      iconColor: "text-purple-600",
+      borderColor: "border-purple-200/50",
     },
     {
       key: "pending_approvals",
@@ -150,25 +162,31 @@ export function AdminDashboard() {
       value: stats ? stats.pending_approvals.toLocaleString() : isLoading ? "…" : "—",
       icon: Clock,
       trendInfo: formatTrend(stats?.pending_approvals_trend, false),
+      gradient: "from-amber-500/10 to-orange-500/10",
+      iconBg: "bg-amber-500/10",
+      iconColor: "text-amber-600",
+      borderColor: "border-amber-200/50",
     },
   ] as const
 
   return (
     <div className="space-y-8">
       <FadeIn>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b">
           <div>
-            <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-            <p className="text-muted-foreground mt-1">Platform overview and management</p>
+            <h1 className="text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+              Admin Dashboard
+            </h1>
+            <p className="text-muted-foreground mt-2 text-sm">Platform overview and management</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" asChild className="bg-transparent">
+          <div className="flex gap-3">
+            <Button variant="outline" asChild className="border-2 hover:bg-blue-50 hover:border-blue-300 transition-colors">
               <Link href="/users">
                 <UserPlus className="h-4 w-4 mr-2" />
                 Manage Users
               </Link>
             </Button>
-            <Button asChild>
+            <Button asChild className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg hover:shadow-xl transition-all">
               <Link href="/verification">
                 <CheckCircle2 className="h-4 w-4 mr-2" />
                 Review Properties
@@ -187,26 +205,28 @@ export function AdminDashboard() {
       <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6">
         {cards.map((stat) => (
           <StaggerItem key={stat.key}>
-            <Card className="h-full shadow-sm hover:shadow-md transition-shadow">
-              <CardContent className="p-5 sm:p-6 flex flex-col justify-between gap-4">
+            <Card className={`h-full border-2 ${stat.borderColor} bg-gradient-to-br ${stat.gradient} shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]`}>
+              <CardContent className="p-6 flex flex-col justify-between gap-5">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
-                    <stat.icon className="h-6 w-6" />
+                  <div className={`h-14 w-14 rounded-xl ${stat.iconBg} flex items-center justify-center shadow-md`}>
+                    <stat.icon className={`h-7 w-7 ${stat.iconColor}`} />
                   </div>
                   <div
-                    className={`flex items-center gap-1 text-xs font-medium whitespace-nowrap ${
-                      stat.trendInfo.isUp ? "text-green-600" : "text-muted-foreground"
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
+                      stat.trendInfo.isUp
+                        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                        : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
                     }`}
                   >
-                    {stat.trendInfo.isUp && <TrendingUp className="h-3 w-3" />}
+                    {stat.trendInfo.isUp && <TrendingUp className="h-3.5 w-3.5" />}
                     {stat.trendInfo.text}
                   </div>
                 </div>
-                <div className="mt-1">
-                  <span className="block text-2xl sm:text-3xl font-bold leading-tight">
+                <div className="space-y-1">
+                  <span className="block text-3xl sm:text-4xl font-bold leading-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
                     {stat.value}
                   </span>
-                  <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                  <p className="text-sm font-medium text-muted-foreground">
                     {stat.label}
                   </p>
                 </div>
@@ -218,13 +238,13 @@ export function AdminDashboard() {
 
       <div className="grid lg:grid-cols-3 gap-6">
         <FadeIn delay={0.1} className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Revenue Overview</CardTitle>
-              <CardDescription>Monthly revenue for the past 6 months</CardDescription>
+          <Card className="border-2 shadow-lg">
+            <CardHeader className="pb-4 border-b">
+              <CardTitle className="text-xl">Revenue Overview</CardTitle>
+              <CardDescription className="text-sm">Monthly revenue for the past 6 months</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
+            <CardContent className="pt-6">
+              <div className="h-[320px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={revenueData}>
                     <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
@@ -237,14 +257,20 @@ export function AdminDashboard() {
                     />
                     <Tooltip
                       formatter={(value: number) => [`$${value.toLocaleString()}`, "Revenue"]}
-                      contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
+                      contentStyle={{
+                        background: "hsl(var(--card))",
+                        border: "2px solid hsl(var(--border))",
+                        borderRadius: "8px",
+                        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                      }}
                     />
                     <Line
                       type="monotone"
                       dataKey="revenue"
-                      stroke="hsl(var(--foreground))"
-                      strokeWidth={2}
-                      dot={{ fill: "hsl(var(--foreground))" }}
+                      stroke="#8b5cf6"
+                      strokeWidth={3}
+                      dot={{ fill: "#8b5cf6", r: 5 }}
+                      activeDot={{ r: 7 }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -254,41 +280,46 @@ export function AdminDashboard() {
         </FadeIn>
 
         <FadeIn delay={0.2}>
-          <Card>
-            <CardHeader>
-              <CardTitle>Property Status</CardTitle>
-              <CardDescription>Distribution of property statuses</CardDescription>
+          <Card className="border-2 shadow-lg">
+            <CardHeader className="pb-4 border-b">
+              <CardTitle className="text-xl">Property Status</CardTitle>
+              <CardDescription className="text-sm">Distribution of property statuses</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="h-[200px]">
+            <CardContent className="pt-6">
+              <div className="h-[240px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={statusData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={5}
+                      innerRadius={50}
+                      outerRadius={90}
+                      paddingAngle={3}
                       dataKey="value"
                     >
                       {statusData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
+                        <Cell key={`cell-${index}`} fill={entry.color} stroke="#fff" strokeWidth={2} />
                       ))}
                     </Pie>
                     <Tooltip
-                      contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
+                      contentStyle={{
+                        background: "hsl(var(--card))",
+                        border: "2px solid hsl(var(--border))",
+                        borderRadius: "8px",
+                      }}
                     />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="flex justify-center gap-4 mt-4">
+              <div className="flex flex-col gap-3 mt-6">
                 {statusData.map((item) => (
-                  <div key={item.name} className="flex items-center gap-2">
-                    <div className="h-3 w-3 rounded-full" style={{ backgroundColor: item.color }} />
-                    <span className="text-sm text-muted-foreground">
-                      {item.name} ({item.value}%)
-                    </span>
+                  <div key={item.name} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-4 w-4 rounded-full shadow-sm" style={{ backgroundColor: item.color }} />
+                      <span className="text-sm font-medium">{item.name}</span>
+                    </div>
+                    <span className="text-sm font-bold">{item.value}%</span>
                   </div>
                 ))}
               </div>
@@ -299,21 +330,30 @@ export function AdminDashboard() {
 
       <div className="grid lg:grid-cols-2 gap-6">
         <FadeIn delay={0.3}>
-          <Card>
-            <CardHeader>
-              <CardTitle>Weekly Submissions</CardTitle>
-              <CardDescription>Property submissions per day</CardDescription>
+          <Card className="border-2 shadow-lg">
+            <CardHeader className="pb-4 border-b">
+              <CardTitle className="text-xl">Weekly Submissions</CardTitle>
+              <CardDescription className="text-sm">Property submissions per day</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="h-[250px]">
+            <CardContent className="pt-6">
+              <div className="h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={submissionsData}>
                     <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
                     <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
                     <Tooltip
-                      contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
+                      contentStyle={{
+                        background: "hsl(var(--card))",
+                        border: "2px solid hsl(var(--border))",
+                        borderRadius: "8px",
+                      }}
                     />
-                    <Bar dataKey="submissions" fill="hsl(var(--foreground))" radius={[4, 4, 0, 0]} />
+                    <Bar
+                      dataKey="submissions"
+                      fill="#3b82f6"
+                      radius={[8, 8, 0, 0]}
+                      className="hover:opacity-80 transition-opacity"
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -322,36 +362,51 @@ export function AdminDashboard() {
         </FadeIn>
 
         <FadeIn delay={0.4}>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <Card className="border-2 shadow-lg">
+            <CardHeader className="pb-4 border-b">
               <div>
-                <CardTitle>Recent Activity</CardTitle>
-                <CardDescription>Latest platform actions</CardDescription>
+                <CardTitle className="text-xl">Recent Activity</CardTitle>
+                <CardDescription className="text-sm">Latest platform actions</CardDescription>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="pt-6">
+              <div className="space-y-3">
                 {recentActivity.map((activity) => (
-                  <div key={activity.id} className="flex gap-3">
+                  <div
+                    key={activity.id}
+                    className="flex gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-border"
+                  >
                     <div
-                      className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      className={`h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm ${
                         activity.type === "approval"
-                          ? "bg-green-100"
+                          ? "bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30"
                           : activity.type === "rejection"
-                            ? "bg-red-100"
+                            ? "bg-gradient-to-br from-red-100 to-rose-100 dark:from-red-900/30 dark:to-rose-900/30"
                             : activity.type === "user"
-                              ? "bg-blue-100"
-                              : "bg-muted"
+                              ? "bg-gradient-to-br from-blue-100 to-cyan-100 dark:from-blue-900/30 dark:to-cyan-900/30"
+                              : "bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30"
                       }`}
                     >
-                      {activity.type === "approval" && <CheckCircle2 className="h-4 w-4 text-green-600" />}
-                      {activity.type === "rejection" && <AlertCircle className="h-4 w-4 text-red-600" />}
-                      {activity.type === "user" && <UserPlus className="h-4 w-4 text-blue-600" />}
-                      {activity.type === "submission" && <Building2 className="h-4 w-4" />}
+                      {activity.type === "approval" && (
+                        <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                      )}
+                      {activity.type === "rejection" && (
+                        <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                      )}
+                      {activity.type === "user" && (
+                        <UserPlus className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      )}
+                      {activity.type === "submission" && (
+                        <Building2 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm">{activity.message}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{activity.time}</p>
+                      <p className="text-sm font-medium">{activity.message}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <p className="text-xs text-muted-foreground">{activity.time}</p>
+                        <span className="text-xs text-muted-foreground">•</span>
+                        <p className="text-xs text-muted-foreground">{activity.user}</p>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -362,46 +417,53 @@ export function AdminDashboard() {
       </div>
 
       <FadeIn delay={0.5}>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <Card className="border-2 border-amber-200/50 shadow-lg bg-gradient-to-br from-amber-50/30 to-orange-50/30 dark:from-amber-950/20 dark:to-orange-950/20">
+          <CardHeader className="flex flex-row items-center justify-between pb-4 border-b">
             <div>
-              <CardTitle>Pending Verifications</CardTitle>
-              <CardDescription>Properties awaiting admin approval</CardDescription>
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Clock className="h-5 w-5 text-amber-600" />
+                Pending Verifications
+              </CardTitle>
+              <CardDescription className="text-sm mt-1">Properties awaiting admin approval</CardDescription>
             </div>
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/admin/verification">
+            <Button variant="outline" size="sm" asChild className="border-2 hover:bg-amber-50 hover:border-amber-300">
+              <Link href="/verification">
                 View All
-                <ArrowRight className="h-4 w-4 ml-1" />
+                <ArrowRight className="h-4 w-4 ml-1.5" />
               </Link>
             </Button>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+          <CardContent className="pt-6">
+            <div className="space-y-3">
               {pendingVerifications.map((property) => (
                 <div
                   key={property.id}
-                  className="flex items-center justify-between p-4 rounded-lg hover:bg-muted transition-colors"
+                  className="flex items-center justify-between p-4 rounded-xl border-2 border-amber-100 dark:border-amber-900/30 bg-white dark:bg-card hover:border-amber-200 dark:hover:border-amber-800/50 hover:shadow-md transition-all"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
-                      <Building2 className="h-6 w-6" />
+                    <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 flex items-center justify-center shadow-sm">
+                      <Building2 className="h-7 w-7 text-amber-600 dark:text-amber-400" />
                     </div>
                     <div>
-                      <p className="font-medium">{property.title}</p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="font-semibold text-base">{property.title}</p>
+                      <p className="text-sm text-muted-foreground mt-0.5">
                         {property.location} • {property.agent}
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold">{property.price}</p>
-                    <p className="text-xs text-muted-foreground">{property.submitted}</p>
+                  <div className="text-right mr-4">
+                    <p className="font-bold text-lg text-foreground">{property.price}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{property.submitted}</p>
                   </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" className="bg-transparent">
+                  <Button
+                    size="sm"
+                    className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-md hover:shadow-lg transition-all"
+                    asChild
+                  >
+                    <Link href="/verification">
                       Review
-                    </Button>
-                  </div>
+                    </Link>
+                  </Button>
                 </div>
               ))}
             </div>

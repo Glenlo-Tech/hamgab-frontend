@@ -299,12 +299,17 @@ export function PropertyVerification() {
   return (
     <div className="space-y-6">
       <FadeIn>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b">
           <div>
-            <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">Property Verification</h1>
-            <p className="text-muted-foreground mt-1">Review and approve pending property listings</p>
+            <h1 className="text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+              Property Verification
+            </h1>
+            <p className="text-muted-foreground mt-2 text-sm">Review and approve pending property listings</p>
           </div>
-          <Badge variant="secondary" className="bg-amber-100 text-amber-800 hover:bg-amber-100">
+          <Badge
+            variant="secondary"
+            className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 text-amber-700 dark:text-amber-400 border-2 border-amber-200/50 px-4 py-1.5 text-base font-semibold"
+          >
             {filteredProperties.length} Pending
           </Badge>
         </div>
@@ -313,10 +318,10 @@ export function PropertyVerification() {
       <FadeIn delay={0.1}>
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
             <Input
               placeholder="Search by property, location, or agent email..."
-              className="pl-9"
+              className="pl-10 h-11 border-2 focus:border-primary/50 shadow-sm"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -325,7 +330,7 @@ export function PropertyVerification() {
             value={sortBy}
             onValueChange={(value: SortOption) => setSortBy(value)}
           >
-            <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px] h-11 border-2">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
@@ -355,11 +360,13 @@ export function PropertyVerification() {
 
       {!isLoading && !error && filteredProperties.length === 0 && (
         <FadeIn>
-          <Card className="bg-muted/50">
-            <CardContent className="p-10 text-center space-y-2">
-              <CheckCircle className="h-10 w-10 mx-auto text-green-600 mb-2" />
-              <h3 className="font-semibold text-lg">No properties in the verification queue</h3>
-              <p className="text-muted-foreground text-sm">
+          <Card className="bg-gradient-to-br from-green-50/50 to-emerald-50/30 dark:from-green-950/20 dark:to-emerald-950/20 border-2 border-green-200/50 shadow-lg">
+            <CardContent className="p-12 text-center space-y-3">
+              <div className="h-16 w-16 mx-auto rounded-full bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 flex items-center justify-center mb-4">
+                <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
+              </div>
+              <h3 className="font-bold text-xl">No properties in the verification queue</h3>
+              <p className="text-muted-foreground text-sm max-w-md mx-auto">
                 Once agents submit new listings for review, they will appear here.
               </p>
             </CardContent>
@@ -368,44 +375,44 @@ export function PropertyVerification() {
       )}
 
       {!isLoading && !error && filteredProperties.length > 0 && (
-        <StaggerContainer className="grid gap-4">
+        <StaggerContainer className="grid gap-5">
           {filteredProperties.map((property) => (
           <StaggerItem key={property.id}>
-            <Card className="overflow-hidden">
+            <Card className="overflow-hidden border-2 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-amber-50/20 dark:from-card dark:to-amber-950/10">
               <div className="flex flex-col lg:flex-row">
-                <div className="relative h-48 lg:h-auto lg:w-72 flex-shrink-0">
+                <div className="relative h-56 lg:h-auto lg:w-80 flex-shrink-0 border-r-2 border-border/50">
                   <Image
                     src={property.media[0]?.file_path || "/placeholder.svg"}
                     alt={property.title}
                     fill
                     className="object-cover"
                   />
-                  <Badge className="absolute top-3 left-3 bg-amber-100 text-amber-800 hover:bg-amber-100">
+                  <Badge className="absolute top-4 left-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-lg font-semibold px-3 py-1">
                     Pending Review
                   </Badge>
                 </div>
                 <CardContent className="flex-1 p-6">
-                  <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
-                    <div className="space-y-3">
+                  <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5">
+                    <div className="space-y-4 flex-1">
                       <div>
-                        <h3 className="text-lg font-semibold">{property.title}</h3>
-                        <p className="text-sm text-muted-foreground flex items-center gap-1">
-                          <MapPin className="h-3.5 w-3.5" />
-                          {formatLocationAddress(property.locations[0])}
+                        <h3 className="text-xl font-bold mb-2">{property.title}</h3>
+                        <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                          <MapPin className="h-4 w-4 text-blue-600" />
+                          <span className="font-medium">{formatLocationAddress(property.locations[0])}</span>
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-3 text-sm">
-                        <User className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">{property.agent_email}</span>
+                      <div className="flex items-center gap-2.5 text-sm p-2 rounded-lg bg-muted/50">
+                        <User className="h-4 w-4 text-purple-600" />
+                        <span className="text-muted-foreground font-medium">{property.agent_email}</span>
                       </div>
 
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
+                      <div className="flex items-center gap-4 text-sm">
+                        <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 font-medium">
                           <ImageIcon className="h-4 w-4" />
                           {property.media.length} photos
                         </span>
-                        <span className="flex items-center gap-1">
+                        <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-50 dark:bg-purple-950/30 text-purple-700 dark:text-purple-400 font-medium">
                           <FileText className="h-4 w-4" />
                           {property.documents.length} documents
                         </span>
@@ -433,17 +440,17 @@ export function PropertyVerification() {
                     </div>
                   </div>
 
-                  <div className="flex gap-2 mt-6">
+                  <div className="flex gap-3 mt-6 pt-4 border-t">
                     <Button
                       variant="outline"
-                      className="flex-1 bg-transparent cursor-pointer"
+                      className="flex-1 border-2 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-colors font-semibold"
                       onClick={() => setSelectedProperty(property)}
                     >
                       <Eye className="h-4 w-4 mr-2" />
                       Review Details
                     </Button>
                     <Button
-                      className="flex-1 bg-green-600 hover:bg-green-700 cursor-pointer"
+                      className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
                       onClick={() => setSelectedProperty(property)}
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
@@ -451,7 +458,7 @@ export function PropertyVerification() {
                     </Button>
                     <Button
                       variant="destructive"
-                      className="flex-1 cursor-pointer"
+                      className="flex-1 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
                       onClick={() => {
                         setSelectedProperty(property)
                         setShowRejectDialog(true)

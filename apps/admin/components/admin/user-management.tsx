@@ -43,6 +43,7 @@ import {
   IdCard,
   ImageIcon,
   Loader2,
+  Users
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -245,9 +246,11 @@ export function UserManagement() {
   return (
     <div className="space-y-6">
       <FadeIn>
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">User Management</h1>
-          <p className="text-muted-foreground mt-1">
+        <div className="pb-4 border-b">
+          <h1 className="text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+            User Management
+          </h1>
+          <p className="text-muted-foreground mt-2 text-sm">
             Manage agents and users on the platform.
           </p>
         </div>
@@ -256,10 +259,10 @@ export function UserManagement() {
       <FadeIn delay={0.1}>
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
             <Input
               placeholder="Search by email or phone..."
-              className="pl-9"
+              className="pl-10 h-11 border-2 focus:border-primary/50 shadow-sm"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -268,7 +271,7 @@ export function UserManagement() {
             value={statusFilter}
             onValueChange={(value: StatusFilter) => setStatusFilter(value)}
           >
-            <SelectTrigger className="w-full sm:w-[200px]">
+            <SelectTrigger className="w-full sm:w-[200px] h-11 border-2">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
@@ -284,27 +287,33 @@ export function UserManagement() {
 
       <FadeIn delay={0.2}>
         <Tabs defaultValue="agents">
-          <TabsList className="">
-            <TabsTrigger value="agents" className="flex-1 sm:flex-none cursor-pointer">
+          <TabsList className="bg-muted/50 p-1 border-2">
+            <TabsTrigger
+              value="agents"
+              className="flex-1 sm:flex-none cursor-pointer data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white font-semibold transition-all"
+            >
               Agents ({filteredAgents.length})
             </TabsTrigger>
-            <TabsTrigger value="users" className="flex-1 sm:flex-none cursor-pointer">
+            <TabsTrigger
+              value="users"
+              className="flex-1 sm:flex-none cursor-pointer data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white font-semibold transition-all"
+            >
               Users ({filteredUsers.length})
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="agents" className="mt-6">
-            <Card>
+            <Card className="border-2 shadow-lg">
               <CardContent className="p-0">
                 {isLoadingAny && (
-                  <div className="p-6 text-sm text-muted-foreground">
+                  <div className="p-8 text-center text-sm text-muted-foreground bg-muted/30">
                     Loading agents and pending KYC submissions…
                   </div>
                 )}
 
                 {!isLoadingAny && (error || pendingError) && (
-                  <div className="p-6 flex items-center justify-between gap-4">
-                    <div className="text-sm text-destructive">
+                  <div className="p-6 flex items-center justify-between gap-4 bg-destructive/5 border-b-2 border-destructive/20">
+                    <div className="text-sm font-medium text-destructive">
                       Failed to load agents. Please try again.
                     </div>
                     <Button
@@ -314,6 +323,7 @@ export function UserManagement() {
                         void refresh()
                         void refreshPending()
                       }}
+                      className="border-2 hover:bg-destructive hover:text-destructive-foreground"
                     >
                       Retry
                     </Button>
@@ -321,20 +331,26 @@ export function UserManagement() {
                 )}
 
                 {!isLoadingAny && !error && filteredAgents.length === 0 && (
-                  <div className="p-8 text-center text-sm text-muted-foreground">
-                    No agents found matching your filters.
+                  <div className="p-12 text-center bg-gradient-to-br from-muted/50 to-muted/30">
+                    <div className="h-16 w-16 mx-auto rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 flex items-center justify-center mb-4">
+                      <Users className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <h3 className="font-bold text-lg mb-2">No agents found</h3>
+                    <p className="text-sm text-muted-foreground">
+                      No agents found matching your filters.
+                    </p>
                   </div>
                 )}
 
                 {!isLoadingAny && !error && filteredAgents.length > 0 && (
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead>Agent</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Phone</TableHead>
-                        <TableHead>Created</TableHead>
-                        <TableHead className="w-[70px]"></TableHead>
+                      <TableRow className="bg-muted/50 hover:bg-muted/50">
+                        <TableHead className="font-semibold">Agent</TableHead>
+                        <TableHead className="font-semibold">Status</TableHead>
+                        <TableHead className="font-semibold">Phone</TableHead>
+                        <TableHead className="font-semibold">Created</TableHead>
+                        <TableHead className="w-[70px] font-semibold">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -342,11 +358,14 @@ export function UserManagement() {
                         const badge = getStatusBadge(agent.status)
                         const pendingKyc = pendingAgents.find((p) => p.id === agent.id)
                         return (
-                          <TableRow key={agent.id}>
-                            <TableCell>
+                          <TableRow
+                            key={agent.id}
+                            className="hover:bg-muted/30 transition-colors border-b border-border/50"
+                          >
+                            <TableCell className="py-4">
                               <div className="flex items-center gap-3">
-                                <Avatar className="h-9 w-9">
-                                  <AvatarFallback>
+                                <Avatar className="h-11 w-11 border-2 border-border shadow-sm">
+                                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-500 text-white font-semibold">
                                     {agent.email
                                       .split("@")[0]
                                       .slice(0, 2)
@@ -354,26 +373,33 @@ export function UserManagement() {
                                   </AvatarFallback>
                                 </Avatar>
                                 <div>
-                                  <p className="font-medium">{agent.email}</p>
-                                  <p className="text-xs text-muted-foreground">
+                                  <p className="font-semibold text-base">{agent.email}</p>
+                                  <p className="text-xs text-muted-foreground mt-0.5">
                                     {agent.role} • {agent.id.slice(0, 8)}…
                                   </p>
                                 </div>
                               </div>
                             </TableCell>
                             <TableCell>
-                              <Badge variant={badge.variant} className={badge.className}>
+                              <Badge
+                                variant={badge.variant}
+                                className={`${badge.className} font-semibold px-2.5 py-1 border-2`}
+                              >
                                 {agent.status}
                               </Badge>
                             </TableCell>
-                            <TableCell className="text-sm">{agent.phone || "—"}</TableCell>
-                            <TableCell className="text-xs text-muted-foreground">
+                            <TableCell className="text-sm font-medium">{agent.phone || "—"}</TableCell>
+                            <TableCell className="text-xs text-muted-foreground font-medium">
                               {new Date(agent.created_at).toLocaleDateString()}
                             </TableCell>
                             <TableCell>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/30"
+                                  >
                                     <MoreVertical className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
@@ -397,7 +423,7 @@ export function UserManagement() {
                                   {agent.status === "PENDING" && (
                                     <>
                                       <DropdownMenuItem
-                                        className="text-green-600"
+                                        className="text-green-700 dark:text-green-400 font-semibold focus:bg-green-50 dark:focus:bg-green-950/30"
                                         onClick={() => {
                                           setActionAgentId(agent.id)
                                           setActionNotes("")
@@ -408,7 +434,7 @@ export function UserManagement() {
                                         Approve Agent
                                       </DropdownMenuItem>
                                       <DropdownMenuItem
-                                        className="text-destructive"
+                                        className="text-red-700 dark:text-red-400 font-semibold focus:bg-red-50 dark:focus:bg-red-950/30"
                                         onClick={() => {
                                           setActionAgentId(agent.id)
                                           setActionNotes("")
@@ -421,7 +447,7 @@ export function UserManagement() {
                                     </>
                                   )}
                                   <DropdownMenuItem
-                                    className="text-destructive"
+                                    className="text-red-700 dark:text-red-400 font-semibold focus:bg-red-50 dark:focus:bg-red-950/30"
                                     onClick={() => {
                                       setActionAgentId(agent.id)
                                       setIsDeleteDialogOpen(true)
@@ -444,15 +470,15 @@ export function UserManagement() {
           </TabsContent>
 
           <TabsContent value="users" className="mt-6">
-            <Card>
+            <Card className="border-2 shadow-lg">
               <CardContent className="p-0">
-                <div className="p-4 sm:p-6 border-b flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
+                <div className="p-4 sm:p-6 border-b-2 bg-gradient-to-r from-purple-50/50 to-pink-50/50 dark:from-purple-950/20 dark:to-pink-950/20 flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
                   <div className="flex-1 space-y-2">
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
                       <Input
                         placeholder="Search by email or phone..."
-                        className="pl-9"
+                        className="pl-10 h-11 border-2 focus:border-primary/50 shadow-sm"
                         value={userSearch}
                         onChange={(e) => setUserSearch(e.target.value)}
                       />
@@ -463,7 +489,7 @@ export function UserManagement() {
                       value={userRoleFilter}
                       onValueChange={(value: UserRoleFilter) => setUserRoleFilter(value)}
                     >
-                      <SelectTrigger className="w-full sm:w-[160px]">
+                      <SelectTrigger className="w-full sm:w-[160px] h-11 border-2">
                         <SelectValue placeholder="All roles" />
                       </SelectTrigger>
                       <SelectContent>
@@ -478,7 +504,7 @@ export function UserManagement() {
                       value={userStatusFilter}
                       onValueChange={(value: UserStatusFilter) => setUserStatusFilter(value)}
                     >
-                      <SelectTrigger className="w-full sm:w-[180px]">
+                      <SelectTrigger className="w-full sm:w-[180px] h-11 border-2">
                         <SelectValue placeholder="All statuses" />
                       </SelectTrigger>
                       <SelectContent>
@@ -493,14 +519,14 @@ export function UserManagement() {
                 </div>
 
                 {isUsersLoading && (
-                  <div className="p-6 text-sm text-muted-foreground">
+                  <div className="p-8 text-center text-sm text-muted-foreground bg-muted/30">
                     Loading users…
                   </div>
                 )}
 
                 {!isUsersLoading && usersError && (
-                  <div className="p-6 flex items-center justify-between gap-4">
-                    <div className="text-sm text-destructive">
+                  <div className="p-6 flex items-center justify-between gap-4 bg-destructive/5 border-b-2 border-destructive/20">
+                    <div className="text-sm font-medium text-destructive">
                       Failed to load users. Please try again.
                     </div>
                     <Button
@@ -509,6 +535,7 @@ export function UserManagement() {
                       onClick={() => {
                         void refreshUsers()
                       }}
+                      className="border-2 hover:bg-destructive hover:text-destructive-foreground"
                     >
                       Retry
                     </Button>
@@ -516,8 +543,14 @@ export function UserManagement() {
                 )}
 
                 {!isUsersLoading && !usersError && filteredUsers.length === 0 && (
-                  <div className="p-8 text-center text-sm text-muted-foreground">
-                    No users found matching your filters.
+                  <div className="p-12 text-center bg-gradient-to-br from-muted/50 to-muted/30">
+                    <div className="h-16 w-16 mx-auto rounded-full bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 flex items-center justify-center mb-4">
+                      <Users className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <h3 className="font-bold text-lg mb-2">No users found</h3>
+                    <p className="text-sm text-muted-foreground">
+                      No users found matching your filters.
+                    </p>
                   </div>
                 )}
 
@@ -525,23 +558,26 @@ export function UserManagement() {
                   <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
-                        <TableRow>
-                          <TableHead>User</TableHead>
-                          <TableHead>Role</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Phone</TableHead>
-                          <TableHead>Joined</TableHead>
+                        <TableRow className="bg-muted/50 hover:bg-muted/50">
+                          <TableHead className="font-semibold">User</TableHead>
+                          <TableHead className="font-semibold">Role</TableHead>
+                          <TableHead className="font-semibold">Status</TableHead>
+                          <TableHead className="font-semibold">Phone</TableHead>
+                          <TableHead className="font-semibold">Joined</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {filteredUsers.map((user) => {
                           const badge = getStatusBadge(user.status)
                           return (
-                            <TableRow key={user.id}>
-                              <TableCell>
+                            <TableRow
+                              key={user.id}
+                              className="hover:bg-muted/30 transition-colors border-b border-border/50"
+                            >
+                              <TableCell className="py-4">
                                 <div className="flex items-center gap-3">
-                                  <Avatar className="h-9 w-9">
-                                    <AvatarFallback>
+                                  <Avatar className="h-11 w-11 border-2 border-border shadow-sm">
+                                    <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white font-semibold">
                                       {user.email
                                         .split("@")[0]
                                         .slice(0, 2)
@@ -549,27 +585,33 @@ export function UserManagement() {
                                     </AvatarFallback>
                                   </Avatar>
                                   <div>
-                                    <p className="font-medium break-all">{user.email}</p>
-                                    <p className="text-xs text-muted-foreground">
+                                    <p className="font-semibold text-base break-all">{user.email}</p>
+                                    <p className="text-xs text-muted-foreground mt-0.5">
                                       ID: {user.id.slice(0, 8)}…
                                     </p>
                                   </div>
                                 </div>
                               </TableCell>
                               <TableCell className="text-xs sm:text-sm">
-                                <Badge variant="outline" className="uppercase">
+                                <Badge
+                                  variant="outline"
+                                  className="uppercase font-semibold px-2.5 py-1 border-2"
+                                >
                                   {user.role}
                                 </Badge>
                               </TableCell>
                               <TableCell>
-                                <Badge variant={badge.variant} className={badge.className}>
+                                <Badge
+                                  variant={badge.variant}
+                                  className={`${badge.className} font-semibold px-2.5 py-1 border-2`}
+                                >
                                   {user.status}
                                 </Badge>
                               </TableCell>
-                              <TableCell className="text-sm">
+                              <TableCell className="text-sm font-medium">
                                 {user.phone && user.phone.trim() !== "" ? user.phone : "—"}
                               </TableCell>
-                              <TableCell className="text-xs text-muted-foreground">
+                              <TableCell className="text-xs text-muted-foreground font-medium">
                                 {new Date(user.created_at).toLocaleDateString()}
                               </TableCell>
                             </TableRow>

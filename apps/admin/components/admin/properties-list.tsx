@@ -307,14 +307,16 @@ export function PropertiesList() {
   return (
     <div className="space-y-6">
       <FadeIn>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b">
           <div>
-            <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">All Properties</h1>
-            <p className="text-muted-foreground mt-1">
+            <h1 className="text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+              All Properties
+            </h1>
+            <p className="text-muted-foreground mt-2 text-sm">
               View and manage all properties on the platform
             </p>
           </div>
-          <Badge variant="secondary" className="bg-primary/10 text-primary">
+          <Badge variant="secondary" className="bg-gradient-to-r from-blue-500/10 to-indigo-500/10 text-blue-700 dark:text-blue-400 border-2 border-blue-200/50 px-4 py-1.5 text-base font-semibold">
             {meta?.total || 0} Total
           </Badge>
         </div>
@@ -324,10 +326,10 @@ export function PropertiesList() {
         <div className="flex flex-col gap-4">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
               <Input
                 placeholder="Search by title, description, agent email, or location..."
-                className="pl-9"
+                className="pl-10 h-11 border-2 focus:border-primary/50 shadow-sm"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -335,12 +337,12 @@ export function PropertiesList() {
             <Button
               variant="outline"
               onClick={() => setShowFilters(!showFilters)}
-              className="sm:w-auto"
+              className="sm:w-auto h-11 border-2 hover:bg-purple-50 hover:border-purple-300 transition-colors"
             >
               <Filter className="h-4 w-4 mr-2" />
               Filters
               {hasActiveFilters && (
-                <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 flex items-center justify-center">
+                <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 flex items-center justify-center bg-purple-500 text-white border-0">
                   {[
                     verificationStatusFilter !== "all",
                     visibilityFilter !== "all",
@@ -355,7 +357,7 @@ export function PropertiesList() {
           </div>
 
           {showFilters && (
-            <Card className="p-4">
+            <Card className="p-5 border-2 shadow-lg bg-gradient-to-br from-purple-50/50 to-pink-50/50 dark:from-purple-950/20 dark:to-pink-950/20">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
                   <label className="text-sm font-medium mb-2 block">Verification Status</label>
@@ -461,11 +463,13 @@ export function PropertiesList() {
 
       {!isLoading && !error && filteredProperties.length === 0 && (
         <FadeIn>
-          <Card className="bg-muted/50">
-            <CardContent className="p-10 text-center space-y-2">
-              <Building2 className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
-              <h3 className="font-semibold text-lg">No properties found</h3>
-              <p className="text-muted-foreground text-sm">
+          <Card className="bg-gradient-to-br from-muted/50 to-muted/30 border-2 shadow-lg">
+            <CardContent className="p-12 text-center space-y-3">
+              <div className="h-16 w-16 mx-auto rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 flex items-center justify-center mb-4">
+                <Building2 className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+              </div>
+              <h3 className="font-bold text-xl">No properties found</h3>
+              <p className="text-muted-foreground text-sm max-w-md mx-auto">
                 {hasActiveFilters || search
                   ? "Try adjusting your filters or search query."
                   : "No properties have been submitted yet."}
@@ -477,20 +481,20 @@ export function PropertiesList() {
 
       {!isLoading && !error && filteredProperties.length > 0 && (
         <>
-          <Card>
+          <Card className="border-2 shadow-lg">
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Property</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Visibility</TableHead>
-                      <TableHead>Agent</TableHead>
-                      <TableHead>Location</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead className="w-[100px]"></TableHead>
+                    <TableRow className="bg-muted/50 hover:bg-muted/50">
+                      <TableHead className="font-semibold">Property</TableHead>
+                      <TableHead className="font-semibold">Status</TableHead>
+                      <TableHead className="font-semibold">Visibility</TableHead>
+                      <TableHead className="font-semibold">Agent</TableHead>
+                      <TableHead className="font-semibold">Location</TableHead>
+                      <TableHead className="font-semibold">Price</TableHead>
+                      <TableHead className="font-semibold">Created</TableHead>
+                      <TableHead className="w-[100px] font-semibold">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -501,10 +505,13 @@ export function PropertiesList() {
                       const location = property.locations[0]
 
                       return (
-                        <TableRow key={property.id}>
-                          <TableCell>
+                        <TableRow
+                          key={property.id}
+                          className="hover:bg-muted/30 transition-colors border-b border-border/50"
+                        >
+                          <TableCell className="py-4">
                             <div className="flex items-center gap-3">
-                              <div className="relative h-12 w-12 rounded-md overflow-hidden bg-muted flex-shrink-0">
+                              <div className="relative h-14 w-14 rounded-xl overflow-hidden bg-muted flex-shrink-0 border-2 border-border shadow-sm">
                                 <Image
                                   src={property.media[0]?.file_path || "/placeholder.svg"}
                                   alt={property.title}
@@ -513,40 +520,49 @@ export function PropertiesList() {
                                 />
                               </div>
                               <div className="min-w-0">
-                                <p className="font-medium truncate">{property.title}</p>
-                                <p className="text-xs text-muted-foreground truncate">
+                                <p className="font-semibold truncate text-base">{property.title}</p>
+                                <p className="text-xs text-muted-foreground truncate mt-0.5">
                                   {property.property_type} • {property.transaction_type}
                                 </p>
                               </div>
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline" className={statusBadge}>
+                            <Badge
+                              variant="outline"
+                              className={`${statusBadge} font-semibold px-2.5 py-1 border-2`}
+                            >
                               {property.verification_status}
                             </Badge>
                           </TableCell>
                           <TableCell>
                             <Badge
                               variant="outline"
-                              className={
+                              className={`font-semibold px-2.5 py-1 border-2 ${
                                 property.visibility === "PUBLIC"
-                                  ? "border-blue-500/60 text-blue-700 bg-blue-50"
-                                  : "border-gray-500/60 text-gray-700 bg-gray-50"
-                              }
+                                  ? "border-blue-500/60 text-blue-700 bg-blue-50 dark:bg-blue-950/30 dark:text-blue-400"
+                                  : "border-gray-500/60 text-gray-700 bg-gray-50 dark:bg-gray-900/30 dark:text-gray-400"
+                              }`}
                             >
                               {property.visibility}
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <p className="text-sm truncate max-w-[150px]" title={property.agent_email}>
+                            <p
+                              className="text-sm font-medium truncate max-w-[150px]"
+                              title={property.agent_email}
+                            >
                               {property.agent_email}
                             </p>
                           </TableCell>
                           <TableCell>
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
-                                <span className="truncate max-w-[120px]" title={formatLocationAddress(location)}>
+                            <div className="space-y-1.5">
+                              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                                <MapPin className="h-4 w-4 flex-shrink-0 text-blue-600" />
+                                <span
+                                  className="truncate max-w-[120px] font-medium"
+                                  title={formatLocationAddress(location)}
+                                >
                                   {location?.city || location?.country || "—"}
                                 </span>
                               </div>
@@ -555,7 +571,7 @@ export function PropertiesList() {
                                   href={getGoogleMapsUrl(location.latitude, location.longitude) ?? "#"}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-xs text-primary hover:underline flex items-center gap-1"
+                                  className="text-xs text-blue-600 hover:text-blue-700 hover:underline flex items-center gap-1 font-medium"
                                   onClick={(e) => e.stopPropagation()}
                                 >
                                   <ExternalLink className="h-3 w-3" />
@@ -565,7 +581,7 @@ export function PropertiesList() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <p className="text-sm font-medium">
+                            <p className="text-sm font-bold text-foreground">
                               {property.price != null
                                 ? new Intl.NumberFormat("en-US", {
                                     style: "currency",
@@ -576,7 +592,7 @@ export function PropertiesList() {
                             </p>
                           </TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                               <Calendar className="h-3.5 w-3.5" />
                               {new Date(property.created_at).toLocaleDateString()}
                             </div>
@@ -587,7 +603,7 @@ export function PropertiesList() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setSelectedProperty(property)}
-                                className="cursor-pointer hover:bg-red-100"
+                                className="hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-950/30"
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
@@ -597,6 +613,7 @@ export function PropertiesList() {
                                     variant="ghost"
                                     size="icon"
                                     disabled={updatingPropertyId === property.id}
+                                    className="hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/30"
                                   >
                                     <MoreVertical className="h-4 w-4" />
                                   </Button>
