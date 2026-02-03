@@ -144,7 +144,7 @@ export function PropertyImageCarousel({
         onClick={handleCarouselClick}
       >
         {/* Main Image */}
-        <div className="relative h-full w-full overflow-hidden rounded-lg">
+        <div className="relative h-full w-full overflow-hidden">
           {/* Render all images but only show current one */}
           {normalizedImages.map((image, index) => {
             const imageSrc = failedImages.has(index) ? "/placeholder.svg" : image
@@ -174,36 +174,36 @@ export function PropertyImageCarousel({
             )
           })}
 
-          {/* Navigation Arrows - Show on hover (desktop) and always visible on mobile */}
+          {/* Navigation Arrows - Airbnb style: More visible, centered vertically */}
           {hasMultipleImages && (
             <>
               <button
                 onClick={goToPrevious}
-                className="absolute left-2 top-1/2 cursor-pointer -translate-y-1/2 h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-all hover:bg-black/80 z-10 shadow-lg"
+                className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-white shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110 hover:shadow-xl z-10"
                 aria-label="Previous image"
               >
-                <ChevronLeft className="h-4 w-4 text-white cursor-pointer" />
+                <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5 text-gray-800" />
               </button>
               <button
                 onClick={goToNext}
-                className="absolute right-2 top-1/2 cursor-pointer -translate-y-1/2 h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-all hover:bg-black/80 z-10 shadow-lg"
+                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-white shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110 hover:shadow-xl z-10"
                 aria-label="Next image"
               >
-                <ChevronRight className="h-4 w-4 text-white cursor-pointer" />
+                <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-gray-800" />
               </button>
             </>
           )}
 
-          {/* Image Counter Badge */}
+          {/* Image Counter Badge - Airbnb style */}
           {hasMultipleImages && (
-            <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white px-2 py-0.5 rounded-md text-xs font-medium z-10">
+            <div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-white/90 backdrop-blur-sm text-gray-800 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold z-10 shadow-sm">
               {currentIndex + 1}/{normalizedImages.length}
             </div>
           )}
 
-          {/* Improved Dots Indicator - Smaller on mobile */}
+          {/* Dots Indicator - Airbnb style: Bottom center, more visible */}
           {hasMultipleImages && normalizedImages.length <= 8 && (
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1 z-10">
+            <div className="absolute bottom-2 sm:bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1 sm:gap-1.5 z-10">
               {normalizedImages.map((_, index) => (
                 <button
                   key={index}
@@ -213,10 +213,10 @@ export function PropertyImageCarousel({
                   }}
                   className={cn(
                     "rounded-full transition-all duration-200",
-                    "h-1.5 sm:h-2",
+                    "h-1 sm:h-1.5 w-1 sm:w-1.5",
                     index === currentIndex
                       ? "w-4 sm:w-6 bg-white shadow-md"
-                      : "w-1.5 sm:w-2 bg-white/60 hover:bg-white/80"
+                      : "bg-white/60 hover:bg-white/80"
                   )}
                   aria-label={`Go to image ${index + 1}`}
                 />

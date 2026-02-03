@@ -13,7 +13,7 @@ export default function ListingsPage() {
     <div className="min-h-screen flex flex-col">
       <ListingsHeader />
       <main className="flex-1 pt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 py-6 sm:py-8">
           <ListingsPageClient />
         </div>
       </main>
