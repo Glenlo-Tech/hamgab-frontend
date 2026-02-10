@@ -182,7 +182,7 @@ export function ListingsGrid({
 
   return (
     <>
-      {isLoading ? (
+      {isLoading || !properties ? (
         <ListingsGridSkeleton />
       ) : isError ? (
         <div className="py-16 flex flex-col items-center justify-center gap-3">
