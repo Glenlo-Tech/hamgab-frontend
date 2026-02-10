@@ -36,7 +36,7 @@ const categories: Array<{
 
 export function ListingsNav({ activeCategory, onCategoryChange }: ListingsNavProps) {
   return (
-    <nav className="flex items-center justify-center gap-8 sm:gap-12 md:gap-16 py-6 border-b border-border bg-background/80 backdrop-blur">
+    <nav className="flex items-center justify-center gap-8 sm:gap-12 md:gap-16 py-6 border-border bg-background/80 backdrop-blur">
       {categories.map((category) => {
         const isActive = activeCategory === category.id
 
