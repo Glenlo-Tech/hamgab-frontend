@@ -85,8 +85,6 @@ export function SiteHeader({ navLinks = [], user, variant = "listings" }: SiteHe
             {hasAgentPortal && (
               <a
                 href={agentPortalUrl}
-                target="_blank"
-                rel="noreferrer"
                 className="hidden text-sm font-medium text-foreground/70 p-3 rounded-2xl hover:bg-foreground/5 hover:text-foreground sm:inline-block"
               >
                 Become an agent
@@ -163,8 +161,6 @@ export function SiteHeader({ navLinks = [], user, variant = "listings" }: SiteHe
                 {hasAgentPortal && (
                   <a
                     href={agentPortalUrl}
-                    target="_blank"
-                    rel="noreferrer"
                     className="px-3 py-1 rounded-full text-sm font-medium text-foreground/90 transition-colors hover:bg-muted/60 hover:text-foreground"
                   >
                     Become an agent
