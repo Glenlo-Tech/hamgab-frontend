@@ -8,5 +8,5 @@ const navLinks = [
 ]
 
 export function ListingsHeader() {
-  return <SiteHeader navLinks={navLinks} />
+  return <SiteHeader navLinks={navLinks} variant="listings" />
 }

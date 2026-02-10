@@ -18,11 +18,12 @@ type HeaderUser = {
 }
 
 interface SiteHeaderProps {
-  navLinks: HeaderLink[]
+  navLinks?: HeaderLink[]
   user?: HeaderUser | null
+  variant?: "landing" | "listings"
 }
 
-export function SiteHeader({ navLinks: _navLinks, user }: SiteHeaderProps) {
+export function SiteHeader({ navLinks = [], user, variant = "listings" }: SiteHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const mobileMenuId = "site-mobile-navigation"
 
@@ -52,7 +53,7 @@ export function SiteHeader({ navLinks: _navLinks, user }: SiteHeaderProps) {
       className="fixed inset-x-0 top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg"
     >
       <div className="relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between lg:h-20">
+        <div className="flex h-16 items-center justify-between gap-4 lg:h-20">
           {/* Logo / Brand */}
           <Link href="/" className="flex items-center gap-2">
             <Image
@@ -63,6 +64,21 @@ export function SiteHeader({ navLinks: _navLinks, user }: SiteHeaderProps) {
             />
             <span className="text-xl font-semibold tracking-tight">HAMGAB</span>
           </Link>
+
+          {/* Center navigation - landing only */}
+          {variant === "landing" && navLinks.length > 0 && (
+            <nav className="hidden flex-1 items-center justify-center gap-6 text-sm font-medium text-muted-foreground md:flex">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="transition-colors hover:text-foreground"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          )}
 
           {/* Right cluster: Become an agent + profile + menu */}
           <div className="flex items-center gap-2 sm:gap-3">
@@ -128,6 +144,21 @@ export function SiteHeader({ navLinks: _navLinks, user }: SiteHeaderProps) {
             className="absolute right-4 top-[calc(100%-0.5rem)] z-[60] w-56 overflow-hidden rounded-2xl border border-border bg-background/95 p-2 shadow-xl backdrop-blur-lg sm:right-6 lg:right-8"
           >
             <nav className="flex flex-col gap-1.5">
+              {variant === "landing" && navLinks.length > 0 && (
+                <div className="mb-1 flex flex-col gap-1.5 border-b border-border/60 pb-2">
+                  {navLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className="rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+
               <div className="flex flex-col gap-1.5">
                 {hasAgentPortal && (
                   <a
