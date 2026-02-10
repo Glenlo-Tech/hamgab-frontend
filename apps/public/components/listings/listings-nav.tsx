@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { Home, MapPin, Building2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 

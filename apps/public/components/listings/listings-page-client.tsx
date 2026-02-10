@@ -34,16 +34,19 @@ export function ListingsPageClient({ initialPage = 1, pageSize = 20 }: ListingsP
     setActiveCategory(category)
     setPage(1) // reset to first page when category changes
     
-    // Map category to property type filter
-    const propertyTypeMap: Record<ListingCategory, string> = {
-      homes: "all", // or specific types like "apartment", "house", "condo", "villa"
-      lands: "land",
-      services: "commercial", // or "other" depending on your data structure
-    }
-    
+    // Map category to property type filter.
+    // For now:
+    // - Homes: leave as \"all\" and let the grid restrict to Apartment/Condo/Villa/Commercial.
+    // - Lands: filter by \"land\".
+    // - Services: filter by \"commercial\" (service-like listings).
     setFilters((prev) => ({
       ...prev,
-      propertyType: propertyTypeMap[category],
+      propertyType:
+        category === "lands"
+          ? "land"
+          : category === "services"
+          ? "commercial"
+          : "all",
     }))
   }
 
@@ -56,6 +59,7 @@ export function ListingsPageClient({ initialPage = 1, pageSize = 20 }: ListingsP
         page={page}
         pageSize={pageSize}
         onPageChange={setPage}
+        category={activeCategory}
         sectionTitle={
           activeCategory === "homes"
             ? "Homes"

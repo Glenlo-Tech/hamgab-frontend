@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -19,6 +19,7 @@ interface ListingsGridProps {
   page: number
   pageSize: number
   onPageChange: (page: number) => void
+  category?: "homes" | "lands" | "services"
   sectionTitle?: string
 }
 
@@ -56,7 +57,14 @@ function ListingsGridSkeleton() {
   )
 }
 
-export function ListingsGrid({ filters, page, pageSize, onPageChange, sectionTitle = "Properties" }: ListingsGridProps) {
+export function ListingsGrid({
+  filters,
+  page,
+  pageSize,
+  onPageChange,
+  category,
+  sectionTitle = "Properties",
+}: ListingsGridProps) {
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null)
   const [favorites, setFavorites] = useState<string[]>([])
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -74,6 +82,28 @@ export function ListingsGrid({ filters, page, pageSize, onPageChange, sectionTit
     city: filters.city || null,
     country: filters.country || null,
   })
+
+  // Restrict visible properties based on high-level category.
+  const visibleProperties = useMemo(() => {
+    if (!properties || properties.length === 0) return []
+
+    const type = (value: string | undefined) => value?.toUpperCase() ?? ""
+
+    if (category === "homes") {
+      const homeTypes = new Set(["APARTMENT", "CONDO", "VILLA", "COMMERCIAL"])
+      return properties.filter((p) => homeTypes.has(type((p as any).property_type)))
+    }
+
+    if (category === "lands") {
+      return properties.filter((p) => type((p as any).property_type) === "LAND")
+    }
+
+    if (category === "services") {
+      return properties.filter((p) => type((p as any).property_type) === "COMMERCIAL")
+    }
+
+    return properties
+  }, [properties, category])
 
   const toggleFavorite = (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
@@ -151,7 +181,7 @@ export function ListingsGrid({ filters, page, pageSize, onPageChange, sectionTit
             Retry
           </Button>
         </div>
-      ) : properties.length === 0 ? (
+      ) : visibleProperties.length === 0 ? (
         <div className="py-16 text-center space-y-2">
           <p className="text-lg font-semibold">No properties found</p>
           <p className="text-sm text-muted-foreground">
@@ -167,7 +197,8 @@ export function ListingsGrid({ filters, page, pageSize, onPageChange, sectionTit
               <h2 className="text-2xl sm:text-3xl font-semibold text-foreground">{sectionTitle}</h2>
               {meta && (
                 <p className="text-sm text-muted-foreground mt-1">
-                  {meta.total} {meta.total === 1 ? "property" : "properties"} available
+                  {visibleProperties.length}{" "}
+                  {visibleProperties.length === 1 ? "property" : "properties"} available
                 </p>
               )}
             </div>
@@ -211,7 +242,7 @@ export function ListingsGrid({ filters, page, pageSize, onPageChange, sectionTit
               ref={scrollContainerRef}
               className="flex gap-3 sm:gap-4 overflow-x-auto overflow-y-hidden scroll-smooth pb-4 scrollbar-hide"
             >
-              {properties.map((property) => {
+              {visibleProperties.map((property) => {
               // Extract all image URLs from media array
               const images = property.media
                 ?.filter((m) => m.file_type === "image")
