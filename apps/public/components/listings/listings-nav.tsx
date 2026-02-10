@@ -36,7 +36,10 @@ const categories: Array<{
 
 export function ListingsNav({ activeCategory, onCategoryChange }: ListingsNavProps) {
   return (
-    <nav className="flex items-center justify-center gap-8 sm:gap-12 md:gap-16 py-6 border-border bg-background/80 backdrop-blur">
+    <nav
+      className="mb-2 flex items-center justify-start gap-5 overflow-x-auto py-5 sm:justify-center sm:gap-8 md:gap-12 border-border bg-background/80 backdrop-blur scrollbar-hide"
+      aria-label="Listings categories"
+    >
       {categories.map((category) => {
         const isActive = activeCategory === category.id
 
@@ -50,6 +53,7 @@ export function ListingsNav({ activeCategory, onCategoryChange }: ListingsNavPro
               isActive && "opacity-100"
             )}
             aria-label={`View ${category.label}`}
+            aria-current={isActive ? "page" : undefined}
           >
             {/* Icon */}
             <div
@@ -67,7 +71,7 @@ export function ListingsNav({ activeCategory, onCategoryChange }: ListingsNavPro
                   alt={category.label}
                   width={64}
                   height={64}
-                  className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 object-contain transition-transform duration-300 ease-out"
+                  className="h-10 w-10 object-contain transition-transform duration-300 ease-out sm:h-12 sm:w-12 md:h-14 md:w-14"
                   priority={category.id === "homes"}
                 />
               </div>

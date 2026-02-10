@@ -5,7 +5,7 @@
 
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight, X } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -62,7 +62,7 @@ export function PropertyImageCarousel({
   const [failedImages, setFailedImages] = useState<Set<number>>(new Set())
 
   // Normalize image URLs
-  const normalizedImages = images.map(img => normalizeImageUrl(img))
+  const normalizedImages = useMemo(() => images.map((img) => normalizeImageUrl(img)), [images])
 
   // Preload adjacent images
   useEffect(() => {
@@ -82,9 +82,9 @@ export function PropertyImageCarousel({
   }, [currentIndex, normalizedImages, failedImages])
 
   // Handle image load errors
-  const handleImageError = (index: number) => {
+  const handleImageError = useCallback((index: number) => {
     setFailedImages((prev) => new Set(prev).add(index))
-  }
+  }, [])
 
   if (!normalizedImages || normalizedImages.length === 0) {
     return (
@@ -145,58 +145,51 @@ export function PropertyImageCarousel({
       >
         {/* Main Image */}
         <div className="relative h-full w-full overflow-hidden">
-          {/* Render all images but only show current one */}
-          {normalizedImages.map((image, index) => {
-            const imageSrc = failedImages.has(index) ? "/placeholder.svg" : image
-            return (
-              <motion.div
-                key={`image-${index}`}
-                initial={false}
-                animate={{
-                  opacity: index === currentIndex ? 1 : 0,
-                  scale: index === currentIndex ? 1 : 1.05,
-                }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="absolute inset-0"
-                style={{ pointerEvents: index === currentIndex ? "auto" : "none" }}
-              >
-                <Image
-                  src={imageSrc}
-                  alt={`${propertyTitle} - Image ${index + 1}`}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 256px"
-                  priority={index === 0}
-                  loading={index === 0 ? "eager" : "lazy"}
-                  onError={() => handleImageError(index)}
-                />
-              </motion.div>
-            )
-          })}
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={`image-${currentIndex}`}
+              initial={{ opacity: 0.6, scale: 1.02 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0.6, scale: 1.02 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              className="absolute inset-0"
+            >
+              <Image
+                src={failedImages.has(currentIndex) ? "/placeholder.svg" : normalizedImages[currentIndex]}
+                alt={`${propertyTitle} - Image ${currentIndex + 1}`}
+                fill
+                className="object-cover"
+                sizes="(max-width: 640px) 260px, (max-width: 1024px) 320px, 25vw"
+                priority={currentIndex === 0}
+                loading={currentIndex === 0 ? "eager" : "lazy"}
+                onError={() => handleImageError(currentIndex)}
+              />
+            </motion.div>
+          </AnimatePresence>
 
           {/* Navigation Arrows - Airbnb style: More visible, centered vertically */}
           {hasMultipleImages && (
             <>
               <button
                 onClick={goToPrevious}
-                className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-white shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110 hover:shadow-xl z-10"
+                className="absolute left-2 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-background/95 shadow-lg transition-all duration-200 hover:scale-110 hover:shadow-xl sm:left-3 md:opacity-0 md:group-hover:opacity-100"
                 aria-label="Previous image"
               >
-                <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5 text-gray-800" />
+                <ChevronLeft className="h-4 w-4 text-foreground sm:h-5 sm:w-5" />
               </button>
               <button
                 onClick={goToNext}
-                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-white shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110 hover:shadow-xl z-10"
+                className="absolute right-2 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-background/95 shadow-lg transition-all duration-200 hover:scale-110 hover:shadow-xl sm:right-3 md:opacity-0 md:group-hover:opacity-100"
                 aria-label="Next image"
               >
-                <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-gray-800" />
+                <ChevronRight className="h-4 w-4 text-foreground sm:h-5 sm:w-5" />
               </button>
             </>
           )}
 
           {/* Image Counter Badge - Airbnb style */}
           {hasMultipleImages && (
-            <div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-white/90 backdrop-blur-sm text-gray-800 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold z-10 shadow-sm">
+            <div className="absolute right-2 top-2 z-10 rounded-full bg-background/90 px-2 py-0.5 text-[10px] font-semibold text-foreground shadow-sm backdrop-blur-sm sm:right-3 sm:top-3 sm:px-2.5 sm:py-1 sm:text-xs">
               {currentIndex + 1}/{normalizedImages.length}
             </div>
           )}
@@ -207,16 +200,16 @@ export function PropertyImageCarousel({
               {normalizedImages.map((_, index) => (
                 <button
                   key={index}
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation()
                     goToImage(index)
                   }}
                   className={cn(
-                    "rounded-full transition-all duration-200",
-                    "h-1 sm:h-1.5 w-1 sm:w-1.5",
+                    "h-3 min-w-3 rounded-full px-1 transition-all duration-200 sm:h-3.5 sm:min-w-3.5",
                     index === currentIndex
-                      ? "w-4 sm:w-6 bg-white shadow-md"
-                      : "bg-white/60 hover:bg-white/80"
+                      ? "w-5 sm:w-6 bg-background shadow-md"
+                      : "bg-background/70 hover:bg-background/90"
                   )}
                   aria-label={`Go to image ${index + 1}`}
                 />

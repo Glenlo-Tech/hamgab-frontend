@@ -2,17 +2,17 @@
 
 import type React from "react"
 
-import { useState, useRef, useEffect, useMemo } from "react"
-import { Card, CardContent } from "@/components/ui/card"
+import { useState, useRef, useEffect, useMemo, useCallback } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { StaggerContainer, StaggerItem } from "@/components/motion-wrapper"
-import { Bed, Bath, Square, MapPin, CheckCircle, Heart, Phone, Mail, ChevronLeft, ChevronRight, Star } from "lucide-react"
+import { Bed, Bath, Square, MapPin, CheckCircle, Heart, Phone, Mail, ChevronLeft, ChevronRight } from "lucide-react"
 import { usePublicProperties } from "@/hooks/use-public-properties"
 import { ListingsFilterState } from "./listings-filters"
 import { PropertyImageCarousel } from "./property-image-carousel"
 import { cn } from "@/lib/utils"
+import { PublicProperty } from "@/lib/public-properties"
 
 interface ListingsGridProps {
   filters: ListingsFilterState
@@ -21,6 +21,7 @@ interface ListingsGridProps {
   onPageChange: (page: number) => void
   category?: "homes" | "lands" | "services"
   sectionTitle?: string
+  onTotalCountChange?: (total: number) => void
 }
 
 function formatPrice(value: number | null, transactionType: string): string {
@@ -64,12 +65,14 @@ export function ListingsGrid({
   onPageChange,
   category,
   sectionTitle = "Properties",
+  onTotalCountChange,
 }: ListingsGridProps) {
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null)
   const [favorites, setFavorites] = useState<string[]>([])
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(false)
+  const scrollRafRef = useRef<number | null>(null)
 
   const noPriceFilter = filters.minPrice === 0 && filters.maxPrice === 5_000_000
 
@@ -91,27 +94,31 @@ export function ListingsGrid({
 
     if (category === "homes") {
       const homeTypes = new Set(["APARTMENT", "CONDO", "VILLA", "COMMERCIAL"])
-      return properties.filter((p) => homeTypes.has(type((p as any).property_type)))
+      return properties.filter((p) => homeTypes.has(type((p as PublicProperty).property_type)))
     }
 
     if (category === "lands") {
-      return properties.filter((p) => type((p as any).property_type) === "LAND")
+      return properties.filter((p) => type((p as PublicProperty).property_type) === "LAND")
     }
 
     if (category === "services") {
-      return properties.filter((p) => type((p as any).property_type) === "COMMERCIAL")
+      return properties.filter((p) => type((p as PublicProperty).property_type) === "COMMERCIAL")
     }
 
     return properties
   }, [properties, category])
 
-  const toggleFavorite = (id: string, e: React.MouseEvent) => {
+  useEffect(() => {
+    onTotalCountChange?.(meta?.total ?? visibleProperties.length)
+  }, [meta, visibleProperties.length, onTotalCountChange])
+
+  const toggleFavorite = useCallback((id: string, e: React.MouseEvent) => {
     e.stopPropagation()
     setFavorites((prev) => (prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]))
-  }
+  }, [])
 
   // Check scroll position and update button states
-  const checkScrollPosition = () => {
+  const checkScrollPosition = useCallback(() => {
     if (!scrollContainerRef.current) return
     
     const container = scrollContainerRef.current
@@ -124,30 +131,35 @@ export function ListingsGrid({
     // Use a small threshold to account for rounding errors
     const isAtEnd = scrollLeft >= scrollWidth - clientWidth - 1
     setCanScrollRight(!isAtEnd)
-  }
+  }, [])
 
   useEffect(() => {
     const container = scrollContainerRef.current
     if (!container) return
 
-    // Initial check
-    checkScrollPosition()
-    
-    // Check after a short delay to ensure DOM is ready
-    const timeoutId = setTimeout(checkScrollPosition, 100)
+    const runScrollCheck = () => {
+      if (scrollRafRef.current) {
+        cancelAnimationFrame(scrollRafRef.current)
+      }
+      scrollRafRef.current = requestAnimationFrame(() => {
+        checkScrollPosition()
+      })
+    }
 
-    // Listen to scroll events
-    container.addEventListener("scroll", checkScrollPosition, { passive: true })
-    
-    // Listen to resize events
-    window.addEventListener("resize", checkScrollPosition, { passive: true })
+    checkScrollPosition()
+    const timeoutId = setTimeout(checkScrollPosition, 100)
+    container.addEventListener("scroll", runScrollCheck, { passive: true })
+    window.addEventListener("resize", runScrollCheck, { passive: true })
 
     return () => {
       clearTimeout(timeoutId)
-      container.removeEventListener("scroll", checkScrollPosition)
-      window.removeEventListener("resize", checkScrollPosition)
+      if (scrollRafRef.current) {
+        cancelAnimationFrame(scrollRafRef.current)
+      }
+      container.removeEventListener("scroll", runScrollCheck)
+      window.removeEventListener("resize", runScrollCheck)
     }
-  }, [properties])
+  }, [checkScrollPosition, properties])
 
   const scroll = (direction: "left" | "right") => {
     if (!scrollContainerRef.current) return
@@ -191,7 +203,7 @@ export function ListingsGrid({
       ) : (
         <div className="space-y-4">
           {/* Section Header with Navigation Controls */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             {/* Section Title */}
             <div>
               <h2 className="text-2xl sm:text-3xl font-semibold text-foreground">{sectionTitle}</h2>
@@ -204,34 +216,34 @@ export function ListingsGrid({
             </div>
 
             {/* Carousel Navigation Controls */}
-            <div className="flex items-center gap-2">
+            <div className="hidden items-center gap-2 lg:flex">
               <button
                 onClick={() => scroll("left")}
                 disabled={!canScrollLeft}
                 className={cn(
-                  "h-10 w-10 rounded-full bg-white border border-border shadow-md",
+                  "h-10 w-10 rounded-full border border-border bg-background shadow-md",
                   "flex items-center justify-center",
                   "hover:scale-110 transition-all duration-200",
                   "disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100",
-                  "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 cursor-pointer"
+                  "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 cursor-pointer"
                 )}
                 aria-label="Scroll left"
               >
-                <ChevronLeft className="h-5 w-5 text-gray-800" />
+                <ChevronLeft className="h-5 w-5 text-foreground" />
               </button>
               <button
                 onClick={() => scroll("right")}
                 disabled={!canScrollRight}
                 className={cn(
-                  "h-10 w-10 rounded-full bg-white border border-border shadow-md",
+                  "h-10 w-10 rounded-full border border-border bg-background shadow-md",
                   "flex items-center justify-center",
                   "hover:scale-110 transition-all duration-200",
                   "disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100",
-                  "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 cursor-pointer"
+                  "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 cursor-pointer"
                 )}
                 aria-label="Scroll right"
               >
-                <ChevronRight className="h-5 w-5 text-gray-800" />
+                <ChevronRight className="h-5 w-5 text-foreground" />
               </button>
             </div>
           </div>
@@ -240,7 +252,7 @@ export function ListingsGrid({
           <div className="relative">
             <div
               ref={scrollContainerRef}
-              className="flex gap-3 sm:gap-4 overflow-x-auto overflow-y-hidden scroll-smooth pb-4 scrollbar-hide"
+              className="flex gap-3 overflow-x-auto overflow-y-hidden scroll-smooth pb-4 scrollbar-hide sm:gap-4 lg:grid lg:grid-cols-4 lg:gap-5 lg:overflow-visible lg:pb-0 xl:grid-cols-5 2xl:grid-cols-6"
             >
               {visibleProperties.map((property) => {
               // Extract all image URLs from media array
@@ -251,10 +263,19 @@ export function ListingsGrid({
                 return (
                   <div
                     key={property.id}
-                    className="group cursor-pointer flex-shrink-0 w-[260px] sm:w-[280px] md:w-[300px]"
+                    className="group cursor-pointer flex-shrink-0 text-left w-[220px] sm:w-[240px] md:w-[260px] lg:w-auto lg:flex-shrink lg:min-w-0"
                     onClick={() => setSelectedPropertyId(property.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault()
+                        setSelectedPropertyId(property.id)
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`View details for ${property.title}`}
                   >
-                <div className="overflow-hidden rounded-2xl bg-card border border-border/50 shadow-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.02] h-full flex flex-col w-full">
+                <div className="overflow-hidden rounded-2xl bg-card border border-border/50 shadow-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.01] h-full flex flex-col w-full">
                   {/* Image Carousel Container */}
                   <div className="relative aspect-square overflow-hidden bg-muted rounded-t-2xl">
                     <PropertyImageCarousel
@@ -266,15 +287,16 @@ export function ListingsGrid({
                     
                     {/* Favorite Button - Top Right */}
                     <button
+                      type="button"
                       onClick={(e) => toggleFavorite(property.id, e)}
-                      className="absolute top-3 right-3 h-8 w-8 rounded-full bg-white/95 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-all duration-200 z-20 shadow-md hover:shadow-lg hover:scale-110"
+                      className="absolute top-3 right-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-background/95 shadow-md backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-background hover:shadow-lg"
                       aria-label="Save to favorites"
                     >
                       <Heart
                         className={`h-4 w-4 transition-all ${
                           favorites.includes(property.id)
                             ? "fill-red-500 text-red-500"
-                            : "text-gray-800"
+                            : "text-foreground"
                         }`}
                       />
                     </button>
@@ -283,7 +305,7 @@ export function ListingsGrid({
                     <div className="absolute top-3 left-3 z-20">
                       <Badge 
                         variant={property.transaction_type === "RENT" ? "secondary" : "default"}
-                        className="bg-white/95 backdrop-blur-sm text-gray-900 border-0 shadow-md px-2 py-1 text-[11px] font-medium"
+                        className="border-0 bg-background/95 px-2 py-1 text-[11px] font-medium text-foreground shadow-md backdrop-blur-sm"
                       >
                         {property.transaction_type === "RENT" ? "For Rent" : "For Sale"}
                       </Badge>
@@ -291,7 +313,7 @@ export function ListingsGrid({
                   </div>
 
                   {/* Card Content - Airbnb Style */}
-                  <div className="p-4 flex-1 flex flex-col min-w-0">
+                  <div className="p-3.5 sm:p-4 flex-1 flex flex-col min-w-0">
                     {/* Location/Title - Primary (Airbnb style) */}
                     <h3 className="font-semibold text-sm mb-1.5 line-clamp-1 text-foreground group-hover:underline transition-all">
                       {formatLocation(property.locations[0]?.city, property.locations[0]?.country)}
@@ -385,7 +407,7 @@ export function ListingsGrid({
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           {(() => {
             if (!selectedPropertyId) return null
-            const property = properties.find((p) => p.id === selectedPropertyId)
+            const property = visibleProperties.find((p) => p.id === selectedPropertyId)
             if (!property) return null
 
             // Extract all image URLs from media array for the detail dialog

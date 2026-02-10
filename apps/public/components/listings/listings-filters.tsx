@@ -23,16 +23,14 @@ interface ListingsFiltersProps {
   totalCount?: number
 }
 
-export function ListingsFilters({ filters, onFiltersChange, totalCount }: ListingsFiltersProps) {
-  const [showMobileFilters, setShowMobileFilters] = useState(false)
+interface FilterContentProps {
+  filters: ListingsFilterState
+  onFiltersChange: (next: Partial<ListingsFilterState>) => void
+  onApplyFilters: () => void
+}
 
-
-  const handleApplyFilters = () => {
-    // Close the modal smoothly
-    setShowMobileFilters(false)
-  }
-
-  const FilterContent = () => (
+function FilterContent({ filters, onFiltersChange, onApplyFilters }: FilterContentProps) {
+  return (
     <div className="space-y-5 px-4">
       <div className="space-y-2">
         <label className="text-sm font-medium text-foreground">Property Type</label>
@@ -71,7 +69,7 @@ export function ListingsFilters({ filters, onFiltersChange, totalCount }: Listin
               className="h-11 rounded-lg"
             />
           </div>
-          <span className="text-sm text-muted-foreground shrink-0">to</span>
+          <span className="shrink-0 text-sm text-muted-foreground">to</span>
           <div className="flex-1">
             <Input
               type="number"
@@ -87,53 +85,60 @@ export function ListingsFilters({ filters, onFiltersChange, totalCount }: Listin
         </div>
       </div>
 
-      <Button 
-        onClick={handleApplyFilters}
-        className="w-full h-11 rounded-lg mt-2"
+      <Button
+        onClick={onApplyFilters}
+        className="mt-2 h-11 w-full rounded-lg"
       >
         Apply Filters
       </Button>
     </div>
   )
+}
+
+export function ListingsFilters({ filters, onFiltersChange, totalCount }: ListingsFiltersProps) {
+  const [showMobileFilters, setShowMobileFilters] = useState(false)
+
+  const handleApplyFilters = () => {
+    setShowMobileFilters(false)
+  }
 
   return (
     <div className="mb-8">
-      {/* Sticky primary search bar */}
       <div className="w-full flex items-center justify-center sticky top-20 z-30 bg-background/80 backdrop-blur-sm">
-        <div className="flex w-full max-w-3xl items-center gap-2 rounded-full bg-background shadow-[0_2px_12px_rgba(15,23,42,0.08)] px-3 py-1.5 sm:px-5 sm:py-2">
-          {/* Where */}
+        <form
+          className="flex w-full max-w-3xl items-center gap-2 rounded-full bg-background px-3 py-1.5 shadow-[0_2px_12px_rgba(15,23,42,0.08)] sm:px-5 sm:py-2"
+          onSubmit={(e) => {
+            e.preventDefault()
+            handleApplyFilters()
+          }}
+          aria-label="Listings search"
+        >
           <div className="flex-1">
-            <div>
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <p className="text-[11px] sm:text-xs font-bold text-muted-foreground leading-tight">
-                  Where
-                </p>
-              </div>
-              <Input
-                placeholder="Search by city"
-                className="h-7 sm:h-8 border-0 px-0 text-xs sm:text-sm focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
-                value={filters.city}
-                onChange={(e) => onFiltersChange({ city: e.target.value })}
-              />
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <MapPin className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+              <p className="text-[11px] sm:text-xs font-bold text-muted-foreground leading-tight">Where</p>
             </div>
+            <Input
+              placeholder="Search by city"
+              className="h-7 sm:h-8 border-0 bg-transparent px-0 text-xs sm:text-sm focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-0"
+              value={filters.city}
+              onChange={(e) => onFiltersChange({ city: e.target.value })}
+            />
           </div>
 
-          {/* Divider (placeholder for future sections like When/Who) */}
           <div className="hidden sm:block h-8 w-px bg-border/70" />
 
-          {/* Search button - circular, right aligned */}
           <Button
+            type="submit"
             size="icon"
             className="shrink-0 h-9 w-9 sm:h-10 sm:w-10 rounded-full cursor-pointer bg-primary text-primary-foreground shadow-md transition-all duration-200 ease-out hover:shadow-lg hover:-translate-y-[1px] hover:bg-primary/90 active:translate-y-0 active:shadow-md"
             aria-label="Search"
-            onClick={handleApplyFilters}
           >
             <Search className="h-4 w-4" />
           </Button>
-        </div>
+        </form>
       </div>
 
-      {/* Rest of filters + stats with subtle fade-in */}
       <FadeIn className="mt-4">
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between flex-wrap gap-3">
@@ -165,7 +170,12 @@ export function ListingsFilters({ filters, onFiltersChange, totalCount }: Listin
 
               <Sheet open={showMobileFilters} onOpenChange={setShowMobileFilters}>
                 <SheetTrigger asChild>
-                  <Button variant="outline" size="icon" className="lg:hidden bg-transparent">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="lg:hidden bg-transparent"
+                    aria-label="Open filters"
+                  >
                     <SlidersHorizontal className="h-5 w-5" />
                   </Button>
                 </SheetTrigger>
@@ -174,7 +184,11 @@ export function ListingsFilters({ filters, onFiltersChange, totalCount }: Listin
                     <SheetTitle>Filters</SheetTitle>
                   </SheetHeader>
                   <div className="mt-6">
-                    <FilterContent />
+                    <FilterContent
+                      filters={filters}
+                      onFiltersChange={onFiltersChange}
+                      onApplyFilters={handleApplyFilters}
+                    />
                   </div>
                 </SheetContent>
               </Sheet>

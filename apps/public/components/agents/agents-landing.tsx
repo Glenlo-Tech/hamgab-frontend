@@ -13,7 +13,7 @@ export function AgentsLanding() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main>
+      <main id="main-content">
         <AgentsHero />
         <AgentsFeatures />
         <AgentsHowItWorks />

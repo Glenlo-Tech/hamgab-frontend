@@ -1,4 +1,4 @@
- "use client"
+"use client"
 
 import { useMemo, useState } from "react"
 import Image from "next/image"
@@ -343,17 +343,17 @@ export function UserManagement() {
                 )}
 
                 {!isLoadingAny && !error && filteredAgents.length > 0 && (
-                  <Table>
-                    <TableHeader>
+                <Table>
+                  <TableHeader>
                       <TableRow className="bg-muted/50 hover:bg-muted/50">
                         <TableHead className="font-semibold">Agent</TableHead>
                         <TableHead className="font-semibold">Status</TableHead>
                         <TableHead className="font-semibold">Phone</TableHead>
                         <TableHead className="font-semibold">Created</TableHead>
                         <TableHead className="w-[70px] font-semibold">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                       {filteredAgents.map((agent) => {
                         const badge = getStatusBadge(agent.status)
                         const pendingKyc = pendingAgents.find((p) => p.id === agent.id)
@@ -363,53 +363,53 @@ export function UserManagement() {
                             className="hover:bg-muted/30 transition-colors border-b border-border/50"
                           >
                             <TableCell className="py-4">
-                              <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-3">
                                 <Avatar className="h-11 w-11 border-2 border-border shadow-sm">
                                   <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-500 text-white font-semibold">
                                     {agent.email
                                       .split("@")[0]
                                       .slice(0, 2)
                                       .toUpperCase()}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div>
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
                                   <p className="font-semibold text-base">{agent.email}</p>
                                   <p className="text-xs text-muted-foreground mt-0.5">
                                     {agent.role} • {agent.id.slice(0, 8)}…
                                   </p>
-                                </div>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Badge
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
                                 variant={badge.variant}
                                 className={`${badge.className} font-semibold px-2.5 py-1 border-2`}
-                              >
+                          >
                                 {agent.status}
-                              </Badge>
-                            </TableCell>
+                          </Badge>
+                        </TableCell>
                             <TableCell className="text-sm font-medium">{agent.phone || "—"}</TableCell>
                             <TableCell className="text-xs text-muted-foreground font-medium">
                               {new Date(agent.created_at).toLocaleDateString()}
                             </TableCell>
-                            <TableCell>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
                                   <Button
                                     variant="ghost"
                                     size="icon"
                                     className="hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/30"
                                   >
-                                    <MoreVertical className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem>
-                                    <Mail className="h-4 w-4 mr-2" />
-                                    Send Email
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem>
-                                    <Building2 className="h-4 w-4 mr-2" />
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem>
+                                <Mail className="h-4 w-4 mr-2" />
+                                Send Email
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <Building2 className="h-4 w-4 mr-2" />
                                     View Listings
                                   </DropdownMenuItem>
                                   {pendingKyc && (
@@ -432,18 +432,18 @@ export function UserManagement() {
                                       >
                                         <UserCheck className="h-4 w-4 mr-2" />
                                         Approve Agent
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem
+                              </DropdownMenuItem>
+                                <DropdownMenuItem
                                         className="text-red-700 dark:text-red-400 font-semibold focus:bg-red-50 dark:focus:bg-red-950/30"
-                                        onClick={() => {
+                                  onClick={() => {
                                           setActionAgentId(agent.id)
                                           setActionNotes("")
                                           setIsRejectDialogOpen(true)
-                                        }}
-                                      >
-                                        <UserX className="h-4 w-4 mr-2" />
+                                  }}
+                                >
+                                  <UserX className="h-4 w-4 mr-2" />
                                         Reject Agent
-                                      </DropdownMenuItem>
+                                </DropdownMenuItem>
                                     </>
                                   )}
                                   <DropdownMenuItem
@@ -455,15 +455,15 @@ export function UserManagement() {
                                   >
                                     <Trash2 className="h-4 w-4 mr-2" />
                                     Delete Agent
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </TableCell>
-                          </TableRow>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
                         )
                       })}
-                    </TableBody>
-                  </Table>
+                  </TableBody>
+                </Table>
                 )}
               </CardContent>
             </Card>
@@ -556,17 +556,17 @@ export function UserManagement() {
 
                 {!isUsersLoading && !usersError && filteredUsers.length > 0 && (
                   <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
+                <Table>
+                  <TableHeader>
                         <TableRow className="bg-muted/50 hover:bg-muted/50">
                           <TableHead className="font-semibold">User</TableHead>
                           <TableHead className="font-semibold">Role</TableHead>
                           <TableHead className="font-semibold">Status</TableHead>
                           <TableHead className="font-semibold">Phone</TableHead>
                           <TableHead className="font-semibold">Joined</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                         {filteredUsers.map((user) => {
                           const badge = getStatusBadge(user.status)
                           return (
@@ -575,23 +575,23 @@ export function UserManagement() {
                               className="hover:bg-muted/30 transition-colors border-b border-border/50"
                             >
                               <TableCell className="py-4">
-                                <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-3">
                                   <Avatar className="h-11 w-11 border-2 border-border shadow-sm">
                                     <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white font-semibold">
                                       {user.email
                                         .split("@")[0]
                                         .slice(0, 2)
                                         .toUpperCase()}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <div>
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
                                     <p className="font-semibold text-base break-all">{user.email}</p>
                                     <p className="text-xs text-muted-foreground mt-0.5">
                                       ID: {user.id.slice(0, 8)}…
                                     </p>
-                                  </div>
-                                </div>
-                              </TableCell>
+                            </div>
+                          </div>
+                        </TableCell>
                               <TableCell className="text-xs sm:text-sm">
                                 <Badge
                                   variant="outline"
@@ -600,25 +600,25 @@ export function UserManagement() {
                                   {user.role}
                                 </Badge>
                               </TableCell>
-                              <TableCell>
-                                <Badge
+                        <TableCell>
+                          <Badge
                                   variant={badge.variant}
                                   className={`${badge.className} font-semibold px-2.5 py-1 border-2`}
                                 >
                                   {user.status}
-                                </Badge>
-                              </TableCell>
+                          </Badge>
+                        </TableCell>
                               <TableCell className="text-sm font-medium">
                                 {user.phone && user.phone.trim() !== "" ? user.phone : "—"}
                               </TableCell>
                               <TableCell className="text-xs text-muted-foreground font-medium">
                                 {new Date(user.created_at).toLocaleDateString()}
-                              </TableCell>
-                            </TableRow>
+                        </TableCell>
+                      </TableRow>
                           )
                         })}
-                      </TableBody>
-                    </Table>
+                  </TableBody>
+                </Table>
                   </div>
                 )}
               </CardContent>

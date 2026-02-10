@@ -12,8 +12,8 @@ export default function ListingsPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <ListingsHeader />
-      <main className="flex-1 pt-20">
-        <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 py-6 sm:py-8">
+      <main id="main-content" className="flex-1 pt-20">
+        <div className="mx-auto w-full max-w-[1920px] px-4 py-6 sm:px-6 sm:py-8 md:px-8 lg:px-10 lg:py-10 xl:px-12">
           <ListingsPageClient />
         </div>
       </main>

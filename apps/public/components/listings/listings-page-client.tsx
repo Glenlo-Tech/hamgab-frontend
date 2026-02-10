@@ -14,6 +14,7 @@ interface ListingsPageClientProps {
 
 export function ListingsPageClient({ initialPage = 1, pageSize = 20 }: ListingsPageClientProps) {
   const [activeCategory, setActiveCategory] = useState<ListingCategory>("homes")
+  const [totalCount, setTotalCount] = useState(0)
   const [filters, setFilters] = useState<ListingsFilterState>({
     propertyType: "all",
     minPrice: 0,
@@ -53,7 +54,11 @@ export function ListingsPageClient({ initialPage = 1, pageSize = 20 }: ListingsP
   return (
     <>
       <ListingsNav activeCategory={activeCategory} onCategoryChange={handleCategoryChange} />
-      <ListingsFilters filters={filters} onFiltersChange={handleFiltersChange} />
+      <ListingsFilters
+        filters={filters}
+        onFiltersChange={handleFiltersChange}
+        totalCount={totalCount}
+      />
       <ListingsGrid
         filters={filters}
         page={page}
@@ -67,6 +72,7 @@ export function ListingsPageClient({ initialPage = 1, pageSize = 20 }: ListingsP
             ? "Lands"
             : "Services"
         }
+        onTotalCountChange={setTotalCount}
       />
     </>
   )

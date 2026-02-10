@@ -1,10 +1,16 @@
 import type React from "react"
 import type { Metadata, Viewport } from "next"
-import { Geist_Mono } from "next/font/google"
+import { Abyssinica_SIL, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { GlobalErrorHandler } from "@/components/global-error-handler"
 import "./globals.css"
+
+const abyssinica = Abyssinica_SIL({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-abyssinica",
+})
 
 const geistMono = Geist_Mono({
   subsets: ["latin"],
@@ -55,7 +61,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistMono.variable} antialiased`}>
+      <body className={`${abyssinica.variable} ${geistMono.variable} antialiased`}>
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:shadow-lg"
+        >
+          Skip to main content
+        </a>
         <ErrorBoundary>
           {children}
           <GlobalErrorHandler />

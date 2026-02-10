@@ -55,7 +55,7 @@ import {
 } from "@/components/ui/carousel"
  
 type SortOption = "newest" | "oldest" | "price-high" | "price-low"
- 
+
 export function PropertyVerification() {
   const { toast } = useToast()
   const { properties, isLoading, error, refresh } = useVerificationQueue({
@@ -248,9 +248,9 @@ export function PropertyVerification() {
         description:
           "The property remains RED and the agent will see your feedback for required changes.",
       })
-      setShowRejectDialog(false)
-      setSelectedProperty(null)
-      setRejectionReason("")
+    setShowRejectDialog(false)
+    setSelectedProperty(null)
+    setRejectionReason("")
       await refresh()
     } catch (error) {
       toast({
@@ -473,7 +473,7 @@ export function PropertyVerification() {
             </Card>
           </StaggerItem>
         ))}
-        </StaggerContainer>
+      </StaggerContainer>
       )}
 
       <Dialog
@@ -511,12 +511,12 @@ export function PropertyVerification() {
                         ) : (
                           <CarouselItem>
                             <div className="relative rounded-lg overflow-hidden bg-muted h-56 sm:h-64 lg:h-72">
-                              <Image
+                <Image
                                 src="/placeholder.svg"
-                                alt={selectedProperty.title}
-                                fill
-                                className="object-cover"
-                              />
+                  alt={selectedProperty.title}
+                  fill
+                  className="object-cover"
+                />
                             </div>
                           </CarouselItem>
                         )}
@@ -535,7 +535,7 @@ export function PropertyVerification() {
                         {currentImageIndex + 1} / {selectedProperty.media.length}
                       </div>
                     )}
-                  </div>
+              </div>
 
                   {/* Thumbnail Navigation */}
                   {selectedProperty.media.length > 1 && (
@@ -595,11 +595,11 @@ export function PropertyVerification() {
                           : "Price on request"}
                       </span>
                     </p>
-                  </div>
+                </div>
                   <div>
                     <h4 className="font-semibold mb-1 text-foreground">Submitted</h4>
                     <p>{new Date(selectedProperty.created_at).toLocaleString()}</p>
-                  </div>
+                </div>
                 </div>
               </div>
 
@@ -840,7 +840,7 @@ export function PropertyVerification() {
                         <>
                           <div className="flex flex-col gap-2 sm:flex-row">
                             {canMarkYellow && (
-                              <Button
+                <Button
                                 variant="outline"
                                 onClick={handleMarkUnderReview}
                                 disabled={isStatusUpdating}
@@ -852,7 +852,7 @@ export function PropertyVerification() {
                                   <CheckCircle className="h-4 w-4 mr-2" />
                                 )}
                                 {isStatusUpdating ? "Updating…" : "Mark as Under Review (YELLOW)"}
-                              </Button>
+                </Button>
                             )}
                           </div>
                           {canApprove && (
@@ -865,10 +865,10 @@ export function PropertyVerification() {
                                 {isStatusUpdating ? (
                                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                                 ) : (
-                                  <CheckCircle className="h-4 w-4 mr-2" />
+                  <CheckCircle className="h-4 w-4 mr-2" />
                                 )}
                                 {isStatusUpdating ? "Approving…" : "Approve Property (GREEN)"}
-                              </Button>
+                </Button>
                             </div>
                           )}
                         </>
