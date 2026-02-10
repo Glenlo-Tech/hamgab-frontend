@@ -17,19 +17,36 @@ export type ListingsFilterState = {
   sortBy: "newest" | "oldest" | "price-low" | "price-high"
 }
 
+type ListingCategory = "homes" | "lands" | "services"
+
 interface ListingsFiltersProps {
   filters: ListingsFilterState
   onFiltersChange: (next: Partial<ListingsFilterState>) => void
   totalCount?: number
+  category: ListingCategory
 }
 
 interface FilterContentProps {
   filters: ListingsFilterState
   onFiltersChange: (next: Partial<ListingsFilterState>) => void
   onApplyFilters: () => void
+  category: ListingCategory
 }
 
-function FilterContent({ filters, onFiltersChange, onApplyFilters }: FilterContentProps) {
+function FilterContent({ filters, onFiltersChange, onApplyFilters, category }: FilterContentProps) {
+  const propertyTypeOptions =
+    category === "homes"
+      ? [
+          { value: "all", label: "Homes" },
+          { value: "apartment", label: "Apartment" },
+          { value: "condo", label: "Condo" },
+          { value: "villa", label: "Villa" },
+          { value: "commercial", label: "Commercial" },
+        ]
+      : category === "lands"
+        ? [{ value: "land", label: "Land" }]
+        : [{ value: "services", label: "Services" }]
+
   return (
     <div className="space-y-5 px-4">
       <div className="space-y-2">
@@ -42,14 +59,11 @@ function FilterContent({ filters, onFiltersChange, onApplyFilters }: FilterConte
             <SelectValue placeholder="Select type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="apartment">Apartment</SelectItem>
-            <SelectItem value="house">House</SelectItem>
-            <SelectItem value="condo">Condo</SelectItem>
-            <SelectItem value="villa">Villa</SelectItem>
-            <SelectItem value="land">Land</SelectItem>
-            <SelectItem value="commercial">Commercial</SelectItem>
-            <SelectItem value="other">Other</SelectItem>
+            {propertyTypeOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -95,8 +109,20 @@ function FilterContent({ filters, onFiltersChange, onApplyFilters }: FilterConte
   )
 }
 
-export function ListingsFilters({ filters, onFiltersChange, totalCount }: ListingsFiltersProps) {
+export function ListingsFilters({ filters, onFiltersChange, totalCount, category }: ListingsFiltersProps) {
   const [showMobileFilters, setShowMobileFilters] = useState(false)
+  const desktopPropertyTypeOptions =
+    category === "homes"
+      ? [
+          { value: "all", label: "Homes" },
+          { value: "apartment", label: "Apartment" },
+          { value: "condo", label: "Condo" },
+          { value: "villa", label: "Villa" },
+          { value: "commercial", label: "Commercial" },
+        ]
+      : category === "lands"
+        ? [{ value: "land", label: "Land" }]
+        : [{ value: "commercial", label: "Services" }]
 
   const handleApplyFilters = () => {
     setShowMobileFilters(false)
@@ -104,34 +130,34 @@ export function ListingsFilters({ filters, onFiltersChange, totalCount }: Listin
 
   return (
     <div className="mb-8">
-      <div className="w-full flex items-center justify-center sticky top-20 z-30 bg-background/80 backdrop-blur-sm">
+      <div className="sticky top-20 z-30 flex w-full items-center justify-center bg-background/80 backdrop-blur-sm">
         <form
-          className="flex w-full max-w-3xl items-center gap-2 rounded-full bg-background px-3 py-1.5 shadow-[0_2px_12px_rgba(15,23,42,0.08)] sm:px-5 sm:py-2"
+          className="group flex w-full max-w-3xl items-center gap-2 rounded-full bg-background px-3 py-1.5 shadow-[0_6px_24px_rgba(15,23,42,0.08)] transition-shadow duration-200 focus-within:shadow-[0_10px_28px_rgba(15,23,42,0.14)] sm:px-5 sm:py-2"
           onSubmit={(e) => {
             e.preventDefault()
             handleApplyFilters()
           }}
           aria-label="Listings search"
         >
-          <div className="flex-1">
-            <div className="flex items-center gap-1.5 mb-0.5">
+          <div className="flex min-w-0 flex-1 flex-col">
+            <div className="mb-0.5 flex items-center gap-1.5">
               <MapPin className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
               <p className="text-[11px] sm:text-xs font-bold text-muted-foreground leading-tight">Where</p>
             </div>
             <Input
               placeholder="Search by city"
-              className="h-7 sm:h-8 border-0 bg-transparent px-0 text-xs sm:text-sm focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-0"
+              className="h-7 min-w-0 !border-0 bg-transparent px-0 text-xs sm:h-8 sm:text-sm placeholder:text-muted-foreground/70 !shadow-none focus-visible:!ring-0 focus-visible:!ring-offset-0"
               value={filters.city}
               onChange={(e) => onFiltersChange({ city: e.target.value })}
             />
           </div>
 
-          <div className="hidden sm:block h-8 w-px bg-border/70" />
+          <div className="hidden h-8 w-px bg-border/70 sm:block" />
 
           <Button
             type="submit"
             size="icon"
-            className="shrink-0 h-9 w-9 sm:h-10 sm:w-10 rounded-full cursor-pointer bg-primary text-primary-foreground shadow-md transition-all duration-200 ease-out hover:shadow-lg hover:-translate-y-[1px] hover:bg-primary/90 active:translate-y-0 active:shadow-md"
+            className="h-9 w-9 shrink-0 cursor-pointer rounded-full bg-primary text-primary-foreground shadow-md transition-all duration-200 ease-out hover:-translate-y-[1px] hover:bg-primary/90 hover:shadow-lg active:translate-y-0 active:shadow-md sm:h-10 sm:w-10"
             aria-label="Search"
           >
             <Search className="h-4 w-4" />
@@ -151,22 +177,7 @@ export function ListingsFilters({ filters, onFiltersChange, totalCount }: Listin
             </p>
 
             <div className="flex items-center gap-2">
-              <Select
-                value={filters.sortBy}
-                onValueChange={(value: ListingsFilterState["sortBy"]) =>
-                  onFiltersChange({ sortBy: value })
-                }
-              >
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="newest">Newest First</SelectItem>
-                  <SelectItem value="oldest">Oldest First</SelectItem>
-                  <SelectItem value="price-low">Price: Low to High</SelectItem>
-                  <SelectItem value="price-high">Price: High to Low</SelectItem>
-                </SelectContent>
-              </Select>
+             
 
               <Sheet open={showMobileFilters} onOpenChange={setShowMobileFilters}>
                 <SheetTrigger asChild>
@@ -188,6 +199,7 @@ export function ListingsFilters({ filters, onFiltersChange, totalCount }: Listin
                       filters={filters}
                       onFiltersChange={onFiltersChange}
                       onApplyFilters={handleApplyFilters}
+                      category={category}
                     />
                   </div>
                 </SheetContent>
@@ -204,14 +216,11 @@ export function ListingsFilters({ filters, onFiltersChange, totalCount }: Listin
                 <SelectValue placeholder="Property Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="apartment">Apartment</SelectItem>
-                <SelectItem value="house">House</SelectItem>
-                <SelectItem value="condo">Condo</SelectItem>
-                <SelectItem value="villa">Villa</SelectItem>
-                <SelectItem value="land">Land</SelectItem>
-                <SelectItem value="commercial">Commercial</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
+                {desktopPropertyTypeOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 

@@ -58,6 +58,7 @@ export function ListingsPageClient({ initialPage = 1, pageSize = 20 }: ListingsP
         filters={filters}
         onFiltersChange={handleFiltersChange}
         totalCount={totalCount}
+        category={activeCategory}
       />
       <ListingsGrid
         filters={filters}

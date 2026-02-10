@@ -109,8 +109,8 @@ export function ListingsGrid({
   }, [properties, category])
 
   useEffect(() => {
-    onTotalCountChange?.(meta?.total ?? visibleProperties.length)
-  }, [meta, visibleProperties.length, onTotalCountChange])
+    onTotalCountChange?.(visibleProperties.length)
+  }, [visibleProperties.length, onTotalCountChange])
 
   const toggleFavorite = useCallback((id: string, e: React.MouseEvent) => {
     e.stopPropagation()
