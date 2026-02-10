@@ -102,7 +102,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <CardFooter className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button
                 onClick={this.handleReset}
-                className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                className="w-full cursor-pointer sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Refresh Page
@@ -110,7 +110,7 @@ export class ErrorBoundary extends Component<Props, State> {
               <Button
                 onClick={this.handleGoHome}
                 variant="outline"
-                className="w-full sm:w-auto"
+                className="w-full cursor-pointer sm:w-auto"
               >
                 <Home className="h-4 w-4 mr-2" />
                 Go to Dashboard

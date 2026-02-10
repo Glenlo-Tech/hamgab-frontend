@@ -81,7 +81,7 @@ export function GlobalErrorHandler() {
         <CardFooter className="flex gap-3">
           <Button
             onClick={handleRefresh}
-            className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+            className="flex-1 cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
           >
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
@@ -89,7 +89,7 @@ export function GlobalErrorHandler() {
           <Button
             onClick={handleDismiss}
             variant="outline"
-            className="flex-1"
+            className="flex-1 cursor-pointer"
           >
             Dismiss
           </Button>

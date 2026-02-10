@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { Home, MapPin, Building2 } from "lucide-react"
+import Image from "next/image"
 import { cn } from "@/lib/utils"
 
 type ListingCategory = "homes" | "lands" | "services"
@@ -15,30 +15,29 @@ interface ListingsNavProps {
 const categories: Array<{
   id: ListingCategory
   label: string
-  icon: React.ComponentType<{ className?: string }>
+  imageSrc: string
 }> = [
   {
     id: "homes",
     label: "Homes",
-    icon: Home,
+    imageSrc: "/icons/house.png",
   },
   {
     id: "lands",
     label: "Lands",
-    icon: MapPin,
+    imageSrc: "/icons/land-ground.png",
   },
   {
     id: "services",
     label: "Services",
-    icon: Building2,
+    imageSrc: "/icons/bell.png",
   },
 ]
 
 export function ListingsNav({ activeCategory, onCategoryChange }: ListingsNavProps) {
   return (
-    <nav className="flex items-center justify-center gap-8 sm:gap-12 md:gap-16 py-6 border-b border-border">
+    <nav className="flex items-center justify-center gap-8 sm:gap-12 md:gap-16 py-6 border-b border-border bg-background/80 backdrop-blur">
       {categories.map((category) => {
-        const Icon = category.icon
         const isActive = activeCategory === category.id
 
         return (
@@ -46,61 +45,50 @@ export function ListingsNav({ activeCategory, onCategoryChange }: ListingsNavPro
             key={category.id}
             onClick={() => onCategoryChange(category.id)}
             className={cn(
-              "flex flex-col items-center gap-2 transition-all duration-200",
-              "hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-lg px-2 py-1",
+              "group cursor-pointer flex flex-col items-center gap-1.5 transition-all duration-200",
+              "hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 rounded-lg px-2 py-1",
               isActive && "opacity-100"
             )}
             aria-label={`View ${category.label}`}
           >
-            {/* Icon Container */}
+            {/* Icon */}
             <div
               className={cn(
-                "relative transition-all duration-200",
-                isActive && "scale-110"
+                "relative  transition-all duration-300 ease-out will-change-transform",
+                isActive
+                  ? "scale-110 translate-y-0"
+                  : "scale-100 translate-y-[1px]",
+                "group-hover:scale-110 group-hover:translate-y-0"
               )}
             >
-              {/* Placeholder for illustration - will be replaced with images */}
               <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 flex items-center justify-center">
-                <Icon
-                  className={cn(
-                    "w-full h-full transition-colors duration-200",
-                    isActive
-                      ? "text-primary fill-primary/10"
-                      : "text-muted-foreground"
-                  )}
+                <Image
+                  src={category.imageSrc}
+                  alt={category.label}
+                  width={64}
+                  height={64}
+                  className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 object-contain transition-transform duration-300 ease-out"
+                  priority={category.id === "homes"}
                 />
               </div>
-              
-              {/* You can replace the Icon above with an Image component later:
-              <Image
-                src={`/icons/${category.id}.svg`}
-                alt={category.label}
-                width={64}
-                height={64}
-                className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16"
-              />
-              */}
             </div>
 
             {/* Label */}
             <span
               className={cn(
-                "text-sm sm:text-base font-medium transition-colors duration-200",
-                isActive
-                  ? "text-foreground"
-                  : "text-muted-foreground"
+                "text-sm sm:text-base font-medium transition-colors duration-200 whitespace-nowrap",
+                isActive ? "text-foreground" : "text-muted-foreground"
               )}
             >
               {category.label}
             </span>
 
-            {/* Active Indicator - Underline */}
+            {/* Active Indicator - centered under icon + text */}
             <div
               className={cn(
-                "h-0.5 w-full transition-all duration-200",
-                isActive
-                  ? "bg-foreground scale-x-100"
-                  : "bg-transparent scale-x-0"
+                "mt-1 h-1 w-10 sm:w-14 origin-center",
+                "transition-transform transition-colors duration-900 ease-in-out",
+                isActive ? "bg-foreground scale-x-100" : "bg-transparent scale-x-0"
               )}
             />
           </button>
