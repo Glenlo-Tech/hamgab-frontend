@@ -48,7 +48,7 @@ export function AgentsHero() {
             <FadeIn delay={0.3}>
               <div className="flex flex-wrap gap-4">
                 <Button size="lg" asChild className="h-12 px-6 text-base">
-                  <Link href="/agent/dashboard">
+                  <Link href="https://hamgab-frontend-agent.vercel.app/">
                     Join as Agent
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
