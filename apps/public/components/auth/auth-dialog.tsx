@@ -1,10 +1,12 @@
 "use client"
 
 import { FormEvent, useEffect, useState } from "react"
+import { Eye, EyeOff } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/auth-context"
+import { cn } from "@/lib/utils"
 
 export function AuthDialog() {
   const { authModalOpen, authModalMode, closeAuthModal, login, register, loading, error, clearError } =
@@ -14,6 +16,7 @@ export function AuthDialog() {
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
   const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
     setMode(authModalMode)
@@ -24,6 +27,7 @@ export function AuthDialog() {
       setEmail("")
       setPhone("")
       setPassword("")
+      setShowPassword(false)
       clearError()
     }
   }, [authModalOpen, clearError])
@@ -43,7 +47,7 @@ export function AuthDialog() {
 
   return (
     <Dialog open={authModalOpen} onOpenChange={(open) => (!open ? closeAuthModal() : null)}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{mode === "login" ? "Log in" : "Create your account"}</DialogTitle>
           <DialogDescription>
@@ -57,18 +61,26 @@ export function AuthDialog() {
           <button
             type="button"
             onClick={() => setMode("login")}
-            className={`flex-1 rounded-full px-3 py-1.5 transition ${
-              mode === "login" ? "bg-background shadow-sm" : "text-muted-foreground"
-            }`}
+            className={cn(
+              "flex-1 cursor-pointer rounded-full px-3 py-1.5 transition-all duration-200",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+              mode === "login"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:bg-background/60 hover:text-foreground"
+            )}
           >
             Log in
           </button>
           <button
             type="button"
             onClick={() => setMode("register")}
-            className={`flex-1 rounded-full px-3 py-1.5 transition ${
-              mode === "register" ? "bg-background shadow-sm" : "text-muted-foreground"
-            }`}
+            className={cn(
+              "flex-1 cursor-pointer rounded-full px-3 py-1.5 transition-all duration-200",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+              mode === "register"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:bg-background/60 hover:text-foreground"
+            )}
           >
             Sign up
           </button>
@@ -111,20 +123,35 @@ export function AuthDialog() {
             <label htmlFor="auth-password" className="text-sm font-medium text-foreground">
               Password
             </label>
-            <Input
-              id="auth-password"
-              type="password"
-              autoComplete={mode === "login" ? "current-password" : "new-password"}
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div className="relative">
+              <Input
+                id="auth-password"
+                type={showPassword ? "text" : "password"}
+                autoComplete={mode === "login" ? "current-password" : "new-password"}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 cursor-pointer"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
 
           {error && <p className="text-xs text-destructive mt-1">{error}</p>}
 
-          <Button type="submit" className="w-full rounded-full mt-2" disabled={loading}>
+          <Button
+            type="submit"
+            className="w-full rounded-full mt-2 cursor-pointer transition-all duration-200 hover:-translate-y-[1px] hover:shadow-md disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
+            disabled={loading}
+          >
             {loading
               ? mode === "login"
                 ? "Logging in..."

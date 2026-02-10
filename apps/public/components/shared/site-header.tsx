@@ -22,11 +22,11 @@ interface SiteHeaderProps {
   user?: HeaderUser | null
 }
 
-export function SiteHeader({ navLinks, user }: SiteHeaderProps) {
+export function SiteHeader({ navLinks: _navLinks, user }: SiteHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const mobileMenuId = "site-mobile-navigation"
 
-  const { user: authUser, isAuthenticated, openAuthModal } = useAuth()
+  const { user: authUser, isAuthenticated, openAuthModal, logout } = useAuth()
 
   const agentPortalUrl = process.env.NEXT_PUBLIC_AGENT_PORTAL_URL
   const hasAgentPortal = typeof agentPortalUrl === "string" && agentPortalUrl.length > 0
@@ -51,7 +51,7 @@ export function SiteHeader({ navLinks, user }: SiteHeaderProps) {
       transition={{ duration: 0.6, ease: [0.21, 0.47, 0.32, 0.98] }}
       className="fixed inset-x-0 top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg"
     >
-      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between lg:h-20">
           {/* Logo / Brand */}
           <Link href="/" className="flex items-center gap-2">
@@ -64,19 +64,6 @@ export function SiteHeader({ navLinks, user }: SiteHeaderProps) {
             <span className="text-xl font-semibold tracking-tight">HAMGAB</span>
           </Link>
 
-          {/* Center navigation (desktop) */}
-          <nav className="hidden items-center gap-8 lg:flex">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-
           {/* Right cluster: Become an agent + profile + menu */}
           <div className="flex items-center gap-2 sm:gap-3">
             {hasAgentPortal && (
@@ -84,7 +71,7 @@ export function SiteHeader({ navLinks, user }: SiteHeaderProps) {
                 href={agentPortalUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="hidden text-sm font-medium text-foreground/90 hover:text-foreground sm:inline-block"
+                className="hidden text-sm font-medium text-foreground/70 p-3 rounded-2xl hover:bg-foreground/5 hover:text-foreground sm:inline-block"
               >
                 Become an agent
               </a>
@@ -117,9 +104,9 @@ export function SiteHeader({ navLinks, user }: SiteHeaderProps) {
               )}
             </Link>
 
-            {/* Hamburger menu button (mobile / tablet) */}
+            {/* Hamburger menu button (all breakpoints) */}
             <button
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-foreground shadow-sm transition hover:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 lg:hidden"
+              className="flex h-9 w-9 items-center justify-center cursor-pointer rounded-full bg-muted text-foreground shadow-sm transition hover:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2"
               onClick={() => setMobileMenuOpen((open) => !open)}
               aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
               aria-expanded={mobileMenuOpen}
@@ -131,34 +118,23 @@ export function SiteHeader({ navLinks, user }: SiteHeaderProps) {
           </div>
         </div>
 
-        {/* Mobile / tablet navigation drawer */}
+        {/* Compact overflow dropdown */}
         {mobileMenuOpen && (
           <motion.div
             id={mobileMenuId}
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="border-t border-border py-4 lg:hidden"
+            className="absolute right-4 top-[calc(100%-0.5rem)] z-[60] w-56 overflow-hidden rounded-2xl border border-border bg-background/95 p-2 shadow-xl backdrop-blur-lg sm:right-6 lg:right-8"
           >
-            <nav className="flex flex-col gap-4">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {link.label}
-                </Link>
-              ))}
-
-              <div className="mt-4 flex flex-col gap-2 border-t border-border pt-4">
+            <nav className="flex flex-col gap-1.5">
+              <div className="flex flex-col gap-1.5">
                 {hasAgentPortal && (
                   <a
                     href={agentPortalUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-sm font-medium text-foreground/90 hover:text-foreground"
+                    className="px-3 py-1 rounded-full text-sm font-medium text-foreground/90 transition-colors hover:bg-muted/60 hover:text-foreground"
                   >
                     Become an agent
                   </a>
@@ -166,7 +142,7 @@ export function SiteHeader({ navLinks, user }: SiteHeaderProps) {
 
                 <button
                   type="button"
-                  className="text-left text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                  className="rounded-lg px-3 py-2 curor-pointer text-left text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
                   onClick={() => {
                     setMobileMenuOpen(false)
                     if (isAuthenticated) {
@@ -181,34 +157,47 @@ export function SiteHeader({ navLinks, user }: SiteHeaderProps) {
 
                 <Link
                   href="/help"
-                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Help Center
                 </Link>
 
-                <div className="flex flex-col gap-1.5 pt-2">
+                {isAuthenticated ? (
                   <button
                     type="button"
-                    className="text-left text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                    className="mt-1 rounded-lg px-3 py-2 text-left text-sm font-medium text-destructive transition-colors hover:bg-destructive/10 hover:text-destructive/80"
                     onClick={() => {
                       setMobileMenuOpen(false)
-                      openAuthModal("login")
+                      logout()
                     }}
                   >
-                    Log in
+                    Log out
                   </button>
-                  <button
-                    type="button"
-                    className="text-left text-sm font-medium text-foreground transition-colors hover:text-foreground"
-                    onClick={() => {
-                      setMobileMenuOpen(false)
-                      openAuthModal("register")
-                    }}
-                  >
-                    Sign up
-                  </button>
-                </div>
+                ) : (
+                  <div className="flex flex-col gap-1.5 pt-1">
+                    <button
+                      type="button"
+                      className="rounded-lg px-3 py-2 text-left text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+                      onClick={() => {
+                        setMobileMenuOpen(false)
+                        openAuthModal("login")
+                      }}
+                    >
+                      Log in
+                    </button>
+                    <button
+                      type="button"
+                      className="rounded-lg px-3 py-2 text-left text-sm font-medium text-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+                      onClick={() => {
+                        setMobileMenuOpen(false)
+                        openAuthModal("register")
+                      }}
+                    >
+                      Sign up
+                    </button>
+                  </div>
+                )}
               </div>
             </nav>
           </motion.div>
