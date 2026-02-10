@@ -187,9 +187,9 @@ export function PropertyImageCarousel({
             </>
           )}
 
-          {/* Image Counter Badge - Airbnb style */}
+          {/* Image Counter Badge*/}
           {hasMultipleImages && (
-            <div className="absolute right-2 top-2 z-10 rounded-full bg-background/90 px-2 py-0.5 text-[10px] font-semibold text-foreground shadow-sm backdrop-blur-sm sm:right-3 sm:top-3 sm:px-2.5 sm:py-1 sm:text-xs">
+            <div className="absolute left-2 top-2 z-10 rounded-full bg-background/90 px-2 py-0.5 text-[10px] font-semibold text-foreground shadow-sm backdrop-blur-sm sm:left-3 sm:top-3 sm:px-2.5 sm:py-1 sm:text-xs">
               {currentIndex + 1}/{normalizedImages.length}
             </div>
           )}

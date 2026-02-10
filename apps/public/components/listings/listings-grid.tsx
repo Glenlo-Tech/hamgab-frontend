@@ -404,7 +404,7 @@ export function ListingsGrid({
 
       {/* Property Details Dialog */}
       <Dialog open={!!selectedPropertyId} onOpenChange={() => setSelectedPropertyId(null)}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-[95vw] sm:max-w-[85vw] lg:max-w-5xl max-h-[95vh] overflow-hidden p-0 [&>button]:absolute [&>button]:right-3 [&>button]:top-3 [&>button]:z-50 [&>button]:flex [&>button]:items-center [&>button]:justify-center [&>button]:h-8 [&>button]:w-8 [&>button]:rounded-full [&>button]:bg-background/95 [&>button]:shadow-lg [&>button]:backdrop-blur-sm [&>button]:border [&>button]:border-border/50 hover:[&>button]:bg-background hover:[&>button]:shadow-xl sm:[&>button]:right-4 sm:[&>button]:top-4">
           {(() => {
             if (!selectedPropertyId) return null
             const property = visibleProperties.find((p) => p.id === selectedPropertyId)
@@ -416,89 +416,135 @@ export function ListingsGrid({
               .map((m) => m.file_path) || []
 
             return (
-              <>
-                <DialogHeader>
-                  <DialogTitle className="text-2xl">{property.title}</DialogTitle>
-                  <DialogDescription className="flex items-center gap-1">
-                    <MapPin className="h-4 w-4" />
-                    {formatLocation(property.locations[0]?.city, property.locations[0]?.country)}
-                  </DialogDescription>
-                </DialogHeader>
-
-                <div className="relative aspect-video rounded-lg overflow-hidden bg-muted mt-4">
-                  <PropertyImageCarousel
-                    images={detailImages}
-                    propertyTitle={property.title}
-                    className="w-full h-full"
-                  />
-                </div>
-
-                <div className="flex items-center gap-4 mt-4">
-                  <Badge variant={property.transaction_type === "RENT" ? "secondary" : "default"}>
-                    {property.transaction_type === "RENT" ? "For Rent" : "For Sale"}
-                  </Badge>
-                  {property.verification_status === "GREEN" && (
-                    <Badge variant="outline">
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Verified Listing
-                    </Badge>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-3 gap-4 mt-4">
-                  {/* Public API currently does not expose beds/baths/sqft; placeholders for future */}
-                  <div className="text-center p-4 bg-muted rounded-lg">
-                    <Bed className="h-6 w-6 mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">Bedrooms</p>
-                    <p className="font-semibold">—</p>
-                  </div>
-                  <div className="text-center p-4 bg-muted rounded-lg">
-                    <Bath className="h-6 w-6 mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">Bathrooms</p>
-                    <p className="font-semibold">—</p>
-                  </div>
-                  <div className="text-center p-4 bg-muted rounded-lg">
-                    <Square className="h-6 w-6 mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">Square Feet</p>
-                    <p className="font-semibold">—</p>
+              <div className="flex flex-col h-full max-h-[95vh]">
+                {/* Top: Image Gallery */}
+                <div className="bg-muted relative flex-shrink-0">
+                  <div className="w-full h-[50vh] sm:h-[55vh] lg:h-[60vh]">
+                    <PropertyImageCarousel
+                      images={detailImages}
+                      propertyTitle={property.title}
+                      className="w-full h-full"
+                      disableLightbox={true}
+                    />
                   </div>
                 </div>
 
-                <div className="mt-4">
-                  <h4 className="font-semibold mb-2">Description</h4>
-                  <p className="text-muted-foreground">{property.description}</p>
-                </div>
+                {/* Bottom: Property Details - Scrollable */}
+                <div className="overflow-y-auto flex-1">
+                  <div className="p-5 sm:p-6 lg:p-8 space-y-5">
+                    {/* Header */}
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <h2 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight">
+                            {property.title}
+                          </h2>
+                          <div className="flex items-center gap-1.5 text-muted-foreground mt-2">
+                            <MapPin className="h-4 w-4 flex-shrink-0" />
+                            <span className="text-sm">
+                              {formatLocation(property.locations[0]?.city, property.locations[0]?.country)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
 
-                <div className="mt-4 p-4 bg-muted rounded-lg">
-                  <h4 className="font-semibold mb-3">Contact Agent</h4>
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1">
-                      <p className="font-medium">HAMGAB Agent</p>
-                      <p className="text-sm text-muted-foreground">Verified partner</p>
+                      {/* Badges */}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge 
+                          variant={property.transaction_type === "RENT" ? "secondary" : "default"}
+                          className="text-xs"
+                        >
+                          {property.transaction_type === "RENT" ? "For Rent" : "For Sale"}
+                        </Badge>
+                        {property.verification_status === "GREEN" && (
+                          <Badge variant="outline" className="text-xs border-green-200 text-green-700">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Verified Listing
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Price */}
+                    <div className="p-5 rounded-2xl bg-muted/50 border border-border">
+                      <p className="text-sm text-muted-foreground mb-1">Price</p>
+                      <p className="text-3xl sm:text-4xl font-bold text-foreground">
+                        {formatPrice(property.price, property.transaction_type)}
+                      </p>
+                      {property.transaction_type === "RENT" && property.price && (
+                        <p className="text-sm text-muted-foreground mt-1">per month</p>
+                      )}
+                    </div>
+
+                    {/* Property Features - Placeholders */}
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="flex flex-col items-center justify-center p-4 rounded-xl bg-muted/50 border border-border">
+                        <Bed className="h-6 w-6 text-muted-foreground mb-2" />
+                        <p className="text-xs text-muted-foreground">Bedrooms</p>
+                        <p className="text-sm font-semibold mt-1">—</p>
+                      </div>
+                      <div className="flex flex-col items-center justify-center p-4 rounded-xl bg-muted/50 border border-border">
+                        <Bath className="h-6 w-6 text-muted-foreground mb-2" />
+                        <p className="text-xs text-muted-foreground">Bathrooms</p>
+                        <p className="text-sm font-semibold mt-1">—</p>
+                      </div>
+                      <div className="flex flex-col items-center justify-center p-4 rounded-xl bg-muted/50 border border-border">
+                        <Square className="h-6 w-6 text-muted-foreground mb-2" />
+                        <p className="text-xs text-muted-foreground">Sq Ft</p>
+                        <p className="text-sm font-semibold mt-1">—</p>
+                      </div>
+                    </div>
+
+                    {/* Description */}
+                    {property.description && (
+                      <div className="space-y-2">
+                        <h3 className="text-lg font-semibold text-foreground">Description</h3>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                          {property.description}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Contact Agent */}
+                    <div className="p-5 rounded-2xl bg-primary/5 border border-primary/10 space-y-4">
+                      <h3 className="text-lg font-semibold text-foreground">Contact Agent</h3>
+                      <div className="flex items-center gap-3">
+                        <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                          <span className="text-sm font-semibold text-primary">HA</span>
+                        </div>
+                        <div>
+                          <p className="font-medium text-foreground">HAMGAB Agent</p>
+                          <p className="text-xs text-muted-foreground">Verified partner</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <Button className="flex-1 rounded-xl" size="lg">
+                          <Phone className="h-4 w-4 mr-2" />
+                          Call Agent
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          className="flex-1 rounded-xl border-2 bg-background hover:bg-muted" 
+                          size="lg"
+                        >
+                          <Mail className="h-4 w-4 mr-2" />
+                          Email Agent
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="sticky bottom-0 bg-background pt-4 pb-2 border-t mt-6 -mx-6 px-6 sm:-mx-8 sm:px-8">
+                      <Button 
+                        size="lg" 
+                        className="w-full rounded-xl shadow-lg hover:shadow-xl transition-all"
+                      >
+                        Schedule Viewing
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex gap-2 mt-4">
-                    <Button className="flex-1">
-                      <Phone className="h-4 w-4 mr-2" />
-                      Call Agent
-                    </Button>
-                    <Button variant="outline" className="flex-1 bg-transparent">
-                      <Mail className="h-4 w-4 mr-2" />
-                      Email Agent
-                    </Button>
-                  </div>
                 </div>
-
-                <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Price</p>
-                    <p className="text-2xl font-bold">
-                      {formatPrice(property.price, property.transaction_type)}
-                    </p>
-                  </div>
-                  <Button size="lg">Schedule Viewing</Button>
-                </div>
-              </>
+              </div>
             )
           })()}
         </DialogContent>
