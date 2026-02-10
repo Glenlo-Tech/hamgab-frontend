@@ -1,10 +1,11 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, MouseEvent } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { motion } from "framer-motion"
 import { Menu, User, X } from "lucide-react"
+import { useAuth } from "@/contexts/auth-context"
 
 type HeaderLink = {
   href: string
@@ -25,16 +26,23 @@ export function SiteHeader({ navLinks, user }: SiteHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const mobileMenuId = "site-mobile-navigation"
 
+  const { user: authUser, isAuthenticated, openAuthModal } = useAuth()
+
   const agentPortalUrl = process.env.NEXT_PUBLIC_AGENT_PORTAL_URL
   const hasAgentPortal = typeof agentPortalUrl === "string" && agentPortalUrl.length > 0
 
+  const effectiveUser = user || (authUser ? { name: authUser.full_name || authUser.email } : null)
+
   const profileInitials = useMemo(() => {
-    if (!user?.name) return null
-    const parts = user.name.trim().split(/\s+/)
+    if (!effectiveUser?.name) return null
+    const parts = effectiveUser.name.trim().split(/\s+/)
     if (parts.length === 0) return null
-    const initials = parts.slice(0, 2).map((part) => part[0]?.toUpperCase()).join("")
+    const initials = parts
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join("")
     return initials || null
-  }, [user?.name])
+  }, [effectiveUser?.name])
 
   return (
     <motion.header
@@ -85,13 +93,19 @@ export function SiteHeader({ navLinks, user }: SiteHeaderProps) {
             {/* Profile icon / initials */}
             <Link
               href="/profile"
-              aria-label={user ? "Open profile" : "Open profile (sign in required)"}
+              aria-label={isAuthenticated ? "Open profile" : "Open profile (sign in required)"}
               className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-foreground shadow-sm transition hover:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2"
+              onClick={(event: MouseEvent<HTMLAnchorElement>) => {
+                if (!isAuthenticated) {
+                  event.preventDefault()
+                  openAuthModal("login")
+                }
+              }}
             >
-              {user?.avatarUrl ? (
+              {effectiveUser?.avatarUrl ? (
                 <Image
-                  src={user.avatarUrl}
-                  alt={user.name || "User profile"}
+                  src={effectiveUser.avatarUrl}
+                  alt={effectiveUser.name || "User profile"}
                   width={32}
                   height={32}
                   className="h-8 w-8 rounded-full object-cover"
@@ -150,13 +164,20 @@ export function SiteHeader({ navLinks, user }: SiteHeaderProps) {
                   </a>
                 )}
 
-                <Link
-                  href="/profile"
-                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                  onClick={() => setMobileMenuOpen(false)}
+                <button
+                  type="button"
+                  className="text-left text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    if (isAuthenticated) {
+                      window.location.href = "/profile"
+                    } else {
+                      openAuthModal("login")
+                    }
+                  }}
                 >
                   Profile
-                </Link>
+                </button>
 
                 <Link
                   href="/help"
@@ -167,20 +188,26 @@ export function SiteHeader({ navLinks, user }: SiteHeaderProps) {
                 </Link>
 
                 <div className="flex flex-col gap-1.5 pt-2">
-                  <Link
-                    href="/login"
-                    className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                    onClick={() => setMobileMenuOpen(false)}
+                  <button
+                    type="button"
+                    className="text-left text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                    onClick={() => {
+                      setMobileMenuOpen(false)
+                      openAuthModal("login")
+                    }}
                   >
                     Log in
-                  </Link>
-                  <Link
-                    href="/signup"
-                    className="text-sm font-medium text-foreground transition-colors hover:text-foreground"
-                    onClick={() => setMobileMenuOpen(false)}
+                  </button>
+                  <button
+                    type="button"
+                    className="text-left text-sm font-medium text-foreground transition-colors hover:text-foreground"
+                    onClick={() => {
+                      setMobileMenuOpen(false)
+                      openAuthModal("register")
+                    }}
                   >
                     Sign up
-                  </Link>
+                  </button>
                 </div>
               </div>
             </nav>

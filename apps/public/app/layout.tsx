@@ -4,6 +4,8 @@ import { Geist_Mono, Poppins } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { GlobalErrorHandler } from "@/components/global-error-handler"
+import { AuthProvider } from "@/contexts/auth-context"
+import { AuthDialog } from "@/components/auth/auth-dialog"
 import "./globals.css"
 
 const poppins = Poppins({
@@ -69,9 +71,12 @@ export default function RootLayout({
           Skip to main content
         </a>
         <ErrorBoundary>
-          {children}
-          <GlobalErrorHandler />
-          <Analytics />
+          <AuthProvider>
+            {children}
+            <AuthDialog />
+            <GlobalErrorHandler />
+            <Analytics />
+          </AuthProvider>
         </ErrorBoundary>
       </body>
     </html>

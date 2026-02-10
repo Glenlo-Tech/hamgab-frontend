@@ -3,8 +3,7 @@
  * Lightweight wrapper around fetch with shared error handling
  */
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL
 
 export interface ApiResponse<T = any> {
   success: boolean
@@ -84,6 +83,23 @@ async function apiRequest<T = any>(
 export const apiClient = {
   get: <T = any>(endpoint: string): Promise<ApiResponse<T>> => {
     return apiRequest<T>(endpoint, { method: "GET" })
+  },
+  post: <T = any, B = any>(
+    endpoint: string,
+    body?: B,
+    options: RequestInit = {}
+  ): Promise<ApiResponse<T>> => {
+    const hasBody = body !== undefined
+
+    return apiRequest<T>(endpoint, {
+      ...options,
+      method: "POST",
+      body: hasBody ? JSON.stringify(body) : options.body,
+      headers: {
+        "Content-Type": "application/json",
+        ...(options.headers || {}),
+      },
+    })
   },
 }
 
